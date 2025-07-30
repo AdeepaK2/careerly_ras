@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import connect from "@/utils/db";
 import UndergradModel from "@/lib/models/undergraduate";
 import { verifyUndergradAuth } from "@/lib/auth/undergraduate/middleware";
-import { updateUndergraduateSchema } from "@/lib/modals/undergraduateScehma";
 
 // Get user profile (protected)
 export async function GET(request: NextRequest) {
@@ -10,11 +9,11 @@ export async function GET(request: NextRequest) {
     await connect();
     
     // Authenticate user
-    const authResult = await authenticateUndergradUser(request);
+    const authResult = await verifyUndergradAuth(request);
     if (!authResult.success || !authResult.user) {
       return NextResponse.json({
         success: false,
-        message: authResult.message
+        message: authResult.error || "Authentication failed"
       }, { status: 401 });
     }
     
@@ -68,11 +67,11 @@ export async function PUT(request: NextRequest) {
     await connect();
     
     // Authenticate user
-    const authResult = await authenticateUndergradUser(request);
+    const authResult = await verifyUndergradAuth(request);
     if (!authResult.success || !authResult.user) {
       return NextResponse.json({
         success: false,
-        message: authResult.message
+        message: authResult.error || "Authentication failed"
       }, { status: 401 });
     }
     
@@ -81,24 +80,15 @@ export async function PUT(request: NextRequest) {
     // Add user ID to the update data
     body.index = authResult.user.index; // Ensure index remains the same
     
-    // Validate update data
-    const validation = updateUndergraduateSchema.safeParse(body);
-    if (!validation.success) {
-      return NextResponse.json({
-        success: false,
-        message: "Validation failed",
-        errors: validation.error.issues
-      }, { status: 400 });
-    }
-    
-    const updateData = validation.data;
-    
-    // Remove fields that shouldn't be updated via this endpoint
+    // Basic validation - remove sensitive fields that shouldn't be updated
+    const updateData = { ...body };
     delete updateData.password;
     delete updateData.isVerified;
     delete updateData.refreshTokens;
     delete updateData.emailVerificationToken;
     delete updateData.passwordResetToken;
+    delete updateData._id;
+    delete updateData.id;
     
     // Update user
     const updatedUser = await UndergradModel.findByIdAndUpdate(

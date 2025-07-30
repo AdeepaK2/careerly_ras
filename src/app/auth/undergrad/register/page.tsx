@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function RegisterPage() {
+export default function UndergradRegisterPage() {
   const { register } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -92,7 +92,7 @@ export default function RegisterPage() {
               Register as Undergraduate
             </h2>
             <p className="mt-2 text-gray-600">
-              Create your account to access job opportunities
+              Create your student account to access job opportunities
             </p>
           </div>
 
@@ -321,7 +321,7 @@ export default function RegisterPage() {
 
             <div className="flex items-center justify-between pt-6">
               <Link
-                href="/auth/login"
+                href="/auth/undergrad/login"
                 className="text-blue-600 hover:text-blue-800 text-sm"
               >
                 Already have an account? Login here
@@ -336,6 +336,18 @@ export default function RegisterPage() {
               </button>
             </div>
           </form>
+        </div>
+
+        {/* Navigation to other user types */}
+        <div className="text-center mt-6">
+          <p className="text-sm text-gray-500 mb-4">
+            Are you an employer or admin?
+          </p>
+          <div className="space-x-4">
+            <Link href="/auth" className="text-blue-600 hover:text-blue-800 text-sm">
+              Choose User Type
+            </Link>
+          </div>
         </div>
       </div>
     </div>

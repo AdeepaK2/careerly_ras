@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function LoginPage() {
+export default function UndergradLoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -49,10 +49,10 @@ export default function LoginPage() {
         <div className="bg-white shadow-md rounded-lg p-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome Back
+              Undergraduate Login
             </h2>
             <p className="text-gray-600 mb-8">
-              Sign in to your undergraduate account
+              Sign in to your student account
             </p>
           </div>
 
@@ -107,7 +107,7 @@ export default function LoginPage() {
               </div>
 
               <div className="text-sm">
-                <Link href="/auth/forgot-password" className="text-blue-600 hover:text-blue-800">
+                <Link href="/auth/undergrad/forgot-password" className="text-blue-600 hover:text-blue-800">
                   Forgot your password?
                 </Link>
               </div>
@@ -133,12 +133,24 @@ export default function LoginPage() {
             <div className="text-center">
               <p className="text-sm text-gray-600">
                 Don't have an account?{' '}
-                <Link href="/auth/register" className="text-blue-600 hover:text-blue-800 font-medium">
+                <Link href="/auth/undergrad/register" className="text-blue-600 hover:text-blue-800 font-medium">
                   Register here
                 </Link>
               </p>
             </div>
           </form>
+        </div>
+
+        {/* Navigation to other user types */}
+        <div className="text-center">
+          <p className="text-sm text-gray-500 mb-4">
+            Are you an employer or admin?
+          </p>
+          <div className="space-x-4">
+            <Link href="/auth" className="text-blue-600 hover:text-blue-800 text-sm">
+              Choose User Type
+            </Link>
+          </div>
         </div>
 
         {/* Additional Info */}

@@ -85,13 +85,13 @@ export default function Home() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/auth/register"
+              href="/auth"
               className="bg-blue-600 text-white px-8 py-3 rounded-md text-lg font-medium hover:bg-blue-700 transition duration-200"
             >
-              Get Started as Student
+              Get Started
             </Link>
             <Link
-              href="/auth/login"
+              href="/auth"
               className="bg-gray-200 text-gray-900 px-8 py-3 rounded-md text-lg font-medium hover:bg-gray-300 transition duration-200"
             >
               Sign In
@@ -100,9 +100,9 @@ export default function Home() {
 
           <div className="mt-6">
             <p className="text-sm text-gray-500">
-              Already have an account?{' '}
-              <Link href="/auth/login" className="text-blue-600 hover:text-blue-800 font-medium">
-                Sign in here
+              Choose your account type to continue{' '}
+              <Link href="/auth" className="text-blue-600 hover:text-blue-800 font-medium">
+                Get started here
               </Link>
             </p>
           </div>

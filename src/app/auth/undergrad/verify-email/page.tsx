@@ -37,7 +37,7 @@ function VerifyEmailContent() {
         setMessage(data.message || 'Email verified successfully!');
         // Redirect to login after 3 seconds
         setTimeout(() => {
-          router.push('/auth/login');
+          router.push('/auth/undergrad/login');
         }, 3000);
       } else {
         if (data.message?.includes('expired')) {
@@ -88,7 +88,7 @@ function VerifyEmailContent() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h1 className="text-center text-3xl font-bold text-gray-900 mb-8">
-          Email Verification
+          Undergraduate Email Verification
         </h1>
         
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
@@ -112,7 +112,7 @@ function VerifyEmailContent() {
                 Redirecting to login page in 3 seconds...
               </p>
               <Link 
-                href="/auth/login"
+                href="/auth/undergrad/login"
                 className="mt-4 inline-block w-full bg-blue-600 text-white py-2 px-4 rounded-md text-center hover:bg-blue-700 transition duration-200"
               >
                 Go to Login
@@ -162,13 +162,13 @@ function VerifyEmailContent() {
               
               <div className="mt-6 space-y-3">
                 <Link 
-                  href="/auth/register"
+                  href="/auth/undergrad/register"
                   className="block w-full bg-blue-600 text-white py-2 px-4 rounded-md text-center hover:bg-blue-700 transition duration-200"
                 >
                   Register Again
                 </Link>
                 <Link 
-                  href="/auth/login"
+                  href="/auth/undergrad/login"
                   className="block w-full bg-gray-600 text-white py-2 px-4 rounded-md text-center hover:bg-gray-700 transition duration-200"
                 >
                   Back to Login
@@ -188,7 +188,7 @@ function VerifyEmailContent() {
   );
 }
 
-export default function VerifyEmailPage() {
+export default function UndergradVerifyEmailPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">

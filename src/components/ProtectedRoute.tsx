@@ -17,13 +17,13 @@ export default function ProtectedRoute({ children, requireVerified = false }: Pr
     if (!loading) {
       if (!user) {
         // Not logged in, redirect to login
-        router.push('/auth/login');
+        router.push('/auth/undergrad/login');
         return;
       }
 
       if (requireVerified && !user.isVerified) {
         // Account not verified, redirect to verification page
-        router.push('/auth/verify-email');
+        router.push('/auth/undergrad/verify-email');
         return;
       }
     }

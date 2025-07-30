@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     
     // Create verification link
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const verificationLink = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
+    const verificationLink = `${baseUrl}/auth/undergrad/verify-email?token=${verificationToken}`;
     
     // Send verification email
     const emailTemplate = emailTemplates.verification(user.name, verificationLink);
