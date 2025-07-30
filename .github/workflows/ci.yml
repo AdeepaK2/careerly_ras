@@ -109,7 +109,6 @@ jobs:
         echo "❌ CI Pipeline Failed!"
         echo "📋 Common issues to check:"
         echo "   • TypeScript compilation errors"
-        echo "   • ESLint violations"
         echo "   • Build failures"
         echo "   • Incorrect target branch (use 'dev', not 'main')"
         echo "   • Missing environment variables"
