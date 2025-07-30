@@ -18,6 +18,7 @@ A Next.js career platform connecting undergraduates with employers.
    R2_ENDPOINT=https://your-endpoint.r2.cloudflarestorage.com/bucket
    MAIL_ID=your-email@gmail.com
    MAIL_PW=your_gmail_app_password
+   X_API_KEY=your_system_api_key_for_validation
    ```
 
 3. Run development server:
@@ -61,6 +62,23 @@ import { sendEmail, emailTemplates } from "@/lib/services/emailService";
 ```
 
 ## 🔧 How to Use Core Features
+
+### **Authentication System**
+The platform has three levels of authentication:
+
+1. **User Authentication** - Students and employers
+2. **Admin Authentication** - Platform administrators  
+3. **System API Authentication** - For external system calls using `X-API-KEY`
+
+### **API Authentication:**
+```typescript
+// For system/external API calls, include X-API-KEY header
+const response = await fetch('/api/endpoint', {
+  headers: {
+    'X-API-KEY': process.env.X_API_KEY
+  }
+});
+```
 
 ### **Database Connection**
 ```typescript
