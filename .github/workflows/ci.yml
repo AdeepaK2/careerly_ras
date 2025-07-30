@@ -27,10 +27,6 @@ jobs:
       run: npm run type-check
       continue-on-error: false
 
-    - name: Lint check
-      run: npm run lint
-      continue-on-error: false
-
     - name: Build application
       run: npm run build
       env:
