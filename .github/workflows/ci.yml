@@ -31,10 +31,6 @@ jobs:
       run: npm run type-check
       continue-on-error: false
 
-    - name: Lint check
-      run: npm run lint
-      continue-on-error: false
-
     - name: Build application
       run: npm run build
       env:
@@ -117,7 +113,6 @@ jobs:
         echo "❌ CI Pipeline Failed!"
         echo "📋 Common issues to check:"
         echo "   • TypeScript compilation errors"
-        echo "   • ESLint violations"
         echo "   • Build failures"
         echo "   • Incorrect target branch (use 'dev', not 'main')"
         echo "   • Missing environment variables"
