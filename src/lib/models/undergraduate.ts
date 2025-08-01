@@ -50,16 +50,54 @@ const undergraduateSchema = new mongoose.Schema({
     faculty: {
       type: String,
       required: true,
-      trim: true
-    },
-    department: {
-      type: String,
-      required: true,
+      enum: [
+        'Faculty of Architecture',
+        'Faculty of Business',
+        'Faculty of Engineering',
+        'Faculty of Information Technology',
+        'Faculty of Medicine'
+      ],
       trim: true
     },
     degreeProgramme: {
       type: String,
       required: true,
+      enum: [
+        // Faculty of Architecture
+        'Bachelor of Architecture Honours',
+        'Bachelor of Landscape Architecture Honours',
+        'Bachelor of Design Honours',
+        'BSc (Hons) Town & Country Planning',
+        'BSc (Hons) Quantity Surveying',
+        'BSc (Hons) Facilities Management',
+        
+        // Faculty of Business
+        'Bachelor of Business Science Honours',
+        
+        // Faculty of Engineering
+        'BSc Engineering (Hons) Chemical & Process Engineering',
+        'BSc Engineering (Hons) Civil Engineering',
+        'BSc Engineering (Hons) Computer Science & Engineering',
+        'BSc Engineering (Hons) Earth Resources Engineering',
+        'BSc Engineering (Hons) Electrical Engineering',
+        'BSc Engineering (Hons) Electronic & Telecommunication Engineering',
+        'BSc Engineering (Hons) Biomedical Engineering',
+        'BSc Engineering (Hons) Material Science & Engineering',
+        'BSc Engineering (Hons) Mechanical Engineering',
+        'BSc Engineering (Hons) Textile & Apparel Engineering',
+        'BSc Engineering (Hons) Transport Management & Logistics Engineering',
+        'Bachelor of Design Honours in Fashion Design & Product Development',
+        'BSc (Hons) Transport and Logistics Management',
+        
+        // Faculty of Information Technology
+        'BSc (Hons) Information Technology',
+        'BSc (Hons) Information Technology & Management',
+        'BSc (Hons) Artificial Intelligence',
+        'Bachelor of Information Technology External Degree',
+        
+        // Faculty of Medicine
+        'Bachelor of Medicine and Bachelor of Surgery'
+      ],
       trim: true
     }
   },
@@ -170,7 +208,6 @@ undergraduateSchema.index({ universityEmail: 1 });
 undergraduateSchema.index({ index: 1 });
 undergraduateSchema.index({ batch: 1 });
 undergraduateSchema.index({ 'education.faculty': 1 });
-undergraduateSchema.index({ 'education.department': 1 });
 undergraduateSchema.index({ jobSearchingStatus: 1 });
 
 // Virtual for account lock status
