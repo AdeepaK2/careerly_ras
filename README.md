@@ -18,6 +18,11 @@ A Next.js career platform connecting undergraduates with employers featuring JWT
    UNDERGRAD_REFRESH_SECRET=your_refresh_secret_key
    UNDERGRAD_EMAIL_VERIFICATION_SECRET=your_email_verification_secret
    
+   # JWT Secrets for Company Authentication
+   COMPANY_JWT_SECRET=your_company_jwt_secret_key
+   COMPANY_REFRESH_SECRET=your_company_refresh_secret_key
+   COMPANY_EMAIL_VERIFICATION_SECRET=your_company_email_verification_secret
+   
    # R2 Storage (Cloudflare)
    R2_ACCESS_KEY_ID=your_r2_access_key
    R2_SECRET_ACCESS_KEY=your_r2_secret
