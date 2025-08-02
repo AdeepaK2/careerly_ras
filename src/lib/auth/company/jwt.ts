@@ -3,7 +3,7 @@ import { CompanyJWTPayload, CompanyAuthTokens } from './types';
 
 // JWT Secrets from environment variables
 const ACCESS_TOKEN_SECRET = process.env.COMPANY_JWT_SECRET || 'company_jwt_secret_fallback';
-const REFRESH_TOKEN_SECRET = process.env.COMPANY_REFRESH_SECRET || 'company_refresh_secret_fallback';
+const REFRESH_TOKEN_SECRET = process.env.COMPANY_JWT_SECRET || 'company_jwt_secret_fallback';
 const EMAIL_VERIFICATION_SECRET = process.env.COMPANY_EMAIL_VERIFICATION_SECRET || 'company_email_verification_secret_fallback';
 
 // Token expiration times
@@ -22,7 +22,11 @@ export function generateCompanyTokens(payload: CompanyJWTPayload): CompanyAuthTo
   });
 
   const refreshToken = jwt.sign(
-    { id: payload.id, type: payload.type },
+    { 
+      id: payload.id, 
+      type: payload.type,
+      tokenType: 'refresh'
+    },
     REFRESH_TOKEN_SECRET,
     {
       expiresIn: REFRESH_TOKEN_EXPIRES_IN,
@@ -54,12 +58,12 @@ export function verifyCompanyAccessToken(token: string): CompanyJWTPayload | nul
 /**
  * Verify and decode refresh token
  */
-export function verifyCompanyRefreshToken(token: string): { id: string; type: string } | null {
+export function verifyCompanyRefreshToken(token: string): { id: string; type: string; tokenType: string } | null {
   try {
     const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET, {
       issuer: 'careerly-company-auth',
       audience: 'careerly-platform'
-    }) as { id: string; type: string };
+    }) as { id: string; type: string; tokenType: string };
     
     return decoded;
   } catch (error) {
