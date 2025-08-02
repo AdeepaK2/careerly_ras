@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+//import ProtectedRoute from '@/components/ProtectedRoute';
 import Navbar from '@/components/undergradSystem/Navbar';
 import HomeTab from '@/components/undergradSystem/tabs/HomeTab';
 import JobOpportunitiesTab from '@/components/undergradSystem/tabs/JobOpportunitiesTab';
@@ -27,7 +27,7 @@ export default function UndergradDashboard() {
   };
 
   return (
-    <ProtectedRoute>
+  
       <div className="min-h-screen bg-gray-50">
         {/* Top Navigation */}
         <Navbar activeTab={activeTab} onTabChange={setActiveTab} />
@@ -37,6 +37,6 @@ export default function UndergradDashboard() {
           {renderActiveTab()}
         </main>
       </div>
-    </ProtectedRoute>
+   
   );
 }

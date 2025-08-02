@@ -16,6 +16,7 @@
     "bcryptjs": "^3.0.2",
     "client-s3": "github:aws-sdk/client-s3",
     "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.535.0",
     "mongodb": "^6.18.0",
     "mongoose": "^8.16.5",
     "next": "15.4.4",
