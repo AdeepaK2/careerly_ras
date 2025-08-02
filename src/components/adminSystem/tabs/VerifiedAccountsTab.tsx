@@ -278,10 +278,8 @@ export default function VerifiedAccountsTab() {
         <div className="p-6 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Account Management</h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Manage and monitor all company and student accounts
-              </p>
+              <h2 className="text-xl font-semibold text-gray-900">Account verification Management</h2>
+             
             </div>
             
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
