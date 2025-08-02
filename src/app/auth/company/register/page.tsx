@@ -403,7 +403,7 @@ export default function CompanyRegisterPage() {
                     value={formData.contactPerson.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300  text-gray-900 text-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300  text-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="john@company.com"
                   />
                 </div>
