@@ -4,11 +4,14 @@ import CompanyModel from "@/lib/models/company";
 import UndergraduateModel from "@/lib/models/undergraduate";
 // import { withAdminAuth } from "@/lib/auth/admin/middleware";
 
-async function patchHandler(request: NextRequest, { params }: { params: { id: string } }) {
+async function patchHandler(
+  request: NextRequest, 
+  context: { params: Promise<{ id: string }> }
+) {
   try {
     await connect();
     
-    const { id } = params;
+    const { id } = await context.params;
     const body = await request.json();
     const { action, accountType } = body; // action: 'verify' | 'unverify'
     
