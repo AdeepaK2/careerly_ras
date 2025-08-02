@@ -10,6 +10,54 @@ export default function UndergradRegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Faculty and degree programme data
+  const faculties = [
+    'Faculty of Architecture',
+    'Faculty of Business',
+    'Faculty of Engineering',
+    'Faculty of Information Technology',
+    'Faculty of Medicine'
+  ];
+
+  const degreePrograms = {
+    'Faculty of Architecture': [
+      'Bachelor of Architecture Honours',
+      'Bachelor of Landscape Architecture Honours',
+      'Bachelor of Design Honours',
+      'BSc (Hons) Town & Country Planning',
+      'BSc (Hons) Quantity Surveying',
+      'BSc (Hons) Facilities Management'
+    ],
+    'Faculty of Business': [
+      'Bachelor of Business Science Honours'
+    ],
+    'Faculty of Engineering': [
+      'BSc Engineering (Hons) Chemical & Process Engineering',
+      'BSc Engineering (Hons) Civil Engineering',
+      'BSc Engineering (Hons) Computer Science & Engineering',
+      'BSc Engineering (Hons) Earth Resources Engineering',
+      'BSc Engineering (Hons) Electrical Engineering',
+      'BSc Engineering (Hons) Electronic & Telecommunication Engineering',
+      'BSc Engineering (Hons) Biomedical Engineering',
+      'BSc Engineering (Hons) Material Science & Engineering',
+      'BSc Engineering (Hons) Mechanical Engineering',
+      'BSc Engineering (Hons) Textile & Apparel Engineering',
+      'BSc Engineering (Hons) Transport Management & Logistics Engineering',
+      'Bachelor of Design Honours in Fashion Design & Product Development',
+      'BSc (Hons) Transport and Logistics Management'
+    ],
+    'Faculty of Information Technology': [
+      'BSc (Hons) Information Technology',
+      'BSc (Hons) Information Technology & Management',
+      'BSc (Hons) Artificial Intelligence',
+      'Bachelor of Information Technology External Degree'
+    ],
+    'Faculty of Medicine': [
+      'Bachelor of Medicine and Bachelor of Surgery'
+    ]
+  };
+
   const [formData, setFormData] = useState({
     index: '',
     name: '',
@@ -20,7 +68,6 @@ export default function UndergradRegisterPage() {
     batch: '',
     education: {
       faculty: '',
-      department: '',
       degreeProgramme: ''
     },
     birthdate: '',
@@ -33,13 +80,22 @@ export default function UndergradRegisterPage() {
     
     if (name.startsWith('education.')) {
       const field = name.split('.')[1];
-      setFormData(prev => ({
-        ...prev,
-        education: {
+      setFormData(prev => {
+        const newEducation = {
           ...prev.education,
           [field]: value
+        };
+        
+        // Reset degree programme when faculty changes
+        if (field === 'faculty') {
+          newEducation.degreeProgramme = '';
         }
-      }));
+        
+        return {
+          ...prev,
+          education: newEducation
+        };
+      });
     } else {
       setFormData(prev => ({
         ...prev,
@@ -186,50 +242,48 @@ export default function UndergradRegisterPage() {
             {/* Education Details */}
             <div className="border-t pt-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Education Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Faculty *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="education.faculty"
                     value={formData.education.faculty}
                     onChange={handleChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Engineering"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Department *
-                  </label>
-                  <input
-                    type="text"
-                    name="education.department"
-                    value={formData.education.department}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Computer Science"
-                  />
+                  >
+                    <option value="">Select Faculty</option>
+                    {faculties.map((faculty) => (
+                      <option key={faculty} value={faculty}>
+                        {faculty}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Degree Programme *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="education.degreeProgramme"
                     value={formData.education.degreeProgramme}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="BSc Computer Science"
-                  />
+                    disabled={!formData.education.faculty}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  >
+                    <option value="">
+                      {formData.education.faculty ? 'Select Degree Programme' : 'Select Faculty First'}
+                    </option>
+                    {formData.education.faculty && degreePrograms[formData.education.faculty as keyof typeof degreePrograms]?.map((program) => (
+                      <option key={program} value={program}>
+                        {program}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>

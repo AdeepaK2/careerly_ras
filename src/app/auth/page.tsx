@@ -50,13 +50,13 @@ export default function AuthSelectPage() {
             </div>
           </div>
 
-          {/* Employer Option (Coming Soon) */}
-          <div className="bg-white rounded-lg shadow-md border border-gray-200 opacity-60">
+          {/* Employer Option */}
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 hover:border-blue-500 transition duration-200">
             <div className="p-6">
               <div className="flex items-center mb-4">
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                   </div>
@@ -68,12 +68,18 @@ export default function AuthSelectPage() {
               </div>
               
               <div className="space-y-3">
-                <button 
-                  disabled
-                  className="block w-full bg-gray-300 text-gray-500 py-2 px-4 rounded-md text-center cursor-not-allowed"
+                <Link 
+                  href="/auth/company/login"
+                  className="block w-full bg-blue-600 text-white py-2 px-4 rounded-md text-center hover:bg-blue-700 transition duration-200"
                 >
-                  Coming Soon
-                </button>
+                  Company Login
+                </Link>
+                <Link 
+                  href="/auth/company/register"
+                  className="block w-full bg-white text-blue-600 border border-blue-600 py-2 px-4 rounded-md text-center hover:bg-blue-50 transition duration-200"
+                >
+                  Company Register
+                </Link>
               </div>
             </div>
           </div>
