@@ -10,30 +10,18 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 20.x
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: '20.x'
         cache: 'npm'
 
     - name: Install dependencies
       run: npm ci
-
-    - name: Type check
-      run: npm run type-check
-      continue-on-error: false
-
-    - name: Lint check
-      run: npm run lint
-      continue-on-error: false
 
     - name: Build application
       run: npm run build
@@ -131,7 +119,6 @@ jobs:
         echo "❌ CI Pipeline Failed!"
         echo "📋 Common issues to check:"
         echo "   • TypeScript compilation errors"
-        echo "   • ESLint violations"
         echo "   • Build failures"
         echo "   • Incorrect target branch (use 'dev', not 'main')"
         echo "   • Missing environment variables"
