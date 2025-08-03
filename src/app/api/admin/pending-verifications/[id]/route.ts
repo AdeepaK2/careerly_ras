@@ -137,6 +137,24 @@ export async function PATCH(request: NextRequest, context: { params: Promise<Par
         }
         break;
 
+      case 'verify_document':
+        if (body.documentIndex !== undefined) {
+          const documentIndex = body.documentIndex;
+          updateData = {
+            [`verificationDocuments.${documentIndex}.isVerified`]: true
+          };
+        }
+        break;
+
+      case 'unverify_document':
+        if (body.documentIndex !== undefined) {
+          const documentIndex = body.documentIndex;
+          updateData = {
+            [`verificationDocuments.${documentIndex}.isVerified`]: false
+          };
+        }
+        break;
+
       default:
         return NextResponse.json({
           success: false,

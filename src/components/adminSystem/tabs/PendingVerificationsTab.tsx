@@ -20,7 +20,8 @@ import {
   ChevronDown,
   Send,
   Flag,
-  Upload
+  Upload,
+  Download
 } from 'lucide-react';
 
 interface VerificationRequest {
@@ -38,6 +39,14 @@ interface VerificationRequest {
     note: string;
     addedBy: string;
     addedAt: string;
+  }>;
+  verificationDocuments?: Array<{
+    name: string;
+    url: string;
+    type: string;
+    isRequired?: boolean;
+    isVerified?: boolean;
+    uploadedAt: string;
   }>;
   hasDocuments: boolean;
   // Company specific fields
@@ -111,6 +120,10 @@ export default function PendingVerificationsTab() {
   const [newNote, setNewNote] = useState('');
   const [showPriorityModal, setShowPriorityModal] = useState(false);
   const [newPriority, setNewPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [detailedRequest, setDetailedRequest] = useState<any>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [showDocuments, setShowDocuments] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
 
   const fetchRequests = async (page = 1, type = filterType, status = filterStatus, priority = filterPriority, search = searchTerm) => {
     try {
@@ -130,6 +143,26 @@ export default function PendingVerificationsTab() {
       console.error('Error fetching verification requests:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDetailedRequest = async (requestId: string) => {
+    try {
+      setLoadingDetails(true);
+      const response = await fetch(`/api/admin/pending-verifications/${requestId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setDetailedRequest(data.data);
+      } else {
+        console.error('Failed to fetch detailed request:', data.message);
+        alert('Failed to load detailed information');
+      }
+    } catch (error) {
+      console.error('Error fetching detailed request:', error);
+      alert('Failed to load detailed information');
+    } finally {
+      setLoadingDetails(false);
     }
   };
 
@@ -192,6 +225,11 @@ export default function PendingVerificationsTab() {
         // Refresh stats
         fetchStats();
         
+        // If detailed view is open, refresh it
+        if (showDetails && selectedRequest?._id === request._id) {
+          await fetchDetailedRequest(request._id);
+        }
+        
         // Close modals
         setShowNoteModal(false);
         setShowPriorityModal(false);
@@ -243,6 +281,18 @@ export default function PendingVerificationsTab() {
   const getDaysWaiting = (dateString: string) => {
     const days = Math.floor((new Date().getTime() - new Date(dateString).getTime()) / (1000 * 60 * 60 * 24));
     return days;
+  };
+
+  const formatDocumentType = (type: string) => {
+    const typeMap: { [key: string]: string } = {
+      'student_id': 'Student ID Card',
+      'enrollment_certificate': 'Enrollment Certificate',
+      'transcript': 'Academic Transcript',
+      'business_registration': 'Business Registration',
+      'company_license': 'Company License',
+      'other': 'Other Document'
+    };
+    return typeMap[type] || type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
   return (
@@ -479,9 +529,10 @@ export default function PendingVerificationsTab() {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             setSelectedRequest(request);
                             setShowDetails(true);
+                            await fetchDetailedRequest(request._id);
                           }}
                           className="text-blue-600 hover:text-blue-900 p-1"
                           title="View Details"
@@ -489,7 +540,7 @@ export default function PendingVerificationsTab() {
                           <Eye className="h-4 w-4" />
                         </button>
                         
-                        {request.verificationStatus === 'pending' && (
+                        {!['approved'].includes(request.verificationStatus) && (
                           <>
                             <button
                               onClick={() => handleAction(request, 'approve')}
@@ -505,7 +556,12 @@ export default function PendingVerificationsTab() {
                             </button>
                             
                             <button
-                              onClick={() => handleAction(request, 'reject', { notes: 'Verification rejected' })}
+                              onClick={() => {
+                                const reason = prompt('Reason for rejection:');
+                                if (reason) {
+                                  handleAction(request, 'reject', { notes: reason });
+                                }
+                              }}
                               disabled={actionLoading === request._id}
                               className="text-red-600 hover:text-red-900 p-1"
                               title="Reject"
@@ -613,153 +669,411 @@ export default function PendingVerificationsTab() {
         )}
       </div>
 
-      {/* Request Details Modal */}
+      {/* Enhanced Request Details Modal */}
       {showDetails && selectedRequest && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+          <div className="relative top-10 mx-auto p-5 border w-11/12 md:w-5/6 lg:w-4/5 xl:w-3/4 shadow-lg rounded-md bg-white">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium text-gray-900">Verification Request Details</h3>
               <button
-                onClick={() => setShowDetails(false)}
+                onClick={() => {
+                  setShowDetails(false);
+                  setDetailedRequest(null);
+                  setShowDocuments(false);
+                  setShowMessages(false);
+                }}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <XCircle className="h-6 w-6" />
               </button>
             </div>
             
-            <div className="space-y-6 max-h-96 overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Account Type</label>
-                  <p className="mt-1 text-sm text-gray-900 capitalize">{selectedRequest.accountType}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Current Status</label>
-                  <div className="mt-1">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedRequest.verificationStatus)}`}>
-                      {selectedRequest.verificationStatus.replace('_', ' ').charAt(0).toUpperCase() + selectedRequest.verificationStatus.replace('_', ' ').slice(1)}
-                    </span>
-                  </div>
-                </div>
+            {loadingDetails ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="ml-3 text-gray-600">Loading details...</span>
               </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Navigation Tabs */}
+                <div className="border-b border-gray-200">
+                  <nav className="-mb-px flex space-x-8">
+                    <button
+                      onClick={() => { setShowDocuments(false); setShowMessages(false); }}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                        !showDocuments && !showMessages
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      Basic Info
+                    </button>
+                    <button
+                      onClick={() => { setShowDocuments(true); setShowMessages(false); }}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                        showDocuments
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      Documents ({detailedRequest?.verificationDocuments?.length || 0})
+                    </button>
+                    <button
+                      onClick={() => { setShowDocuments(false); setShowMessages(true); }}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                        showMessages
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      Messages ({detailedRequest?.verificationNotes?.length || 0})
+                    </button>
+                  </nav>
+                </div>
 
-              {selectedRequest.accountType === 'company' ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Company Name</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedRequest.companyName}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Industry</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedRequest.industry}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Contact Person</label>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {selectedRequest.contactPerson?.name} ({selectedRequest.contactPerson?.email})
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Student Name</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedRequest.name}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Index Number</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedRequest.index}</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Faculty</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedRequest.education?.faculty}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Batch</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedRequest.batch}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Requested Date</label>
-                  <p className="mt-1 text-sm text-gray-900">{formatDate(selectedRequest.verificationRequestedAt)}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Days Waiting</label>
-                  <p className="mt-1 text-sm text-gray-900">{getDaysWaiting(selectedRequest.verificationRequestedAt)} days</p>
-                </div>
-              </div>
-
-              {selectedRequest.verificationNotes && selectedRequest.verificationNotes.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Verification Notes</label>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {selectedRequest.verificationNotes.map((note, index) => (
-                      <div key={index} className="bg-gray-50 p-3 rounded-md">
-                        <p className="text-sm text-gray-900">{note.note}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          By {note.addedBy} on {formatDate(note.addedAt)}
-                        </p>
+                <div className="max-h-96 overflow-y-auto">
+                  {/* Basic Information Tab */}
+                  {!showDocuments && !showMessages && (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Account Type</label>
+                          <p className="mt-1 text-sm text-gray-900 capitalize">{selectedRequest.accountType}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Current Status</label>
+                          <div className="mt-1">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedRequest.verificationStatus)}`}>
+                              {selectedRequest.verificationStatus.replace('_', ' ').charAt(0).toUpperCase() + selectedRequest.verificationStatus.replace('_', ' ').slice(1)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    ))}
+
+                      {selectedRequest.accountType === 'company' ? (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Company Name</label>
+                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.companyName || selectedRequest.companyName}</p>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Industry</label>
+                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.industry || selectedRequest.industry}</p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Business Email</label>
+                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.businessEmail}</p>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Registration Number</label>
+                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.registrationNumber}</p>
+                            </div>
+                          </div>
+                          {detailedRequest?.contactPerson && (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Contact Person</label>
+                              <p className="mt-1 text-sm text-gray-900">
+                                {detailedRequest.contactPerson.name} ({detailedRequest.contactPerson.email})
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Student Name</label>
+                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.name || selectedRequest.name}</p>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Index Number</label>
+                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.index || selectedRequest.index}</p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">University Email</label>
+                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.universityEmail}</p>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Batch</label>
+                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.batch || selectedRequest.batch}</p>
+                            </div>
+                          </div>
+                          {detailedRequest?.education && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700">Faculty</label>
+                                <p className="mt-1 text-sm text-gray-900">{detailedRequest.education.faculty}</p>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700">Degree Programme</label>
+                                <p className="mt-1 text-sm text-gray-900">{detailedRequest.education.degreeProgramme}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Requested Date</label>
+                          <p className="mt-1 text-sm text-gray-900">{formatDate(selectedRequest.verificationRequestedAt)}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Days Waiting</label>
+                          <p className="mt-1 text-sm text-gray-900">{getDaysWaiting(selectedRequest.verificationRequestedAt)} days</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Priority</label>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(selectedRequest.verificationPriority)}`}>
+                            {selectedRequest.verificationPriority.charAt(0).toUpperCase() + selectedRequest.verificationPriority.slice(1)}
+                          </span>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Documents Status</label>
+                          <div className="flex items-center mt-1">
+                            {detailedRequest?.verificationDocuments?.length > 0 ? (
+                              <>
+                                <FileText className="h-4 w-4 text-green-500 mr-1" />
+                                <span className="text-sm text-green-800">{detailedRequest.verificationDocuments.length} uploaded</span>
+                              </>
+                            ) : (
+                              <>
+                                <AlertCircle className="h-4 w-4 text-red-500 mr-1" />
+                                <span className="text-sm text-red-800">No documents</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Documents Tab */}
+                  {showDocuments && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-lg font-medium text-gray-900">Uploaded Documents</h4>
+                        <span className="text-sm text-gray-500">
+                          {detailedRequest?.verificationDocuments?.length || 0} documents uploaded
+                        </span>
+                      </div>
+                      
+                      {detailedRequest?.verificationDocuments?.length > 0 ? (
+                        <div className="space-y-3">
+                          {detailedRequest.verificationDocuments.map((doc: any, index: number) => (
+                            <div key={index} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <div className="flex-shrink-0">
+                                    <FileText className="h-8 w-8 text-blue-500" />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-900">{doc.name}</p>
+                                    <p className="text-xs text-gray-500">
+                                      Type: {formatDocumentType(doc.type)} • Uploaded: {formatDate(doc.uploadedAt)}
+                                    </p>
+                                    {doc.isRequired && (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 mt-1">
+                                        Required
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  {doc.isVerified ? (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                      Verified
+                                    </span>
+                                  ) : (
+                                    <button
+                                      onClick={async () => {
+                                        await handleAction(selectedRequest, 'verify_document', { documentIndex: index });
+                                      }}
+                                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-green-100 hover:text-green-800"
+                                    >
+                                      Mark Verified
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => {
+                                      const downloadUrl = `/api/file/download?url=${encodeURIComponent(doc.url)}`;
+                                      window.open(downloadUrl, '_blank');
+                                    }}
+                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium inline-flex items-center"
+                                  >
+                                    <Download className="h-3 w-3 mr-1" />
+                                    Download
+                                  </button>
+                                  <button
+                                    onClick={() => window.open(doc.url, '_blank')}
+                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                  >
+                                    View
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <FileText className="mx-auto h-12 w-12 text-gray-300" />
+                          <h3 className="mt-2 text-sm font-medium text-gray-900">No documents uploaded</h3>
+                          <p className="mt-1 text-sm text-gray-500">This user hasn't uploaded any verification documents yet.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Messages Tab */}
+                  {showMessages && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-lg font-medium text-gray-900">Verification Messages</h4>
+                        <button
+                          onClick={() => {
+                            setSelectedRequest(selectedRequest);
+                            setShowNoteModal(true);
+                          }}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        >
+                          <MessageSquare className="h-3 w-3 mr-1" />
+                          Add Message
+                        </button>
+                      </div>
+                      
+                      {detailedRequest?.verificationNotes?.length > 0 ? (
+                        <div className="space-y-4">
+                          {detailedRequest.verificationNotes
+                            .sort((a: any, b: any) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime())
+                            .map((note: any, index: number) => (
+                            <div key={index} className={`p-4 rounded-lg ${
+                              note.addedBy === 'admin' ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-gray-50 border-l-4 border-gray-300'
+                            }`}>
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <p className="text-sm text-gray-900">{note.note}</p>
+                                  <p className="text-xs text-gray-500 mt-2">
+                                    {note.addedBy === 'admin' ? (
+                                      <span className="inline-flex items-center">
+                                        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs font-medium mr-2">
+                                          Admin
+                                        </span>
+                                        {formatDate(note.addedAt)}
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center">
+                                        <span className="bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full text-xs font-medium mr-2">
+                                          User
+                                        </span>
+                                        {formatDate(note.addedAt)}
+                                      </span>
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <MessageSquare className="mx-auto h-12 w-12 text-gray-300" />
+                          <h3 className="mt-2 text-sm font-medium text-gray-900">No messages yet</h3>
+                          <p className="mt-1 text-sm text-gray-500">Start a conversation with the user about their verification.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap gap-2">
+                      {!['approved'].includes(selectedRequest.verificationStatus) && (
+                        <>
+                          <button
+                            onClick={() => {
+                              handleAction(selectedRequest, 'approve');
+                              setShowDetails(false);
+                            }}
+                            disabled={actionLoading === selectedRequest._id}
+                            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+                          >
+                            {actionLoading === selectedRequest._id ? (
+                              <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                            ) : (
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                            )}
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => {
+                              const reason = prompt('Reason for rejection:');
+                              if (reason) {
+                                handleAction(selectedRequest, 'reject', { notes: reason });
+                                setShowDetails(false);
+                              }
+                            }}
+                            disabled={actionLoading === selectedRequest._id}
+                            className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Reject
+                          </button>
+                          <button
+                            onClick={() => {
+                              const info = prompt('Additional information required:');
+                              if (info) {
+                                handleAction(selectedRequest, 'request_more_info', { notes: info });
+                                setShowDetails(false);
+                              }
+                            }}
+                            disabled={actionLoading === selectedRequest._id}
+                            className="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-md text-sm font-medium hover:bg-yellow-700 disabled:opacity-50"
+                          >
+                            <AlertTriangle className="h-4 w-4 mr-2" />
+                            Request Info
+                          </button>
+                        </>
+                      )}
+                      
+                      <button
+                        onClick={() => {
+                          setSelectedRequest(selectedRequest);
+                          setNewPriority(selectedRequest.verificationPriority);
+                          setShowPriorityModal(true);
+                        }}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50"
+                      >
+                        <Flag className="h-4 w-4 mr-2" />
+                        Set Priority
+                      </button>
+                    </div>
+                    
+                    <button
+                      onClick={() => {
+                        setShowDetails(false);
+                        setDetailedRequest(null);
+                        setShowDocuments(false);
+                        setShowMessages(false);
+                      }}
+                      className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                      Close
+                    </button>
                   </div>
                 </div>
-              )}
-            </div>
-
-            <div className="mt-6 flex justify-end gap-3">
-              {selectedRequest.verificationStatus === 'pending' && (
-                <>
-                  <button
-                    onClick={() => {
-                      handleAction(selectedRequest, 'approve');
-                      setShowDetails(false);
-                    }}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => {
-                      const reason = prompt('Reason for rejection:');
-                      if (reason) {
-                        handleAction(selectedRequest, 'reject', { notes: reason });
-                        setShowDetails(false);
-                      }
-                    }}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700"
-                  >
-                    Reject
-                  </button>
-                  <button
-                    onClick={() => {
-                      const info = prompt('Additional information required:');
-                      if (info) {
-                        handleAction(selectedRequest, 'request_more_info', { notes: info });
-                        setShowDetails(false);
-                      }
-                    }}
-                    className="px-4 py-2 bg-yellow-600 text-white rounded-md text-sm font-medium hover:bg-yellow-700"
-                  >
-                    Request Info
-                  </button>
-                </>
-              )}
-              <button
-                onClick={() => setShowDetails(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Close
-              </button>
-            </div>
+              </div>
+            )}
           </div>
         </div>
       )}
