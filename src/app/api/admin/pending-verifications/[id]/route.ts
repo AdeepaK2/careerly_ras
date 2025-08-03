@@ -96,7 +96,15 @@ export async function PATCH(request: NextRequest, context: { params: Promise<Par
 
       case 'request_more_info':
         updateData = {
-          verificationStatus: 'under_review'
+          verificationStatus: 'under_review',
+          $push: {
+            verificationNotes: {
+              note: notes || 'Additional information requested by admin',
+              addedBy: 'admin',
+              addedAt: new Date(),
+              isRequest: true // Flag to identify this as an admin request
+            }
+          }
         };
         break;
 

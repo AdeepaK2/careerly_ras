@@ -123,6 +123,8 @@ export default function PendingVerificationsTab() {
   const [detailedRequest, setDetailedRequest] = useState<any>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [showDocuments, setShowDocuments] = useState(false);
+  const [showRequestInfoModal, setShowRequestInfoModal] = useState(false);
+  const [requestInfoMessage, setRequestInfoMessage] = useState('');
   const [showMessages, setShowMessages] = useState(false);
 
   const fetchRequests = async (page = 1, type = filterType, status = filterStatus, priority = filterPriority, search = searchTerm) => {
@@ -746,6 +748,26 @@ export default function PendingVerificationsTab() {
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedRequest.verificationStatus)}`}>
                               {selectedRequest.verificationStatus.replace('_', ' ').charAt(0).toUpperCase() + selectedRequest.verificationStatus.replace('_', ' ').slice(1)}
                             </span>
+                            {selectedRequest.verificationStatus === 'under_review' && (
+                              <p className="mt-1 text-xs text-gray-600">
+                                📋 Admin is reviewing and may have requested additional information
+                              </p>
+                            )}
+                            {selectedRequest.verificationStatus === 'pending' && (
+                              <p className="mt-1 text-xs text-gray-600">
+                                ⏳ Waiting for admin review
+                              </p>
+                            )}
+                            {selectedRequest.verificationStatus === 'approved' && (
+                              <p className="mt-1 text-xs text-gray-600">
+                                ✅ Account has been verified
+                              </p>
+                            )}
+                            {selectedRequest.verificationStatus === 'rejected' && (
+                              <p className="mt-1 text-xs text-gray-600">
+                                ❌ Verification request was declined
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -956,7 +978,9 @@ export default function PendingVerificationsTab() {
                             .sort((a: any, b: any) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime())
                             .map((note: any, index: number) => (
                             <div key={index} className={`p-4 rounded-lg ${
-                              note.addedBy === 'admin' ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-gray-50 border-l-4 border-gray-300'
+                              note.addedBy === 'admin' 
+                                ? (note.isRequest ? 'bg-yellow-50 border-l-4 border-yellow-500' : 'bg-blue-50 border-l-4 border-blue-500')
+                                : 'bg-gray-50 border-l-4 border-gray-300'
                             }`}>
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
@@ -964,15 +988,19 @@ export default function PendingVerificationsTab() {
                                   <p className="text-xs text-gray-500 mt-2">
                                     {note.addedBy === 'admin' ? (
                                       <span className="inline-flex items-center">
-                                        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs font-medium mr-2">
-                                          Admin
+                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium mr-2 ${
+                                          note.isRequest 
+                                            ? 'bg-yellow-100 text-yellow-800' 
+                                            : 'bg-blue-100 text-blue-800'
+                                        }`}>
+                                          {note.isRequest ? 'Admin Request' : 'Admin'}
                                         </span>
                                         {formatDate(note.addedAt)}
                                       </span>
                                     ) : (
                                       <span className="inline-flex items-center">
                                         <span className="bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full text-xs font-medium mr-2">
-                                          User
+                                          User Response
                                         </span>
                                         {formatDate(note.addedAt)}
                                       </span>
@@ -1031,11 +1059,8 @@ export default function PendingVerificationsTab() {
                           </button>
                           <button
                             onClick={() => {
-                              const info = prompt('Additional information required:');
-                              if (info) {
-                                handleAction(selectedRequest, 'request_more_info', { notes: info });
-                                setShowDetails(false);
-                              }
+                              setSelectedRequest(selectedRequest);
+                              setShowRequestInfoModal(true);
                             }}
                             disabled={actionLoading === selectedRequest._id}
                             className="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-md text-sm font-medium hover:bg-yellow-700 disabled:opacity-50"
@@ -1168,6 +1193,120 @@ export default function PendingVerificationsTab() {
               </button>
               <button
                 onClick={() => setShowPriorityModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Request Additional Info Modal */}
+      {showRequestInfoModal && selectedRequest && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Request Additional Information</h3>
+              <button
+                onClick={() => {
+                  setShowRequestInfoModal(false);
+                  setRequestInfoMessage('');
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <AlertTriangle className="h-5 w-5 text-yellow-400" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-yellow-800">
+                      About Request Info Action
+                    </h3>
+                    <div className="mt-2 text-sm text-yellow-700">
+                      <p>
+                        This will change the verification status to "Under Review" and send an email to the user 
+                        explaining what additional information or documents they need to provide. 
+                        The user will be able to respond by uploading more documents or sending messages.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message to User <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={requestInfoMessage}
+                  onChange={(e) => setRequestInfoMessage(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                  placeholder="Specify what additional information or documents are needed..."
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Be specific about what documents, information, or clarifications you need from the user.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Common Request Examples:</h4>
+                <div className="grid grid-cols-1 gap-2">
+                  <button
+                    onClick={() => setRequestInfoMessage("Please provide a clearer photo of your student ID card. The current image is too blurry to verify the details.")}
+                    className="text-left px-3 py-2 text-sm bg-gray-50 hover:bg-gray-100 rounded-md border"
+                  >
+                    Request clearer student ID photo
+                  </button>
+                  <button
+                    onClick={() => setRequestInfoMessage("Please upload your enrollment certificate for the current academic year. This document is required to verify your student status.")}
+                    className="text-left px-3 py-2 text-sm bg-gray-50 hover:bg-gray-100 rounded-md border"
+                  >
+                    Request enrollment certificate
+                  </button>
+                  <button
+                    onClick={() => setRequestInfoMessage("Please provide additional business registration documents. The current documents don't clearly show the company registration number.")}
+                    className="text-left px-3 py-2 text-sm bg-gray-50 hover:bg-gray-100 rounded-md border"
+                  >
+                    Request business registration docs
+                  </button>
+                  <button
+                    onClick={() => setRequestInfoMessage("Please verify your university email address. We need confirmation that this email is currently active and belongs to you.")}
+                    className="text-left px-3 py-2 text-sm bg-gray-50 hover:bg-gray-100 rounded-md border"
+                  >
+                    Request email verification
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  if (requestInfoMessage.trim()) {
+                    handleAction(selectedRequest, 'request_more_info', { notes: requestInfoMessage.trim() });
+                    setShowRequestInfoModal(false);
+                    setRequestInfoMessage('');
+                    setShowDetails(false);
+                  }
+                }}
+                disabled={!requestInfoMessage.trim()}
+                className="px-4 py-2 bg-yellow-600 text-white rounded-md text-sm font-medium hover:bg-yellow-700 disabled:bg-gray-400"
+              >
+                Send Request
+              </button>
+              <button
+                onClick={() => {
+                  setShowRequestInfoModal(false);
+                  setRequestInfoMessage('');
+                }}
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 Cancel
