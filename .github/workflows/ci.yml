@@ -49,6 +49,20 @@ jobs:
         MAIL_PW: "mock_password"
         X_API_KEY: "mock_api_key"
         SKIP_DB_VALIDATION: "true"
+        # Undergraduate JWT Authentication
+        UNDERGRAD_JWT_SECRET: "mock_undergrad_jwt_secret_key"
+        UNDERGRAD_JWT_EXPIRES_IN: "7d"
+        UNDERGRAD_REFRESH_TOKEN_SECRET: "mock_undergrad_refresh_token_secret"
+        UNDERGRAD_REFRESH_TOKEN_EXPIRES_IN: "30d"
+        UNDERGRAD_EMAIL_VERIFICATION_SECRET: "mock_undergrad_email_verification_secret"
+        UNDERGRAD_EMAIL_VERIFICATION_EXPIRES_IN: "24h"
+        # Company JWT Authentication
+        COMPANY_JWT_SECRET: "mock_company_jwt_secret_key"
+        COMPANY_JWT_EXPIRES_IN: "7d"
+        COMPANY_REFRESH_SECRET: "mock_company_refresh_secret_key"
+        COMPANY_REFRESH_EXPIRES_IN: "30d"
+        COMPANY_EMAIL_VERIFICATION_SECRET: "mock_company_email_verification_secret"
+        COMPANY_EMAIL_VERIFICATION_EXPIRES_IN: "24h"
 
     - name: Run tests (if available)
       run: |
