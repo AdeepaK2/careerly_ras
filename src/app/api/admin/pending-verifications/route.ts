@@ -29,7 +29,16 @@ async function handler(request: NextRequest) {
       
       // Apply priority filter
       if (priority !== 'all') {
-        companySearchQuery.verificationPriority = priority;
+        // Handle cases where verificationPriority might be null/undefined (default to 'medium')
+        if (priority === 'medium') {
+          companySearchQuery.$or = [
+            { verificationPriority: 'medium' },
+            { verificationPriority: { $exists: false } },
+            { verificationPriority: null }
+          ];
+        } else {
+          companySearchQuery.verificationPriority = priority;
+        }
       }
       
       if (search) {

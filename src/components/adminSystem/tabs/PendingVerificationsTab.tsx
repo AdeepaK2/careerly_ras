@@ -48,7 +48,8 @@ interface VerificationRequest {
     isVerified?: boolean;
     uploadedAt: string;
   }>;
-  hasDocuments: boolean;
+  hasDocuments?: boolean;
+  documentCount?: number;
   // Company specific fields
   companyName?: string;
   industry?: string;
@@ -59,29 +60,53 @@ interface VerificationRequest {
 }
 
 interface Stats {
-  summary: {
-    totalRequests: number;
+  overview: {
     totalPending: number;
-    totalUnderReview: number;
-    totalVerified: number;
-    totalRejected: number;
-    totalHighPriority: number;
-    recentActivity: number;
-    avgProcessingDays: number;
-    verificationRate: {
-      companies: string;
-      overall: string;
+    pendingCompanies: number;
+    pendingUndergraduates: number;
+    completionRate: number;
+    avgProcessingTimeDays: number | null;
+    oldestPendingDays: number;
+  };
+  priority: {
+    company: {
+      high: number;
+      medium: number;
+      low: number;
+    };
+    undergraduate: {
+      high: number;
+      medium: number;
+      low: number;
+    };
+    total: {
+      high: number;
+      medium: number;
+      low: number;
     };
   };
-  breakdown: {
-    companies: {
-      total: number;
-      verified: number;
-      pending: number;
-      underReview: number;
-      rejected: number;
-      highPriority: number;
-    };
+  timeline: {
+    period: string;
+    requests: Array<{
+      date: string;
+      type: string;
+      count: number;
+    }>;
+  };
+  oldestPending: {
+    company: {
+      name: string;
+      daysPending: number;
+    } | null;
+    undergraduate: {
+      name: string;
+      daysPending: number;
+    } | null;
+  };
+  performance: {
+    totalCompletedVerifications: number;
+    avgProcessingTimeDays: number;
+    completionRateLast30Days: number;
   };
 }
 
@@ -92,7 +117,6 @@ export default function PendingVerificationsTab() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'company'>('company');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'under_review' | 'approved' | 'rejected'>('pending');
   const [filterPriority, setFilterPriority] = useState<'all' | 'high' | 'medium' | 'low'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -110,16 +134,16 @@ export default function PendingVerificationsTab() {
   const [requestInfoMessage, setRequestInfoMessage] = useState('');
   const [showMessages, setShowMessages] = useState(false);
 
-  const fetchRequests = async (page = 1, status = filterStatus, priority = filterPriority, search = searchTerm) => {
+  const fetchRequests = async (page = 1, priority = filterPriority, search = searchTerm) => {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/admin/pending-verifications?page=${page}&limit=10&status=${status}&priority=${priority}&search=${encodeURIComponent(search)}`
+        `/api/admin/pending-verifications?page=${page}&limit=10&type=company&priority=${priority}&search=${encodeURIComponent(search)}`
       );
       const data = await response.json();
       
       if (data.success) {
-        setRequests(data.data.requests);
+        setRequests(data.data.pendingVerifications || []);
         setTotalPages(data.data.pagination.totalPages);
       } else {
         console.error('Failed to fetch verification requests:', data.message);
@@ -176,12 +200,12 @@ export default function PendingVerificationsTab() {
 
   useEffect(() => {
     setCurrentPage(1);
-    fetchRequests(1, filterStatus, filterPriority, searchTerm);
-  }, [filterType, filterStatus, filterPriority, searchTerm]);
+    fetchRequests(1, filterPriority, searchTerm);
+  }, [filterType, filterPriority, searchTerm]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    fetchRequests(page, filterStatus, filterPriority, searchTerm);
+    fetchRequests(page, filterPriority, searchTerm);
   };
 
   const handleAction = async (request: VerificationRequest, action: string, additionalData?: any) => {
@@ -289,7 +313,7 @@ export default function PendingVerificationsTab() {
             <div>
               <p className="text-sm font-medium text-gray-600">Pending Requests</p>
               <p className="text-2xl font-bold text-gray-900">
-                {statsLoading ? '...' : stats?.summary.totalPending || 0}
+                {statsLoading ? '...' : stats?.overview.pendingCompanies || 0}
               </p>
             </div>
             <div className="h-8 w-8 bg-yellow-100 rounded-full flex items-center justify-center">
@@ -297,23 +321,23 @@ export default function PendingVerificationsTab() {
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            {statsLoading ? 'Loading...' : `${stats?.breakdown.companies.pending || 0} companies pending`}
+            {statsLoading ? 'Loading...' : 'Companies awaiting verification'}
           </p>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Under Review</p>
+              <p className="text-sm font-medium text-gray-600">Medium Priority</p>
               <p className="text-2xl font-bold text-gray-900">
-                {statsLoading ? '...' : stats?.summary.totalUnderReview || 0}
+                {statsLoading ? '...' : stats?.priority.company.medium || 0}
               </p>
             </div>
             <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
               <Eye className="h-4 w-4 text-blue-600" />
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-2">Currently being processed</p>
+          <p className="text-xs text-gray-500 mt-2">Standard processing queue</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6">
@@ -321,29 +345,29 @@ export default function PendingVerificationsTab() {
             <div>
               <p className="text-sm font-medium text-gray-600">High Priority</p>
               <p className="text-2xl font-bold text-gray-900">
-                {statsLoading ? '...' : stats?.summary.totalHighPriority || 0}
+                {statsLoading ? '...' : stats?.priority.company.high || 0}
               </p>
             </div>
             <div className="h-8 w-8 bg-red-100 rounded-full flex items-center justify-center">
               <AlertTriangle className="h-4 w-4 text-red-600" />
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-2">Require immediate attention</p>
+          <p className="text-xs text-gray-500 mt-2">Company priority requests</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Avg Processing Time</p>
+              <p className="text-sm font-medium text-gray-600">Low Priority</p>
               <p className="text-2xl font-bold text-gray-900">
-                {statsLoading ? '...' : Math.round(stats?.summary.avgProcessingDays || 0)}
+                {statsLoading ? '...' : stats?.priority.company.low || 0}
               </p>
             </div>
             <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
               <TrendingUp className="h-4 w-4 text-purple-600" />
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-2">Days to complete</p>
+          <p className="text-xs text-gray-500 mt-2">Can be processed later</p>
         </div>
       </div>
 
@@ -368,20 +392,8 @@ export default function PendingVerificationsTab() {
                 />
               </div>
               
-              {/* Type filter removed - only companies supported */}
+              {/* Type and Status filters removed - only pending company verifications */}
               
-              <select
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as any)}
-              >
-                <option value="all">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="under_review">Under Review</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-              </select>
-
               <select
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={filterPriority}
@@ -490,10 +502,10 @@ export default function PendingVerificationsTab() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        {request.hasDocuments ? (
+                        {(request.documentCount && request.documentCount > 0) ? (
                           <>
                             <FileText className="h-4 w-4 text-green-500 mr-1" />
-                            <span className="text-sm text-green-800">Available</span>
+                            <span className="text-sm text-green-800">{request.documentCount} docs</span>
                           </>
                         ) : (
                           <>
