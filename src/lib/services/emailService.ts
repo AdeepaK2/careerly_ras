@@ -156,6 +156,9 @@ export const emailTemplates = {
         </div>
         <p><small>If you didn't request this, please ignore this email.</small></p>
         <p>This link will expire in 1 hour.</p>
+        <p style="font-size: 12px; color: #666; margin-top: 20px; word-break: break-all;">
+          If the button doesn't work, copy and paste this link: ${resetLink}
+        </p>
       </div>
     `,
   }),

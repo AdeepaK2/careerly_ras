@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function CompanyResetPassword() {
+function ResetPasswordForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,6 +17,7 @@ export default function CompanyResetPassword() {
 
   useEffect(() => {
     const tokenFromUrl = searchParams.get('token');
+    console.log('Token from URL:', tokenFromUrl); // Debug log
     if (!tokenFromUrl) {
       setError('Invalid reset link. Please request a new password reset.');
       return;
@@ -190,5 +191,24 @@ export default function CompanyResetPassword() {
         </div>
       </div>
     </div>
+  );
+}
+
+function ResetPasswordLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function CompanyResetPassword() {
+  return (
+    <Suspense fallback={<ResetPasswordLoading />}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
