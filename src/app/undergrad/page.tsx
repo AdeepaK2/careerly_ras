@@ -1,7 +1,12 @@
 'use client';
 
+import ProtectedRoute from '@/components/ProtectedRoute';
 import UndergradDashboard from '@/components/undergradSystem/UndergradDashboard';
 
 export default function UndergradPage() {
-  return <UndergradDashboard />;
+  return (
+    <ProtectedRoute>
+      <UndergradDashboard />
+    </ProtectedRoute>
+  );
 }

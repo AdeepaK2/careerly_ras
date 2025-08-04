@@ -3,13 +3,15 @@ import { CompanyJWTPayload, CompanyAuthTokens } from './types';
 
 // JWT Secrets from environment variables
 const ACCESS_TOKEN_SECRET = process.env.COMPANY_JWT_SECRET || 'company_jwt_secret_fallback';
-const REFRESH_TOKEN_SECRET = process.env.COMPANY_REFRESH_SECRET || 'company_refresh_secret_fallback';
+const REFRESH_TOKEN_SECRET = process.env.COMPANY_JWT_SECRET || 'company_jwt_secret_fallback';
 const EMAIL_VERIFICATION_SECRET = process.env.COMPANY_EMAIL_VERIFICATION_SECRET || 'company_email_verification_secret_fallback';
+const PASSWORD_RESET_SECRET = process.env.COMPANY_PASSWORD_RESET_SECRET || 'company_password_reset_secret_fallback';
 
 // Token expiration times
 const ACCESS_TOKEN_EXPIRES_IN = '7d';
 const REFRESH_TOKEN_EXPIRES_IN = '30d';
 const EMAIL_VERIFICATION_EXPIRES_IN = '24h';
+const PASSWORD_RESET_EXPIRES_IN = '1h';
 
 /**
  * Generate access and refresh tokens for a company
@@ -22,7 +24,11 @@ export function generateCompanyTokens(payload: CompanyJWTPayload): CompanyAuthTo
   });
 
   const refreshToken = jwt.sign(
-    { id: payload.id, type: payload.type },
+    { 
+      id: payload.id, 
+      type: payload.type,
+      tokenType: 'refresh'
+    },
     REFRESH_TOKEN_SECRET,
     {
       expiresIn: REFRESH_TOKEN_EXPIRES_IN,
@@ -54,12 +60,12 @@ export function verifyCompanyAccessToken(token: string): CompanyJWTPayload | nul
 /**
  * Verify and decode refresh token
  */
-export function verifyCompanyRefreshToken(token: string): { id: string; type: string } | null {
+export function verifyCompanyRefreshToken(token: string): { id: string; type: string; tokenType: string } | null {
   try {
     const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET, {
       issuer: 'careerly-company-auth',
       audience: 'careerly-platform'
-    }) as { id: string; type: string };
+    }) as { id: string; type: string; tokenType: string };
     
     return decoded;
   } catch (error) {
@@ -119,9 +125,9 @@ export function generateCompanyPasswordResetToken(companyId: string, businessEma
       type: 'company_password_reset',
       timestamp: Date.now()
     },
-    EMAIL_VERIFICATION_SECRET, // Reuse email verification secret for password reset
+    PASSWORD_RESET_SECRET, // Use dedicated password reset secret
     {
-      expiresIn: '1h', // Password reset tokens expire in 1 hour
+      expiresIn: PASSWORD_RESET_EXPIRES_IN, // Password reset tokens expire in 1 hour
       issuer: 'careerly-company-auth',
       audience: 'careerly-platform'
     }
@@ -133,7 +139,7 @@ export function generateCompanyPasswordResetToken(companyId: string, businessEma
  */
 export function verifyCompanyPasswordResetToken(token: string): { id: string; email: string; type: string; timestamp: number } | null {
   try {
-    const decoded = jwt.verify(token, EMAIL_VERIFICATION_SECRET, {
+    const decoded = jwt.verify(token, PASSWORD_RESET_SECRET, {
       issuer: 'careerly-company-auth',
       audience: 'careerly-platform'
     }) as { id: string; email: string; type: string; timestamp: number };

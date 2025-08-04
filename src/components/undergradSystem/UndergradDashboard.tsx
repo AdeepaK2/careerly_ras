@@ -7,6 +7,7 @@ import HomeTab from '@/components/undergradSystem/tabs/HomeTab';
 import JobOpportunitiesTab from '@/components/undergradSystem/tabs/JobOpportunitiesTab';
 import SelectedTab from '@/components/undergradSystem/tabs/SelectedTab';
 import ProfileTab from '@/components/undergradSystem/tabs/ProfileTab';
+import VerificationStatus from '@/components/undergradSystem/VerificationStatus';
 
 export default function UndergradDashboard() {
   const [activeTab, setActiveTab] = useState('home');
@@ -19,6 +20,8 @@ export default function UndergradDashboard() {
         return <JobOpportunitiesTab />;
       case 'selected':
         return <SelectedTab />;
+      case 'verification':
+        return <VerificationStatus />;
       case 'profile':
         return <ProfileTab />;
       default:
