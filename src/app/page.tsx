@@ -33,7 +33,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-purple-100 via-[#ffffff] to-purple-100">
       <header className="flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-6 w-full">
         <a
-          href="https://prebuiltui.com"
+          href="/"
           className="flex items-center space-x-2"
         >
           <img src="logo.png" className="w-12 h-12" />
@@ -78,7 +78,7 @@ export default function Home() {
           </a>
           <a
             className="bg-purple-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-purple-700 transition"
-            href="#"
+            href="/auth"
           >
             Sign up
           </a>
@@ -110,7 +110,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row items-center mt-8 gap-3">
             <a
               className="bg-purple-600 text-white px-6 pr-2.5 py-2.5 rounded-full text-md font-medium flex items-center space-x-2 hover:bg-purple-700 transition"
-              href="#"
+              href="/auth"
             >
               <span>Get Started</span>
               <svg
