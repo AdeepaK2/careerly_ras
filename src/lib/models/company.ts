@@ -177,9 +177,7 @@ const companySchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes
-companySchema.index({ businessEmail: 1 }, { unique: true });
-companySchema.index({ registrationNumber: 1 }, { unique: true });
+// Indexes (businessEmail and registrationNumber already have unique indexes from field definitions)
 companySchema.index({ isVerified: 1 });
 companySchema.index({ isActive: 1 });
 
