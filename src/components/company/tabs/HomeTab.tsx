@@ -24,10 +24,52 @@ export default function HomeTab() {
   const router = useRouter();
   const [user, setUser] = useState<CompanyUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalApplications: 0,
+    newApplicationsToday: 0,
+    interviewsScheduled: 0,
+    offersExtended: 0,
+  });
+  const [recentActivity, setRecentActivity] = useState([
+    {
+      id: 1,
+      type: "application",
+      message: "New application received for Software Engineer position",
+      time: "2 hours ago",
+      icon: "📄",
+    },
+    {
+      id: 2,
+      type: "interview",
+      message: "Interview scheduled with Sarah Johnson",
+      time: "3 hours ago",
+      icon: "📅",
+    },
+    {
+      id: 3,
+      type: "offer",
+      message: "Offer extended to Michael Chen",
+      time: "1 day ago",
+      icon: "🎉",
+    },
+  ]);
 
   useEffect(() => {
     checkAuth();
+    loadDashboardStats();
   }, []);
+
+  const loadDashboardStats = async () => {
+    // Simulate API call for dashboard statistics
+    setTimeout(() => {
+      setStats({
+        totalApplications: 147,
+        newApplicationsToday: 8,
+        interviewsScheduled: 12,
+        offersExtended: 5,
+      });
+    }, 1000);
+  };
 
   const checkAuth = async () => {
     try {
@@ -77,11 +119,11 @@ export default function HomeTab() {
   return (
     <div>
       {/* Header */}
-      <header className="bg-white shadow rounded-lg mb-6">
+      <header className="glass-effect rounded-lg mb-6 shadow-lg">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold gradient-text">
                 Company Dashboard
               </h1>
               <p className="text-gray-600">Welcome back, {user.companyName}!</p>
@@ -89,11 +131,11 @@ export default function HomeTab() {
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-500">
                 {user.isVerified ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 shadow-sm">
                     ✓ Verified
                   </span>
                 ) : (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 shadow-sm">
                     ⚠ Not Verified
                   </span>
                 )}
@@ -135,12 +177,12 @@ export default function HomeTab() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-effect rounded-lg shadow-lg p-6 card-hover">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
                 <svg
-                  className="w-5 h-5 text-blue-600"
+                  className="w-6 h-6 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -156,47 +198,22 @@ export default function HomeTab() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Active Jobs</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-2xl font-bold text-gray-900">
                 {user.jobPostingLimits.currentActiveJobs}
               </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg
-                  className="w-5 h-5 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
-              </div>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Job Limit</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {user.jobPostingLimits.maxActiveJobs}
+              <p className="text-xs text-gray-500">
+                of {user.jobPostingLimits.maxActiveJobs} max
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-effect rounded-lg shadow-lg p-6 card-hover">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
                 <svg
-                  className="w-5 h-5 text-purple-600"
+                  className="w-6 h-6 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -211,20 +228,25 @@ export default function HomeTab() {
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Company Size</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {user.companySize}
+              <p className="text-sm font-medium text-gray-600">
+                Total Applications
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.totalApplications}
+              </p>
+              <p className="text-xs text-green-600">
+                +{stats.newApplicationsToday} today
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-effect rounded-lg shadow-lg p-6 card-hover">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
                 <svg
-                  className="w-5 h-5 text-orange-600"
+                  className="w-6 h-6 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -233,121 +255,218 @@ export default function HomeTab() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Founded</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {user.foundedYear}
+              <p className="text-sm font-medium text-gray-600">
+                Interviews Scheduled
               </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.interviewsScheduled}
+              </p>
+              <p className="text-xs text-blue-600">3 this week</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="glass-effect rounded-lg shadow-lg p-6 card-hover">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">
+                Offers Extended
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.offersExtended}
+              </p>
+              <p className="text-xs text-orange-600">2 pending response</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="glass-effect rounded-lg shadow-lg">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Quick Actions
+            </h2>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 gap-4">
+              <button
+                disabled={!user.isVerified}
+                className="bg-gradient-to-r from-[#8243ff] to-purple-600 text-white px-6 py-4 rounded-lg hover:from-purple-700 hover:to-purple-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 shadow-lg"
+                onClick={() => {
+                  /* Navigate to job posting */
+                }}
+              >
+                <div className="flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                  Post New Job
+                </div>
+              </button>
+
+              <button
+                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                onClick={() => {
+                  /* Navigate to applications */
+                }}
+              >
+                <div className="flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                    />
+                  </svg>
+                  View Applications ({stats.totalApplications})
+                </div>
+              </button>
+
+              <button
+                className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                onClick={() => {
+                  /* Navigate to selected candidates */
+                }}
+              >
+                <div className="flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  Manage Selected Candidates
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              disabled={!user.isVerified}
-              className="bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition duration-200"
-            >
-              <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
-                Post New Job
-              </div>
-            </button>
 
-            <button className="bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 transition duration-200">
-              <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+        {/* Recent Activity */}
+        <div className="glass-effect rounded-lg shadow-lg">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Recent Activity
+            </h2>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              {recentActivity.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-start space-x-3 p-3 rounded-lg hover:bg-white/50 transition-colors"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                  />
-                </svg>
-                View Applications
-              </div>
-            </button>
-
-            <button className="bg-purple-600 text-white px-4 py-3 rounded-md hover:bg-purple-700 transition duration-200">
-              <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-                Browse Students
-              </div>
-            </button>
+                  <span className="text-2xl">{activity.icon}</span>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-900">{activity.message}</p>
+                    <p className="text-xs text-gray-500">{activity.time}</p>
+                  </div>
+                </div>
+              ))}
+              <button className="w-full text-[#8243ff] hover:text-purple-700 text-sm font-medium py-2">
+                View All Activity →
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Company Information */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="glass-effect rounded-lg shadow-lg">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
             Company Information
           </h2>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-3 shadow-lg">
+                {user.registrationNumber.slice(-3)}
+              </div>
               <p className="text-sm font-medium text-gray-600">
                 Registration Number
               </p>
-              <p className="mt-1 text-sm text-gray-900">
+              <p className="text-sm text-gray-900 font-semibold">
                 {user.registrationNumber}
               </p>
             </div>
-            <div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-3 shadow-lg">
+                @
+              </div>
               <p className="text-sm font-medium text-gray-600">
                 Business Email
               </p>
-              <p className="mt-1 text-sm text-gray-900">{user.businessEmail}</p>
+              <p className="text-sm text-gray-900 font-semibold">
+                {user.businessEmail}
+              </p>
             </div>
-            <div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-3 shadow-lg">
+                📞
+              </div>
               <p className="text-sm font-medium text-gray-600">Phone Number</p>
-              <p className="mt-1 text-sm text-gray-900">{user.phoneNumber}</p>
+              <p className="text-sm text-gray-900 font-semibold">
+                {user.phoneNumber}
+              </p>
             </div>
-            <div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-3 shadow-lg">
+                🏢
+              </div>
               <p className="text-sm font-medium text-gray-600">Industry</p>
-              <p className="mt-1 text-sm text-gray-900">{user.industry}</p>
+              <p className="text-sm text-gray-900 font-semibold">
+                {user.industry}
+              </p>
             </div>
           </div>
         </div>
