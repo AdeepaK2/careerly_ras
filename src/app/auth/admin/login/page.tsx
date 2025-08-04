@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 type LoginResponse = {
   success: boolean;
@@ -23,6 +24,7 @@ export default function AdminLoginPage() {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -48,10 +50,8 @@ export default function AdminLoginPage() {
 
       if (result.success) {
         if (result.data?.accessToken) {
-          // store access token if needed for client-side use
           localStorage.setItem("admin_access_token", result.data.accessToken);
         }
-        // Redirect to admin dashboard (adjust path as needed)
         router.push("/admin");
       } else {
         setError(result.message || "Login failed");
@@ -83,6 +83,7 @@ export default function AdminLoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Username */}
             <div>
               <label
                 htmlFor="username"
@@ -99,28 +100,52 @@ export default function AdminLoginPage() {
                 onChange={handleChange}
                 placeholder="admin username"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoComplete="username"
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+           {/* Password with toggle */}
+{/* Password with toggle */}
+<div>
+  <label
+    htmlFor="password"
+    className="block text-sm font-medium text-gray-700 mb-1"
+  >
+    Password
+  </label>
+  <div className="relative">
+    <input
+      id="password"
+      name="password"
+      type={showPassword ? "text" : "password"}
+      required
+      value={formData.password}
+      onChange={handleChange}
+      placeholder="••••••••"
+      className="w-full pr-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-10"
+      autoComplete="current-password"
+      aria-label="Password"
+    />
+    <button
+      type="button"
+      onClick={() => setShowPassword(s => !s)}
+      aria-label={showPassword ? "Hide password" : "Show password"}
+      className="absolute inset-y-0 right-2 flex items-center justify-center p-1"
+      tabIndex={0}
+    >
+      {showPassword ? (
+        <EyeOff className="h-5 w-5 text-gray-500" />
+      ) : (
+        <Eye className="h-5 w-5 text-gray-500" />
+      )}
+    </button>
+  
+</div>
 
+</div>
+
+
+            {/* Submit */}
             <div>
               <button
                 type="submit"
