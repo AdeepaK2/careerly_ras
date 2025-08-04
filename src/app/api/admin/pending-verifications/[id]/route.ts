@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import connect from "@/utils/db";
 import CompanyModel from "@/lib/models/company";
-import UndergradModel from "@/lib/models/undergraduate";
 import { sendEmail, emailTemplates } from "@/lib/services/emailService";
 
 interface Params {
@@ -14,20 +13,12 @@ export async function GET(request: NextRequest, context: { params: Promise<Param
     
     const { id } = await context.params;
 
-    // Try to find in companies first
+    // Find company account
     let account = await CompanyModel.findById(id)
       .select('companyName businessEmail registrationNumber industry companySize foundedYear address description website logoUrl contactPerson isVerified verificationStatus verificationDocuments verificationPriority verificationNotes createdAt verificationRequestedAt')
       .lean() as any;
 
-    let accountType = 'company';
-
-    // If not found in companies, try undergraduates
-    if (!account) {
-      account = await UndergradModel.findById(id)
-        .select('name universityEmail index education batch birthdate address phoneNumber profilePicUrl isVerified verificationStatus verificationDocuments verificationPriority verificationNotes createdAt verificationRequestedAt')
-        .lean() as any;
-      accountType = 'undergraduate';
-    }
+    const accountType = 'company';
 
     if (!account) {
       return NextResponse.json({
@@ -73,7 +64,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<Par
     const { action, accountType, priority, notes, documents } = body;
 
     // Determine the model to use
-    const Model = accountType === 'company' ? CompanyModel : UndergradModel;
+    const Model = CompanyModel;
     
     let updateData: any = {};
     let emailData: any = {};

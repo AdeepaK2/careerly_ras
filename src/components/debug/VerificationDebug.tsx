@@ -47,7 +47,7 @@ export default function VerificationDebug({ userType }: VerificationDebugProps) 
       }
 
       // Test API connectivity and authentication
-      const apiEndpoint = userType === 'company' ? '/api/company/verification' : '/api/undergraduate/verification';
+      const apiEndpoint = userType === 'company' ? '/api/company/verification' : '/api/test'; // No undergraduate verification
       const testEndpoint = `/api/test?type=${userType}`;
       
       console.log(`Testing API endpoint: ${apiEndpoint}`);
