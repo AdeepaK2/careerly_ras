@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CompanyNavbar from "@/components/company/Navbar";
+import VerificationBanner from "@/components/company/VerificationBanner";
 import HomeTab from "@/components/company/tabs/HomeTab";
 import JobPostingTab from "@/components/company/tabs/JobPostingTab";
 import SelectedTab from "@/components/company/tabs/SelectedTab";
 import ProfileTab from "@/components/company/tabs/ProfileTab";
+import VerificationTab from "@/components/company/tabs/VerificationTab";
 
 interface CompanyUser {
   id: string;
@@ -17,7 +19,9 @@ interface CompanyUser {
   industry: string;
   companySize: string;
   foundedYear: number;
+  isEmailVerified: boolean;
   isVerified: boolean;
+  verificationStatus: 'pending' | 'under_review' | 'approved' | 'rejected';
   isActive: boolean;
   jobPostingLimits: {
     maxActiveJobs: number;
@@ -30,7 +34,7 @@ export default function CompanyDashboard() {
   const [user, setUser] = useState<CompanyUser | null>(null);
   const [loading, setLoading] = useState(true);
   // Tab state for navigation
-  type TabKey = "home" | "jobPosting" | "selected" | "profile";
+  type TabKey = "home" | "jobPosting" | "selected" | "profile" | "verification";
   const [activeTab, setActiveTab] = useState<TabKey>("home");
 
   useEffect(() => {
@@ -94,10 +98,17 @@ export default function CompanyDashboard() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <CompanyNavbar activeTab={activeTab} onTabChange={setActiveTab} />
+        
+        <VerificationBanner 
+          user={user} 
+          onNavigateToVerification={() => setActiveTab("verification")}
+        />
+        
         <main className="mt-6">
           {activeTab === "home" && <HomeTab />}
           {activeTab === "jobPosting" && <JobPostingTab />}
           {activeTab === "selected" && <SelectedTab />}
+          {activeTab === "verification" && <VerificationTab />}
           {activeTab === "profile" && <ProfileTab />}
         </main>
       </div>
