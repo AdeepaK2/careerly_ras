@@ -46,7 +46,7 @@ export default function CompanyNavbar({
 
   return (
     <nav className="glass-effect shadow-lg border-b border-white/20 sticky top-0 z-40 w-full">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Tabs */}
           <div className="flex items-center">
@@ -54,7 +54,7 @@ export default function CompanyNavbar({
               Careerly
             </span>
             {/* Desktop Tabs */}
-            <ul className="hidden md:flex space-x-1">
+            <ul className="hidden md:flex space-x-1 md:absolute md:left-1/2 md:transform md:-translate-x-1/2">
               {tabs.map(({ key, label }) => (
                 <li key={key}>
                   <button
@@ -70,9 +70,12 @@ export default function CompanyNavbar({
                 </li>
               ))}
             </ul>
+          </div>
+          {/* Profile Icon */}
+          <div className="flex items-center">
             {/* Mobile menu button */}
             <button
-              className="md:hidden text-gray-600 hover:text-[#8243ff] focus:outline-none ml-4"
+              className="md:hidden text-gray-600 hover:text-[#8243ff] focus:outline-none mr-4"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               <svg
@@ -89,9 +92,6 @@ export default function CompanyNavbar({
                 />
               </svg>
             </button>
-          </div>
-          {/* Profile Icon */}
-          <div className="flex items-center">
             <button
               className="focus:outline-none relative"
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -104,7 +104,7 @@ export default function CompanyNavbar({
         </div>
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 glass-effect border-b border-white/20 shadow-lg">
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-white/90 border-b border-gray-200 shadow-lg">
             <ul className="px-4 py-2 space-y-1">
               {tabs.map(({ key, label }) => (
                 <li key={key}>
@@ -136,7 +136,7 @@ export default function CompanyNavbar({
         )}
         {/* Profile Dropdown */}
         {isProfileMenuOpen && (
-          <div className="absolute right-4 top-16 w-64 glass-effect border border-white/20 rounded-lg shadow-xl z-50">
+          <div className="absolute right-4 top-16 w-64 bg-white/90 border border-gray-200 rounded-lg shadow-xl z-50">
             <div className="px-4 py-4 border-b border-gray-100">
               <p className="text-sm text-gray-800 font-semibold">
                 {user.companyName}
