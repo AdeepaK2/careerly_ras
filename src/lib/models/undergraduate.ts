@@ -39,49 +39,6 @@ const undergraduateSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  verificationStatus: {
-    type: String,
-    enum: ['pending', 'under_review', 'approved', 'rejected'],
-    default: 'pending'
-  },
-  verificationPriority: {
-    type: String,
-    enum: ['low', 'medium', 'high'],
-    default: 'medium'
-  },
-  verificationRequestedAt: {
-    type: Date,
-    default: Date.now
-  },
-  verifiedAt: Date,
-  verificationNotes: [{
-    note: String,
-    addedBy: String, // Admin ID or identifier
-    addedAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-  verificationDocuments: [{
-    name: String,
-    url: String,
-    type: {
-      type: String,
-      enum: ['student_id', 'enrollment_certificate', 'transcript', 'other']
-    },
-    isRequired: {
-      type: Boolean,
-      default: false
-    },
-    isVerified: {
-      type: Boolean,
-      default: false
-    },
-    uploadedAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
   batch: {
     type: String,
     required: true,

@@ -26,7 +26,7 @@ import {
 
 interface VerificationRequest {
   _id: string;
-  accountType: 'company' | 'undergraduate';
+  accountType: 'company';
   accountName: string;
   accountEmail: string;
   accountId: string;
@@ -56,14 +56,6 @@ interface VerificationRequest {
     name: string;
     email: string;
   };
-  // Undergraduate specific fields
-  name?: string;
-  index?: string;
-  batch?: string;
-  education?: {
-    faculty: string;
-    degreeProgramme: string;
-  };
 }
 
 interface Stats {
@@ -78,20 +70,11 @@ interface Stats {
     avgProcessingDays: number;
     verificationRate: {
       companies: string;
-      undergraduates: string;
       overall: string;
     };
   };
   breakdown: {
     companies: {
-      total: number;
-      verified: number;
-      pending: number;
-      underReview: number;
-      rejected: number;
-      highPriority: number;
-    };
-    undergraduates: {
       total: number;
       verified: number;
       pending: number;
@@ -108,7 +91,7 @@ export default function PendingVerificationsTab() {
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'company' | 'undergraduate'>('all');
+  const [filterType, setFilterType] = useState<'company'>('company');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'under_review' | 'approved' | 'rejected'>('pending');
   const [filterPriority, setFilterPriority] = useState<'all' | 'high' | 'medium' | 'low'>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -127,11 +110,11 @@ export default function PendingVerificationsTab() {
   const [requestInfoMessage, setRequestInfoMessage] = useState('');
   const [showMessages, setShowMessages] = useState(false);
 
-  const fetchRequests = async (page = 1, type = filterType, status = filterStatus, priority = filterPriority, search = searchTerm) => {
+  const fetchRequests = async (page = 1, status = filterStatus, priority = filterPriority, search = searchTerm) => {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/admin/pending-verifications?page=${page}&limit=10&type=${type}&status=${status}&priority=${priority}&search=${encodeURIComponent(search)}`
+        `/api/admin/pending-verifications?page=${page}&limit=10&status=${status}&priority=${priority}&search=${encodeURIComponent(search)}`
       );
       const data = await response.json();
       
@@ -193,12 +176,12 @@ export default function PendingVerificationsTab() {
 
   useEffect(() => {
     setCurrentPage(1);
-    fetchRequests(1, filterType, filterStatus, filterPriority, searchTerm);
+    fetchRequests(1, filterStatus, filterPriority, searchTerm);
   }, [filterType, filterStatus, filterPriority, searchTerm]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    fetchRequests(page, filterType, filterStatus, filterPriority, searchTerm);
+    fetchRequests(page, filterStatus, filterPriority, searchTerm);
   };
 
   const handleAction = async (request: VerificationRequest, action: string, additionalData?: any) => {
@@ -314,7 +297,7 @@ export default function PendingVerificationsTab() {
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            {statsLoading ? 'Loading...' : `${stats?.breakdown.companies.pending || 0} companies, ${stats?.breakdown.undergraduates.pending || 0} students`}
+            {statsLoading ? 'Loading...' : `${stats?.breakdown.companies.pending || 0} companies pending`}
           </p>
         </div>
 
@@ -385,15 +368,7 @@ export default function PendingVerificationsTab() {
                 />
               </div>
               
-              <select
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value as any)}
-              >
-                <option value="all">All Types</option>
-                <option value="company">Companies</option>
-                <option value="undergraduate">Students</option>
-              </select>
+              {/* Type filter removed - only companies supported */}
               
               <select
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -497,7 +472,7 @@ export default function PendingVerificationsTab() {
                           ? 'bg-blue-100 text-blue-800'
                           : 'bg-purple-100 text-purple-800'
                       }`}>
-                        {request.accountType === 'company' ? 'Company' : 'Student'}
+                        Company
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -772,73 +747,37 @@ export default function PendingVerificationsTab() {
                         </div>
                       </div>
 
-                      {selectedRequest.accountType === 'company' ? (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700">Company Name</label>
-                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.companyName || selectedRequest.companyName}</p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700">Industry</label>
-                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.industry || selectedRequest.industry}</p>
-                            </div>
+                      {/* Company Information */}
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Company Name</label>
+                            <p className="mt-1 text-sm text-gray-900">{detailedRequest?.companyName || selectedRequest.companyName}</p>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700">Business Email</label>
-                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.businessEmail}</p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700">Registration Number</label>
-                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.registrationNumber}</p>
-                            </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Industry</label>
+                            <p className="mt-1 text-sm text-gray-900">{detailedRequest?.industry || selectedRequest.industry}</p>
                           </div>
-                          {detailedRequest?.contactPerson && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700">Contact Person</label>
-                              <p className="mt-1 text-sm text-gray-900">
-                                {detailedRequest.contactPerson.name} ({detailedRequest.contactPerson.email})
-                              </p>
-                            </div>
-                          )}
                         </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700">Student Name</label>
-                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.name || selectedRequest.name}</p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700">Index Number</label>
-                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.index || selectedRequest.index}</p>
-                            </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Business Email</label>
+                            <p className="mt-1 text-sm text-gray-900">{detailedRequest?.businessEmail}</p>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700">University Email</label>
-                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.universityEmail}</p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700">Batch</label>
-                              <p className="mt-1 text-sm text-gray-900">{detailedRequest?.batch || selectedRequest.batch}</p>
-                            </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Registration Number</label>
+                            <p className="mt-1 text-sm text-gray-900">{detailedRequest?.registrationNumber}</p>
                           </div>
-                          {detailedRequest?.education && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700">Faculty</label>
-                                <p className="mt-1 text-sm text-gray-900">{detailedRequest.education.faculty}</p>
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700">Degree Programme</label>
-                                <p className="mt-1 text-sm text-gray-900">{detailedRequest.education.degreeProgramme}</p>
-                              </div>
-                            </div>
-                          )}
                         </div>
-                      )}
+                        {detailedRequest?.contactPerson && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Contact Person</label>
+                            <p className="mt-1 text-sm text-gray-900">
+                              {detailedRequest.contactPerson.name} ({detailedRequest.contactPerson.email})
+                            </p>
+                          </div>
+                        )}
+                      </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
