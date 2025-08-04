@@ -21,6 +21,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
     { id: 'home', label: 'Home' },
     { id: 'jobs', label: 'Job Opportunities' },
     { id: 'selected', label: 'Selected' },
+    { id: 'verification', label: 'Verification' },
     { id: 'profile', label: 'Profile' }
   ];
 

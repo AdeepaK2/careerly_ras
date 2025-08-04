@@ -127,9 +127,44 @@ const companySchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  verificationStatus: {
+    type: String,
+    enum: ['pending', 'under_review', 'approved', 'rejected'],
+    default: 'pending'
+  },
+  verificationPriority: {
+    type: String,
+    enum: ['low', 'medium', 'high'],
+    default: 'medium'
+  },
+  verificationRequestedAt: {
+    type: Date,
+    default: Date.now
+  },
+  verifiedAt: Date,
+  verificationNotes: [{
+    note: String,
+    addedBy: String, // Admin ID or identifier
+    addedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   verificationDocuments: [{
     name: String,
     url: String,
+    type: {
+      type: String,
+      enum: ['business_registration', 'tax_certificate', 'incorporation_certificate', 'other']
+    },
+    isRequired: {
+      type: Boolean,
+      default: false
+    },
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
     uploadedAt: {
       type: Date,
       default: Date.now
