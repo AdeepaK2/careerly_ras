@@ -1,3 +1,5 @@
+// lib/models/admin.ts
+
 import mongoose, { Schema, Document } from 'mongoose';
 
 interface RefreshToken {
@@ -7,6 +9,7 @@ interface RefreshToken {
 
 export interface AdminDoc extends Document {
   username: string;
+  email: string;                   // ← added
   password: string;
   role: 'superadmin' | 'admin';
   loginAttempts: number;
@@ -30,9 +33,27 @@ const RefreshTokenSchema = new Schema<RefreshToken>(
 
 const AdminSchema = new Schema<AdminDoc>(
   {
-    username: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true
+    },
+    email: {                           // ← new field
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true
+    },
     password: { type: String, required: true },
-    role: { type: String, enum: ['superadmin', 'admin'], required: true, default: 'admin' },
+    role: {
+      type: String,
+      enum: ['superadmin', 'admin'],
+      required: true,
+      default: 'admin'
+    },
     loginAttempts: { type: Number, default: 0 },
     lockUntil: { type: Date },
     refreshTokens: { type: [RefreshTokenSchema], default: [] },
@@ -70,17 +91,18 @@ AdminSchema.methods.resetLoginAttempts = async function () {
 
 AdminSchema.methods.addRefreshToken = async function (token: string, expiry: Date) {
   const doc = this as AdminDoc;
-  // prune expired first with explicit type
-  doc.refreshTokens = doc.refreshTokens.filter((rt: RefreshToken) => rt.expiresAt > new Date());
+  // prune expired
+  doc.refreshTokens = doc.refreshTokens.filter(rt => rt.expiresAt > new Date());
   doc.refreshTokens.push({ token, expiresAt: expiry });
   await doc.save();
 };
 
 AdminSchema.methods.removeRefreshToken = async function (token: string) {
   const doc = this as AdminDoc;
-  doc.refreshTokens = doc.refreshTokens.filter((rt: RefreshToken) => rt.token !== token);
+  doc.refreshTokens = doc.refreshTokens.filter(rt => rt.token !== token);
   await doc.save();
 };
 
+// Export model
 const AdminModel = mongoose.models.Admin || mongoose.model<AdminDoc>('Admin', AdminSchema);
 export default AdminModel;
