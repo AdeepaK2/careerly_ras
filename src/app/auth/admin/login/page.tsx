@@ -1,9 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
+
+// Reuse the same parseJwt helper logic used elsewhere in the app
+function parseJwt(token: string) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(
+      base64.length + ((4 - (base64.length % 4)) % 4),
+      "="
+    );
+    const jsonPayload = decodeURIComponent(
+      atob(padded)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
 
 type LoginResponse = {
   success: boolean;
@@ -25,6 +46,27 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Redirect already-authenticated admins away from the login page
+  useEffect(() => {
+    try {
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("admin_access_token")
+          : null;
+      if (!token) return;
+      const payload = parseJwt(token);
+      if (!payload || typeof payload !== "object") return;
+      const exp = (payload as any).exp as number | undefined; // seconds since epoch
+      if (!exp) return;
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      if (exp > nowInSeconds) {
+        router.replace("/admin");
+      }
+    } catch {
+      // ignore parse/redirect errors
+    }
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -104,46 +146,42 @@ export default function AdminLoginPage() {
               />
             </div>
 
-           {/* Password with toggle */}
-{/* Password with toggle */}
-<div>
-  <label
-    htmlFor="password"
-    className="block text-sm font-medium text-gray-700 mb-1"
-  >
-    Password
-  </label>
-  <div className="relative">
-    <input
-      id="password"
-      name="password"
-      type={showPassword ? "text" : "password"}
-      required
-      value={formData.password}
-      onChange={handleChange}
-      placeholder="••••••••"
-      className="w-full pr-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-10"
-      autoComplete="current-password"
-      aria-label="Password"
-    />
-    <button
-      type="button"
-      onClick={() => setShowPassword(s => !s)}
-      aria-label={showPassword ? "Hide password" : "Show password"}
-      className="absolute inset-y-0 right-2 flex items-center justify-center p-1"
-      tabIndex={0}
-    >
-      {showPassword ? (
-        <EyeOff className="h-5 w-5 text-gray-500" />
-      ) : (
-        <Eye className="h-5 w-5 text-gray-500" />
-      )}
-    </button>
-  
-</div>
-
-</div>
-
+            {/* Password with toggle */}
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="w-full pr-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-10"
+                  autoComplete="current-password"
+                  aria-label="Password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute inset-y-0 right-2 flex items-center justify-center p-1"
+                  tabIndex={0}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-500" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-500" />
+                  )}
+                </button>
+              </div>
+            </div>
 
             {/* Submit */}
             <div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Bell, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 import AdminSidebar from "@/components/adminSystem/AdminSidebar";
 import DashboardTab from "@/components/adminSystem/tabs/DashboardTab";
 import UndergraduateUsersTab from "@/components/adminSystem/tabs/UndergraduateUsersTab";
@@ -20,34 +21,13 @@ import GeneralSettingsTab from "@/components/adminSystem/tabs/GeneralSettingsTab
 import EmailSettingsTab from "@/components/adminSystem/tabs/EmailSettingsTab";
 import SecuritySettingsTab from "@/components/adminSystem/tabs/SecuritySettingsTab";
 import ReportsTab from "@/components/adminSystem/tabs/ReportsTab";
-
-// simple JWT decode to pull out role
-function parseJwt(token: string) {
-  try {
-    const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = base64.padEnd(
-      base64.length + ((4 - (base64.length % 4)) % 4),
-      "="
-    );
-    const json = atob(padded);
-    return JSON.parse(
-      decodeURIComponent(
-        json
-          .split("")
-          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-          .join("")
-      )
-    );
-  } catch {
-    return null;
-  }
-}
+import { parseJwt } from "@/utils/jwt-client";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSuperadmin, setIsSuperadmin] = useState(false);
+  const router = useRouter();
 
   // on mount, determine role
   useEffect(() => {
@@ -58,6 +38,25 @@ export default function AdminDashboard() {
     const payload = token ? parseJwt(token) : null;
     setIsSuperadmin(payload?.role === "superadmin");
   }, []);
+
+  // client-side auth guard: redirect to login if no valid token
+  useEffect(() => {
+    const token = localStorage.getItem("admin_access_token");
+    if (!token) {
+      router.replace("/auth/admin/login");
+      return;
+    }
+    try {
+      const payload = parseJwt(token);
+      const now = Math.floor(Date.now() / 1000);
+      if (!payload?.exp || payload.exp <= now) {
+        throw new Error("expired");
+      }
+    } catch {
+      localStorage.removeItem("admin_access_token");
+      router.replace("/auth/admin/login");
+    }
+  }, [router]);
 
   const renderActiveTab = () => {
     switch (activeTab) {

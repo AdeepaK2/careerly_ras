@@ -91,8 +91,18 @@ export default function AdminSidebar({
   }, []);
 
   const handleLogout = async () => {
-    // Add admin logout logic here
-    router.push("/auth/admin/login");
+    try {
+      // Best effort: call server to revoke refresh token cookie
+      await fetch("/api/auth/admin/logout", { method: "POST" });
+    } catch {
+      // ignore network errors
+    } finally {
+      // Always clear access token from localStorage
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("admin_access_token");
+      }
+      router.replace("/auth/admin/login");
+    }
   };
 
   const toggleCollapse = () => {
