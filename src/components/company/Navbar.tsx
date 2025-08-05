@@ -25,20 +25,13 @@ interface CompanyUser {
   verificationStatus: "pending" | "under_review" | "approved" | "rejected";
 }
 
-interface CompanyUser {
-  id: string;
-  companyName: string;
-  isVerified: boolean;
-  verificationStatus: "pending" | "under_review" | "approved" | "rejected";
-}
-
 export default function CompanyNavbar({
   activeTab,
   onTabChange,
   user,
 }: NavbarProps) {
   const router = useRouter();
-  const [user, setUser] = useState<CompanyUser | null>(null);
+  const [companyUser, setCompanyUser] = useState<CompanyUser | null>(null);
 
   useEffect(() => {
     fetchUserData();
@@ -59,7 +52,7 @@ export default function CompanyNavbar({
 
       if (response.ok) {
         const data = await response.json();
-        setUser(data.data.user);
+        setCompanyUser(data.data.user);
       }
     } catch (error) {
       console.error("Failed to fetch user data:", error);
@@ -75,9 +68,9 @@ export default function CompanyNavbar({
   ];
 
   const getVerificationStatusIcon = () => {
-    if (!user) return null;
+    if (!companyUser) return null;
 
-    switch (user.verificationStatus) {
+    switch (companyUser.verificationStatus) {
       case "approved":
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       case "under_review":
@@ -90,9 +83,9 @@ export default function CompanyNavbar({
   };
 
   const getVerificationStatusText = () => {
-    if (!user) return "";
+    if (!companyUser) return "";
 
-    switch (user.verificationStatus) {
+    switch (companyUser.verificationStatus) {
       case "approved":
         return "Verified";
       case "under_review":
@@ -137,14 +130,14 @@ export default function CompanyNavbar({
                 >
                   {key === "verification" && getVerificationStatusIcon()}
                   {label}
-                  {key === "verification" && user && (
+                  {key === "verification" && companyUser && (
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
-                        user.verificationStatus === "approved"
+                        companyUser.verificationStatus === "approved"
                           ? "bg-green-100 text-green-700"
-                          : user.verificationStatus === "under_review"
+                          : companyUser.verificationStatus === "under_review"
                           ? "bg-yellow-100 text-yellow-700"
-                          : user.verificationStatus === "rejected"
+                          : companyUser.verificationStatus === "rejected"
                           ? "bg-red-100 text-red-700"
                           : "bg-orange-100 text-orange-700"
                       }`}
@@ -157,9 +150,9 @@ export default function CompanyNavbar({
             ))}
           </ul>
           <div className="flex items-center gap-4">
-            {user && (
+            {companyUser && (
               <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span>{user.companyName}</span>
+                <span>{companyUser.companyName}</span>
                 {getVerificationStatusIcon()}
               </div>
             )}
