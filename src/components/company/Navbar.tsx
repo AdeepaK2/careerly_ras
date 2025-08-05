@@ -2,7 +2,17 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, Clock, AlertTriangle, XCircle } from "lucide-react";
+import {
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  XCircle,
+  Menu,
+  X as CloseIcon,
+  User,
+  LogOut,
+  Settings,
+} from "lucide-react";
 
 // Define valid tab keys
 export type TabKey =
@@ -25,13 +35,11 @@ interface CompanyUser {
   verificationStatus: "pending" | "under_review" | "approved" | "rejected";
 }
 
-export default function CompanyNavbar({
-  activeTab,
-  onTabChange,
-  user,
-}: NavbarProps) {
+export default function CompanyNavbar({ activeTab, onTabChange }: NavbarProps) {
   const router = useRouter();
   const [companyUser, setCompanyUser] = useState<CompanyUser | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     fetchUserData();
@@ -114,22 +122,36 @@ export default function CompanyNavbar({
   };
 
   return (
-    <nav className="bg-white shadow mb-6 mt-6 rounded-lg">
-      <div className="px-6 py-4">
-        <div className="flex items-center justify-between">
-          <ul className="flex space-x-4">
+    <nav className="bg-white shadow-md mb-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between py-4">
+          <h1 className="text-lg font-semibold gradient-text">Careerly</h1>
+          {/* Mobile menu toggle */}
+          <button
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            className="md:hidden p-2 text-gray-700 hover:text-gray-900 focus:outline-none"
+          >
+            {isMenuOpen ? (
+              <CloseIcon className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </button>
+          {/* Desktop menu */}
+          <ul className="hidden md:flex space-x-4">
             {tabs.map(({ key, label }) => (
               <li key={key}>
                 <button
                   onClick={() => onTabChange(key)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                  className={`px-3 py-2 text-sm font-medium transition-colors flex items-center gap-2 ${
                     activeTab === key
-                      ? "bg-blue-100 text-blue-700 font-semibold"
-                      : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                      ? "text-[var(--primary)] border-b-2 border-[var(--primary)] font-semibold"
+                      : "text-gray-700 hover:text-[var(--primary)]"
                   }`}
                 >
                   {key === "verification" && getVerificationStatusIcon()}
                   {label}
+                  {/* Verification badge unchanged */}
                   {key === "verification" && companyUser && (
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
@@ -150,33 +172,106 @@ export default function CompanyNavbar({
             ))}
           </ul>
           <div className="flex items-center gap-4">
-            {companyUser && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span>{companyUser.companyName}</span>
-                {getVerificationStatusIcon()}
-              </div>
-            )}
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition duration-200 flex items-center"
-            >
-              <svg
-                className="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            {/* Profile dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsProfileOpen((prev) => !prev)}
+                className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
-              Logout
-            </button>
+                <div className="w-8 h-8 bg-[var(--primary)] rounded-full flex items-center justify-center">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+                {companyUser && (
+                  <div className="hidden md:block text-left">
+                    <div className="text-sm font-medium text-gray-900">
+                      {companyUser.companyName}
+                    </div>
+                    <div className="text-xs text-gray-500 flex items-center gap-1">
+                      {getVerificationStatusIcon()}
+                      {getVerificationStatusText()}
+                    </div>
+                  </div>
+                )}
+              </button>
+
+              {/* Profile dropdown menu */}
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                  <div className="p-4 border-b border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-[var(--primary)] rounded-full flex items-center justify-center">
+                        <User className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {companyUser?.companyName}
+                        </div>
+                        <div className="text-sm text-gray-500 flex items-center gap-1">
+                          {getVerificationStatusIcon()}
+                          {getVerificationStatusText()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-2">
+                    <button
+                      onClick={() => {
+                        onTabChange("profile");
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Profile Settings
+                    </button>
+                    <button
+                      onClick={() => {
+                        onTabChange("verification");
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      Verification Status
+                    </button>
+                    <hr className="my-2" />
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+        {/* Mobile menu items */}
+        {isMenuOpen && (
+          <div className="md:hidden bg-white shadow-inner px-4 py-2">
+            <ul className="space-y-2">
+              {tabs.map(({ key, label }) => (
+                <li key={key}>
+                  <button
+                    onClick={() => {
+                      onTabChange(key);
+                      setIsMenuOpen(false);
+                    }}
+                    className={`block w-full text-left px-3 py-2 text-sm font-medium rounded ${
+                      activeTab === key
+                        ? "bg-[var(--primary)] text-white"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </nav>
   );
