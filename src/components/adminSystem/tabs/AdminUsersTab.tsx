@@ -150,7 +150,11 @@ export default function AdminUsersTab() {
         <h2 className="text-2xl font-semibold">Admin Management</h2>
         {isSuperadmin && (
           <button
-            onClick={() => setModalOpen(true)}
+           onClick={() => {
+   setSuccessMsg('');
+   setFormError('');
+   setModalOpen(true);
+ }}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             + Create Admin
