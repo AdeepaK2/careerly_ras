@@ -17,7 +17,7 @@ function getBearerToken(req: NextRequest): string | null {
 type LeanAdmin = {
   _id: { toString(): string };
   username: string;
-  email: string;                 // ← include email here
+  email: string; // ← include email here
   role: "superadmin" | "admin";
   lastLogin?: Date;
   createdAt?: Date;
@@ -45,7 +45,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // fetch admins (both admin and superadmin can list)
+    // Only superadmins can list admin users
+    if (payload.role !== "superadmin") {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Forbidden: only superadmin can list admin users",
+        },
+        { status: 403 }
+      );
+    }
+
+    // fetch admins (only superadmin can list)
     const adminsRaw = await AdminModel.find(
       {},
       { password: 0, refreshTokens: 0, __v: 0 }
@@ -59,13 +70,16 @@ export async function GET(request: NextRequest) {
     const sanitized = admins.map((a) => ({
       id: a._id.toString(),
       username: a.username,
-      email: a.email,            // ← include email in response
+      email: a.email, // ← include email in response
       role: a.role,
       lastLogin: a.lastLogin,
       createdAt: a.createdAt,
     }));
 
-    return NextResponse.json({ success: true, data: sanitized }, { status: 200 });
+    return NextResponse.json(
+      { success: true, data: sanitized },
+      { status: 200 }
+    );
   } catch (error: any) {
     console.error("List admins error:", error);
     return NextResponse.json(
