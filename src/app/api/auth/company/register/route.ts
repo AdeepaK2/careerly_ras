@@ -114,7 +114,9 @@ export async function POST(request: NextRequest) {
     const newCompany = new CompanyModel({
       ...body,
       password: hashedPassword,
-      isVerified: false // Will need email verification
+      isEmailVerified: false, // Will need email verification for login
+      isVerified: false, // Will need document verification by admin
+      verificationStatus: 'pending'
     });
     
     await newCompany.save();
@@ -163,7 +165,7 @@ export async function POST(request: NextRequest) {
     // Set secure HTTP-only cookie for refresh token
     const response = NextResponse.json({
       success: true,
-      message: "Registration successful! Please verify your business email.",
+      message: "Registration successful! Please verify your business email to enable login access. Complete your company verification later through the dashboard.",
       data: {
         user: {
           id: newCompany._id,
@@ -178,7 +180,9 @@ export async function POST(request: NextRequest) {
           description: newCompany.description,
           website: newCompany.website,
           contactPerson: newCompany.contactPerson,
+          isEmailVerified: newCompany.isEmailVerified,
           isVerified: newCompany.isVerified,
+          verificationStatus: newCompany.verificationStatus,
           isActive: newCompany.isActive,
           logoUrl: newCompany.logoUrl,
           jobPostingLimits: newCompany.jobPostingLimits

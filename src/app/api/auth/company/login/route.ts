@@ -45,6 +45,14 @@ export async function POST(request: NextRequest) {
       }, { status: 403 });
     }
     
+    // Check if email is verified
+    if (!company.isEmailVerified) {
+      return NextResponse.json({
+        success: false,
+        message: "Please verify your email address before logging in. Check your email for the verification link."
+      }, { status: 403 });
+    }
+    
     // Verify password
     const isPasswordValid = await comparePassword(password, company.password);
     
@@ -97,7 +105,9 @@ export async function POST(request: NextRequest) {
           description: company.description,
           website: company.website,
           contactPerson: company.contactPerson,
+          isEmailVerified: company.isEmailVerified,
           isVerified: company.isVerified,
+          verificationStatus: company.verificationStatus,
           isActive: company.isActive,
           logoUrl: company.logoUrl,
           jobPostingLimits: company.jobPostingLimits,
