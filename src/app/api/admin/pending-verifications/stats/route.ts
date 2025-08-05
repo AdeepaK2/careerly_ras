@@ -1,287 +1,231 @@
 import { NextRequest, NextResponse } from "next/server";
 import connect from "@/utils/db";
 import CompanyModel from "@/lib/models/company";
-import UndergradModel from "@/lib/models/undergraduate";
+import UndergraduateModel from "@/lib/models/undergraduate";
+// import { withAdminAuth } from "@/lib/auth/admin/middleware";
 
-export async function GET(request: NextRequest) {
+// For development - remove admin auth requirement
+// In production, wrap the handler with withAdminAuth
+async function handler(request: NextRequest) {
   try {
     await connect();
+    
+    const { searchParams } = new URL(request.url);
+    const period = searchParams.get('period') || '30'; // days to look back
+    const days = parseInt(period);
+    
+    // Calculate date range
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - days);
 
-    // Get verification statistics
-    const [companyStats, undergradStats] = await Promise.all([
-      // Company statistics
-      CompanyModel.aggregate([
-        {
-          $group: {
-            _id: null,
-            totalCompanies: { $sum: 1 },
-            verifiedCompanies: {
-              $sum: { $cond: [{ $eq: ["$isVerified", true] }, 1, 0] }
-            },
-            pendingCompanies: {
-              $sum: {
-                $cond: [
-                  {
-                    $and: [
-                      { $eq: ["$isVerified", false] },
-                      {
-                        $or: [
-                          { $eq: ["$verificationStatus", "pending"] },
-                          { $eq: ["$verificationStatus", null] },
-                          { $eq: ["$verificationStatus", undefined] }
-                        ]
-                      }
-                    ]
-                  },
-                  1,
-                  0
-                ]
-              }
-            },
-            underReviewCompanies: {
-              $sum: {
-                $cond: [{ $eq: ["$verificationStatus", "under_review"] }, 1, 0]
-              }
-            },
-            rejectedCompanies: {
-              $sum: {
-                $cond: [{ $eq: ["$verificationStatus", "rejected"] }, 1, 0]
-              }
-            },
-            highPriorityCompanies: {
-              $sum: {
-                $cond: [{ $eq: ["$verificationPriority", "high"] }, 1, 0]
-              }
-            }
-          }
+    // Get pending company verifications
+    const pendingCompanies = await CompanyModel.countDocuments({
+      isVerified: false
+    });
+
+    const pendingCompaniesByPriority = await CompanyModel.aggregate([
+      { $match: { isVerified: false } },
+      {
+        $group: {
+          _id: { $ifNull: ["$verificationPriority", "medium"] },
+          count: { $sum: 1 }
         }
-      ]),
-
-      // Undergraduate statistics
-      UndergradModel.aggregate([
-        {
-          $group: {
-            _id: null,
-            totalUndergrads: { $sum: 1 },
-            verifiedUndergrads: {
-              $sum: { $cond: [{ $eq: ["$isVerified", true] }, 1, 0] }
-            },
-            pendingUndergrads: {
-              $sum: {
-                $cond: [
-                  {
-                    $and: [
-                      { $eq: ["$isVerified", false] },
-                      {
-                        $or: [
-                          { $eq: ["$verificationStatus", "pending"] },
-                          { $eq: ["$verificationStatus", null] },
-                          { $eq: ["$verificationStatus", undefined] }
-                        ]
-                      }
-                    ]
-                  },
-                  1,
-                  0
-                ]
-              }
-            },
-            underReviewUndergrads: {
-              $sum: {
-                $cond: [{ $eq: ["$verificationStatus", "under_review"] }, 1, 0]
-              }
-            },
-            rejectedUndergrads: {
-              $sum: {
-                $cond: [{ $eq: ["$verificationStatus", "rejected"] }, 1, 0]
-              }
-            },
-            highPriorityUndergrads: {
-              $sum: {
-                $cond: [{ $eq: ["$verificationPriority", "high"] }, 1, 0]
-              }
-            }
-          }
-        }
-      ])
-    ]);
-
-    // Get recent verification activity (last 30 days)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const [recentActivity] = await Promise.all([
-      // Recent verification activity
-      Promise.all([
-        CompanyModel.countDocuments({
-          $or: [
-            { verifiedAt: { $gte: thirtyDaysAgo } },
-            { verificationRequestedAt: { $gte: thirtyDaysAgo } }
-          ]
-        }),
-        UndergradModel.countDocuments({
-          $or: [
-            { verifiedAt: { $gte: thirtyDaysAgo } },
-            { verificationRequestedAt: { $gte: thirtyDaysAgo } }
-          ]
-        })
-      ])
-    ]);
-
-    // Get average processing time
-    const [avgProcessingTime] = await Promise.all([
-      CompanyModel.aggregate([
-        {
-          $match: {
-            isVerified: true,
-            verifiedAt: { $exists: true },
-            createdAt: { $exists: true }
-          }
-        },
-        {
-          $addFields: {
-            processingTime: {
-              $divide: [
-                { $subtract: ["$verifiedAt", "$createdAt"] },
-                1000 * 60 * 60 * 24 // Convert to days
-              ]
-            }
-          }
-        },
-        {
-          $group: {
-            _id: null,
-            avgProcessingDays: { $avg: "$processingTime" },
-            count: { $sum: 1 }
-          }
-        }
-      ])
-    ]);
-
-    // Get verification trends (last 7 days)
-    const trends = await Promise.all([
-      CompanyModel.aggregate([
-        {
-          $match: {
-            verifiedAt: {
-              $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-            }
-          }
-        },
-        {
-          $group: {
-            _id: {
-              $dateToString: {
-                format: "%Y-%m-%d",
-                date: "$verifiedAt"
-              }
-            },
-            count: { $sum: 1 }
-          }
-        },
-        { $sort: { _id: 1 } }
-      ]),
-      UndergradModel.aggregate([
-        {
-          $match: {
-            verifiedAt: {
-              $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-            }
-          }
-        },
-        {
-          $group: {
-            _id: {
-              $dateToString: {
-                format: "%Y-%m-%d",
-                date: "$verifiedAt"
-              }
-            },
-            count: { $sum: 1 }
-          }
-        },
-        { $sort: { _id: 1 } }
-      ])
-    ]);
-
-    // Process results
-    const companyData = companyStats[0] || {};
-    const undergradData = undergradStats[0] || {};
-
-    const summary = {
-      totalRequests: (companyData.totalCompanies || 0) + (undergradData.totalUndergrads || 0),
-      totalPending: (companyData.pendingCompanies || 0) + (undergradData.pendingUndergrads || 0),
-      totalUnderReview: (companyData.underReviewCompanies || 0) + (undergradData.underReviewUndergrads || 0),
-      totalVerified: (companyData.verifiedCompanies || 0) + (undergradData.verifiedUndergrads || 0),
-      totalRejected: (companyData.rejectedCompanies || 0) + (undergradData.rejectedUndergrads || 0),
-      totalHighPriority: (companyData.highPriorityCompanies || 0) + (undergradData.highPriorityUndergrads || 0),
-      recentActivity: recentActivity[0] + recentActivity[1],
-      avgProcessingDays: avgProcessingTime[0]?.avgProcessingDays || 0,
-      verificationRate: {
-        companies: companyData.totalCompanies > 0 ? 
-          ((companyData.verifiedCompanies || 0) / companyData.totalCompanies * 100).toFixed(1) : '0',
-        undergraduates: undergradData.totalUndergrads > 0 ? 
-          ((undergradData.verifiedUndergrads || 0) / undergradData.totalUndergrads * 100).toFixed(1) : '0',
-        overall: (companyData.totalCompanies || 0) + (undergradData.totalUndergrads || 0) > 0 ? 
-          (((companyData.verifiedCompanies || 0) + (undergradData.verifiedUndergrads || 0)) / 
-           ((companyData.totalCompanies || 0) + (undergradData.totalUndergrads || 0)) * 100).toFixed(1) : '0'
       }
-    };
+    ]);
 
-    const breakdown = {
-      companies: {
-        total: companyData.totalCompanies || 0,
-        verified: companyData.verifiedCompanies || 0,
-        pending: companyData.pendingCompanies || 0,
-        underReview: companyData.underReviewCompanies || 0,
-        rejected: companyData.rejectedCompanies || 0,
-        highPriority: companyData.highPriorityCompanies || 0
+    // Get pending undergraduate verifications
+    const pendingUndergraduates = await UndergraduateModel.countDocuments({
+      isVerified: false
+    });
+
+    const pendingUndergraduatesByPriority = await UndergraduateModel.aggregate([
+      { $match: { isVerified: false } },
+      {
+        $group: {
+          _id: { $ifNull: ["$verificationPriority", "medium"] },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get verification requests over time (last N days)
+    const verificationRequestsOverTime = await CompanyModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate, $lte: endDate }
+        }
       },
-      undergraduates: {
-        total: undergradData.totalUndergrads || 0,
-        verified: undergradData.verifiedUndergrads || 0,
-        pending: undergradData.pendingUndergrads || 0,
-        underReview: undergradData.underReviewUndergrads || 0,
-        rejected: undergradData.rejectedUndergrads || 0,
-        highPriority: undergradData.highPriorityUndergrads || 0
+      {
+        $group: {
+          _id: {
+            date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+            type: { $literal: "company" }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $unionWith: {
+          coll: "undergraduates",
+          pipeline: [
+            {
+              $match: {
+                createdAt: { $gte: startDate, $lte: endDate }
+              }
+            },
+            {
+              $group: {
+                _id: {
+                  date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                  type: { $literal: "undergraduate" }
+                },
+                count: { $sum: 1 }
+              }
+            }
+          ]
+        }
+      },
+      {
+        $sort: { "_id.date": 1 }
       }
+    ]);
+
+    // Get average processing time for completed verifications
+    const completedVerifications = await CompanyModel.aggregate([
+      {
+        $match: {
+          isVerified: true,
+          verificationCompletedAt: { $exists: true },
+          verificationRequestedAt: { $exists: true }
+        }
+      },
+      {
+        $project: {
+          processingTime: {
+            $divide: [
+              { $subtract: ["$verificationCompletedAt", "$verificationRequestedAt"] },
+              1000 * 60 * 60 * 24 // Convert to days
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          avgProcessingTime: { $avg: "$processingTime" },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get oldest pending verification requests
+    const oldestPendingCompany = await CompanyModel.findOne(
+      { isVerified: false },
+      { createdAt: 1, companyName: 1 }
+    ).sort({ createdAt: 1 });
+
+    const oldestPendingUndergrad = await UndergraduateModel.findOne(
+      { isVerified: false },
+      { createdAt: 1, name: 1 }
+    ).sort({ createdAt: 1 });
+
+    // Format priority data
+    const formatPriorityData = (data: any[]) => {
+      const result = { high: 0, medium: 0, low: 0 };
+      data.forEach(item => {
+        const priority = item._id || 'medium';
+        result[priority as keyof typeof result] = item.count;
+      });
+      return result;
     };
 
-    // Create 7-day trend data
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - (6 - i));
-      return date.toISOString().split('T')[0];
+    // Get verification completion rate (last 30 days)
+    const totalRequestsLast30Days = await CompanyModel.countDocuments({
+      createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+    }) + await UndergraduateModel.countDocuments({
+      createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
     });
 
-    const trendData = last7Days.map(date => {
-      const companyCount = trends[0].find(t => t._id === date)?.count || 0;
-      const undergradCount = trends[1].find(t => t._id === date)?.count || 0;
-      return {
-        date,
-        companies: companyCount,
-        undergraduates: undergradCount,
-        total: companyCount + undergradCount
-      };
+    const completedRequestsLast30Days = await CompanyModel.countDocuments({
+      isVerified: true,
+      verificationCompletedAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+    }) + await UndergraduateModel.countDocuments({
+      isVerified: true,
+      verificationCompletedAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
     });
+
+    const completionRate = totalRequestsLast30Days > 0 
+      ? (completedRequestsLast30Days / totalRequestsLast30Days) * 100 
+      : 0;
+
+    // Calculate days since oldest pending request
+    const oldestDate = oldestPendingCompany?.createdAt && oldestPendingUndergrad?.createdAt
+      ? new Date(Math.min(oldestPendingCompany.createdAt.getTime(), oldestPendingUndergrad.createdAt.getTime()))
+      : oldestPendingCompany?.createdAt || oldestPendingUndergrad?.createdAt;
+
+    const daysSinceOldest = oldestDate 
+      ? Math.floor((Date.now() - oldestDate.getTime()) / (1000 * 60 * 60 * 24))
+      : 0;
 
     return NextResponse.json({
       success: true,
       data: {
-        summary,
-        breakdown,
-        trends: {
-          weekly: trendData
+        overview: {
+          totalPending: pendingCompanies + pendingUndergraduates,
+          pendingCompanies,
+          pendingUndergraduates,
+          completionRate: Math.round(completionRate * 100) / 100,
+          avgProcessingTimeDays: completedVerifications[0]?.avgProcessingTime 
+            ? Math.round(completedVerifications[0].avgProcessingTime * 100) / 100 
+            : null,
+          oldestPendingDays: daysSinceOldest
+        },
+        priority: {
+          company: formatPriorityData(pendingCompaniesByPriority),
+          undergraduate: formatPriorityData(pendingUndergraduatesByPriority),
+          total: {
+            high: formatPriorityData(pendingCompaniesByPriority).high + formatPriorityData(pendingUndergraduatesByPriority).high,
+            medium: formatPriorityData(pendingCompaniesByPriority).medium + formatPriorityData(pendingUndergraduatesByPriority).medium,
+            low: formatPriorityData(pendingCompaniesByPriority).low + formatPriorityData(pendingUndergraduatesByPriority).low
+          }
+        },
+        timeline: {
+          period: `${days} days`,
+          requests: verificationRequestsOverTime.map(item => ({
+            date: item._id.date,
+            type: item._id.type,
+            count: item.count
+          }))
+        },
+        oldestPending: {
+          company: oldestPendingCompany ? {
+            name: oldestPendingCompany.companyName,
+            daysPending: Math.floor((Date.now() - oldestPendingCompany.createdAt.getTime()) / (1000 * 60 * 60 * 24))
+          } : null,
+          undergraduate: oldestPendingUndergrad ? {
+            name: oldestPendingUndergrad.name,
+            daysPending: Math.floor((Date.now() - oldestPendingUndergrad.createdAt.getTime()) / (1000 * 60 * 60 * 24))
+          } : null
+        },
+        performance: {
+          totalCompletedVerifications: completedVerifications[0]?.count || 0,
+          avgProcessingTimeDays: completedVerifications[0]?.avgProcessingTime || 0,
+          completionRateLast30Days: Math.round(completionRate * 100) / 100
         }
       }
-    });
+    }, { status: 200 });
 
   } catch (error: any) {
-    console.error("Error fetching pending verification stats:", error);
+    console.error("Get pending verification stats error:", error);
     return NextResponse.json({
       success: false,
       message: "Failed to fetch pending verification statistics",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: error.message
     }, { status: 500 });
   }
 }
+
+// Export the handler directly for development
+// In production, use: export const GET = withAdminAuth(handler);
+export const GET = handler;

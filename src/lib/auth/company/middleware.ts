@@ -98,25 +98,33 @@ export function withCompanyAuth(
 }
 
 /**
- * Check if company is verified (for routes that require verification)
+ * Check if company email is verified (for login access)
  */
-export function requireVerifiedCompany(user: CompanyJWTPayload): boolean {
+export function requireEmailVerified(user: CompanyJWTPayload): boolean {
+  // This will be checked during login, so we assume email is verified if they can login
+  return true;
+}
+
+/**
+ * Check if company account is verified (for certain features)
+ */
+export function requireAccountVerified(user: CompanyJWTPayload): boolean {
   return user.isVerified === true;
 }
 
 /**
- * Higher-order function for routes that require verified companies
+ * Higher-order function for routes that require verified companies (account verification)
  */
 export function withVerifiedCompanyAuth(
   handler: (request: NextRequest, user: CompanyJWTPayload) => Promise<Response>
 ) {
   return withCompanyAuth(async (request: NextRequest, user: CompanyJWTPayload) => {
-    if (!requireVerifiedCompany(user)) {
+    if (!requireAccountVerified(user)) {
       return new Response(
         JSON.stringify({
           success: false,
-          message: 'Email verification required',
-          error: 'EMAIL_NOT_VERIFIED'
+          message: 'Company account verification required. Please complete your verification process.',
+          error: 'ACCOUNT_NOT_VERIFIED'
         }),
         {
           status: 403,

@@ -88,20 +88,22 @@ export const emailTemplates = {
 
   // Email verification
   verification: (name: string, verificationLink: string) => ({
-    subject: 'Verify Your Careerly Account',
+    subject: 'Verify Your Careerly Email for Login Access',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2563eb;">Verify Your Email</h2>
+        <h2 style="color: #2563eb;">Verify Your Email Address</h2>
         <p>Hi ${name},</p>
-        <p>Please click the button below to verify your email address:</p>
+        <p>Welcome to Careerly! Please click the button below to verify your email address and enable login access to your account:</p>
         <div style="text-align: center; margin: 30px 0;">
           <a href="${verificationLink}" 
              style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-            Verify Email
+            Verify Email for Login
           </a>
         </div>
         <p><small>If the button doesn't work, copy and paste this link: ${verificationLink}</small></p>
+        <p><strong>Note:</strong> This verification is only for login access. Once logged in, you can complete your company verification process through the dashboard to unlock all features.</p>
         <p>This link will expire in 24 hours.</p>
+        <p>Best regards,<br>The Careerly Team</p>
       </div>
     `,
   }),

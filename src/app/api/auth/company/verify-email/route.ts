@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Check if already verified
-    if (company.isVerified) {
+    if (company.isEmailVerified) {
       return NextResponse.json({
         success: true,
         message: "Email is already verified"
@@ -58,15 +58,15 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
     
-    // Verify the company
-    company.isVerified = true;
+    // Verify the email (not the account)
+    company.isEmailVerified = true;
     company.emailVerificationToken = undefined;
     company.emailVerificationExpires = undefined;
     await company.save();
     
     return NextResponse.json({
       success: true,
-      message: "Email verified successfully"
+      message: "Email verified successfully. You can now log in to your account."
     }, { status: 200 });
     
   } catch (error: any) {

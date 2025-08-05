@@ -21,7 +21,6 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
     { id: 'home', label: 'Home' },
     { id: 'jobs', label: 'Job Opportunities' },
     { id: 'selected', label: 'Selected' },
-    { id: 'verification', label: 'Verification' },
     { id: 'profile', label: 'Profile' }
   ];
 
@@ -60,14 +59,14 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
               Welcome, <span className="font-medium">{user?.nameWithInitials}</span>
             </div>
             
-            {/* Verification Status */}
+            {/* Email Verification Status */}
             <div className="flex items-center">
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                 user?.isVerified 
                   ? 'bg-green-100 text-green-800' 
                   : 'bg-yellow-100 text-yellow-800'
               }`}>
-                {user?.isVerified ? '✅ Verified' : '⚠️ Pending'}
+                {user?.isVerified ? '✅ Email Verified' : '📧 Email Pending'}
               </span>
             </div>
 

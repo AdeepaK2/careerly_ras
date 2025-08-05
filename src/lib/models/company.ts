@@ -119,6 +119,10 @@ const companySchema = new mongoose.Schema({
   },
   
   // Verification and status
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
   isVerified: {
     type: Boolean,
     default: false
