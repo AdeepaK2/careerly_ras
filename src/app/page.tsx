@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -31,72 +32,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-100 via-[#ffffff] to-purple-100">
-      <header className="flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-6 w-full">
-        <a
-          href="/"
-          className="flex items-center space-x-2"
-        >
-          <img src="logo.png" className="w-12 h-12" />
-          <span className="text-purple-600 font-bold">Careerly</span>
-        </a>
-        <nav
-          id="menu"
-          className="max-md:absolute max-md:top-0 max-md:left-0 max-md:overflow-hidden items-center justify-center max-md:h-full max-md:w-0 transition-[width] max-md:bg-white/50 backdrop-blur flex-col md:flex-row flex gap-8 text-gray-900 text-sm font-normal"
-        >
-          <a className="hover:text-indigo-600" href="#">
-            Products
-          </a>
-          <a className="hover:text-indigo-600" href="#">
-            Customer Stories
-          </a>
-          <a className="hover:text-indigo-600" href="#">
-            Pricing
-          </a>
-          <a className="hover:text-indigo-600" href="#">
-            Docs
-          </a>
-          <button id="closeMenu" className="md:hidden text-gray-600">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </nav>
-        <div className="hidden md:flex space-x-4">
-          <a
-            className="text-purple-600 bg-purple-100 px-5 py-2 rounded-full text-sm font-medium hover:bg-purple-200 transition"
-            href="#"
-          >
-            Login
-          </a>
-          <a
-            className="bg-purple-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-purple-700 transition"
-            href="/auth"
-          >
-            Sign up
-          </a>
-        </div>
-        <button id="openMenu" className="md:hidden text-gray-600">
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </header>
+      <Navbar />
       <main className="flex flex-col md:flex-row items-center max-md:text-center justify-between mt-16 pb-16 px-6 sm:px-10 md:px-24 max-w-7xl mx-auto w-full">
         <div className="flex flex-col items-center md:items-start">
           <h1 className="text-gray-900 font-semibold text-5xl xl:text-7xl max-w-2xl leading-none">
