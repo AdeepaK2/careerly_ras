@@ -59,16 +59,19 @@ export default function AdminSidebar({
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+  const [adminName,  setAdminName]  = useState<string>('');
+ const [adminEmail, setAdminEmail] = useState<string>('');
   const [isSuperadmin, setIsSuperadmin] = useState(false);
 
   // on mount, determine role
-  useEffect(() => {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("admin_access_token")
-        : null;
+   useEffect(() => {
+    const token = typeof window !== "undefined"
+      ? localStorage.getItem("admin_access_token")
+      : null;
     const payload = token ? parseJwt(token) : null;
     setIsSuperadmin(payload?.role === "superadmin");
+    if (payload?.username) setAdminName(payload.username);
+    if (payload?.email)    setAdminEmail(payload.email);
   }, []);
 
   // Add custom CSS for hiding scrollbar
@@ -269,14 +272,17 @@ export default function AdminSidebar({
       <div className="p-4 border-t border-gray-700 flex-shrink-0">
         {!isCollapsed && (
           <div className="flex items-center mb-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium">A</span>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium">Admin User</p>
-              <p className="text-xs text-gray-400">admin@careerly.com</p>
-            </div>
-          </div>
+  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+    <span className="text-sm font-medium">
+      {adminName.charAt(0)?.toUpperCase() || 'A'}
+    </span>
+  </div>
+  <div className="ml-3">
+    <p className="text-sm font-medium">{adminName}</p>
+    <p className="text-xs text-gray-400">{adminEmail}</p>
+  </div>
+</div>
+
         )}
         <button
           onClick={handleLogout}
