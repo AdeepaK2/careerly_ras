@@ -112,6 +112,12 @@ export default function CompanyDashboard() {
                     </span>
                   )}
                 </span>
+                <Link
+                  href="/company/profile"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition duration-200"
+                >
+                  Profile
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition duration-200"
