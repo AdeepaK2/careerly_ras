@@ -128,6 +128,20 @@ const undergraduateSchema = new mongoose.Schema({
     trim: true,
     default: null
   },
+  cvUrl: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  resumeUrl: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  skills: [{
+    type: String,
+    trim: true
+  }],
   jobSearchingStatus: {
     type: String,
     enum: ['active', 'passive', 'not_searching', 'employed'],

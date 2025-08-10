@@ -18,6 +18,16 @@ const jobSchema = new mongoose.Schema(
     },
     category: {
       type: String,
+      enum: [
+        "Architecture",
+        "Business",
+        "Engineering",
+        "Information Technology",
+        "Medicine",
+        "Design",
+        "Management",
+        "Other"
+      ],
       required: true,
     },
     workPlaceType: {

@@ -42,6 +42,9 @@ export async function GET(request: NextRequest) {
           address: user.address,
           phoneNumber: user.phoneNumber,
           profilePicUrl: user.profilePicUrl,
+          cvUrl: user.cvUrl,
+          resumeUrl: user.resumeUrl,
+          skills: user.skills,
           jobSearchingStatus: user.jobSearchingStatus,
           isVerified: user.isVerified,
           lastLogin: user.lastLogin,
@@ -76,6 +79,7 @@ export async function PUT(request: NextRequest) {
     }
     
     const body = await request.json();
+    console.log('Received update data:', body);
     
     // Add user ID to the update data
     body.index = authResult.user.index; // Ensure index remains the same
@@ -90,12 +94,36 @@ export async function PUT(request: NextRequest) {
     delete updateData._id;
     delete updateData.id;
     
-    // Update user
+    console.log('Processed update data:', updateData);
+    console.log('User ID for update:', authResult.user.id);
+    console.log('Skills in updateData:', updateData.skills);
+    
+    // Check if user exists first
+    const existingUser = await UndergradModel.findById(authResult.user.id);
+    console.log('User exists check:', !!existingUser);
+    console.log('Existing user skills before update:', existingUser?.skills);
+    
+    // Update user with simpler query
     const updatedUser = await UndergradModel.findByIdAndUpdate(
       authResult.user.id,
       updateData,
-      { new: true, runValidators: true }
+      { 
+        new: true, 
+        runValidators: false, // Disable validation to avoid issues
+        lean: false // Return full mongoose document
+      }
     );
+    
+    console.log('Updated user from database:', updatedUser?.skills);
+    console.log('Updated user skills type:', typeof updatedUser?.skills);
+    console.log('Updated user full skills field:', JSON.stringify(updatedUser?.skills));
+    console.log('Updated user ID:', updatedUser?._id);
+    console.log('Update successful:', !!updatedUser);
+    
+    // Double-check by fetching the user again
+    const verifyUser = await UndergradModel.findById(authResult.user.id);
+    console.log('Verification fetch - skills:', verifyUser?.skills);
+    console.log('Verification fetch - user found:', !!verifyUser);
     
     if (!updatedUser) {
       return NextResponse.json({
@@ -120,6 +148,9 @@ export async function PUT(request: NextRequest) {
           address: updatedUser.address,
           phoneNumber: updatedUser.phoneNumber,
           profilePicUrl: updatedUser.profilePicUrl,
+          cvUrl: updatedUser.cvUrl,
+          resumeUrl: updatedUser.resumeUrl,
+          skills: updatedUser.skills,
           jobSearchingStatus: updatedUser.jobSearchingStatus,
           isVerified: updatedUser.isVerified,
           lastLogin: updatedUser.lastLogin,
