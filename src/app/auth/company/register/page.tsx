@@ -1,13 +1,49 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { locationData } from '@/data/location';
+
+// Type for location data
+type LocationDataType = {
+  [province: string]: string[];
+};
 
 export default function CompanyRegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedProvince, setSelectedProvince] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
+  const [cities, setCities] = useState<string[]>([]);
+  const provinces = Object.keys(locationData).sort(); // Sort provinces alphabetically
+  
+  // Update cities when province changes
+  useEffect(() => {
+    if (selectedProvince) {
+      // Get cities and sort them alphabetically
+      const citiesForProvince = [...((locationData as LocationDataType)[selectedProvince] || [])].sort();
+      setCities(citiesForProvince);
+    } else {
+      setCities([]);
+    }
+  }, [selectedProvince]);
+  
+  // Update formData when province or city changes
+  useEffect(() => {
+    if (selectedProvince || selectedCity) {
+      setFormData(prev => ({
+        ...prev,
+        address: {
+          ...prev.address,
+          province: selectedProvince,
+          city: selectedCity
+        }
+      }));
+    }
+  }, [selectedProvince, selectedCity]);
+  
   const [formData, setFormData] = useState({
     companyName: '',
     registrationNumber: '',
@@ -307,23 +343,8 @@ export default function CompanyRegisterPage() {
                     value={formData.address.street}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300  text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="123 Main Street"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    City *
-                  </label>
-                  <input
-                    type="text"
-                    name="address.city"
-                    value={formData.address.city}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300  text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Colombo"
                   />
                 </div>
 
@@ -331,15 +352,42 @@ export default function CompanyRegisterPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Province *
                   </label>
-                  <input
-                    type="text"
-                    name="address.province"
-                    value={formData.address.province}
-                    onChange={handleChange}
+                  <select
+                    value={selectedProvince}
+                    onChange={(e) => {
+                      setSelectedProvince(e.target.value);
+                      setSelectedCity(''); // reset city when province changes
+                    }}
                     required
-                    className="w-full px-3 py-2 border border-gray-300  text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Western Province"
-                  />
+                    className="w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Province</option>
+                    {provinces.map((province) => (
+                      <option key={province} value={province}>
+                        {province}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    City *
+                  </label>
+                  <select
+                    value={selectedCity}
+                    onChange={(e) => setSelectedCity(e.target.value)}
+                    disabled={!selectedProvince}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select City</option>
+                    {cities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -352,7 +400,7 @@ export default function CompanyRegisterPage() {
                     value={formData.address.postalCode}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300  text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="00100"
                   />
                 </div>

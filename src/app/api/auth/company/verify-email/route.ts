@@ -3,6 +3,26 @@ import connect from "@/utils/db";
 import CompanyModel from "@/lib/models/company";
 import { verifyCompanyEmailVerificationToken } from "@/lib/auth/company/jwt";
 
+// Handle GET requests (when users click the email link directly)
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const token = searchParams.get('token');
+    
+    if (!token) {
+      // Redirect to verification page with error
+      return NextResponse.redirect(new URL('/auth/company/verify-email?error=missing-token', request.url));
+    }
+    
+    // Redirect to the verification page with the token
+    return NextResponse.redirect(new URL(`/auth/company/verify-email?token=${token}`, request.url));
+    
+  } catch (error: any) {
+    console.error("Email verification GET error:", error);
+    return NextResponse.redirect(new URL('/auth/company/verify-email?error=invalid-request', request.url));
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     await connect();
@@ -58,15 +78,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
     
-    // Verify the email (not the account)
+    // Verify the company
     company.isEmailVerified = true;
+    company.isVerified = true; // Also set general verification status
     company.emailVerificationToken = undefined;
     company.emailVerificationExpires = undefined;
     await company.save();
     
     return NextResponse.json({
       success: true,
-      message: "Email verified successfully. You can now log in to your account."
+      message: "Email verified successfully"
     }, { status: 200 });
     
   } catch (error: any) {

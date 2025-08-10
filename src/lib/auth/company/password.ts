@@ -30,6 +30,11 @@ export async function comparePassword(password: string, hashedPassword: string):
 }
 
 /**
+ * Alias for comparePassword to maintain backward compatibility
+ */
+export const verifyPassword = comparePassword;
+
+/**
  * Validate password strength
  */
 export function validatePasswordStrength(password: string): { 
@@ -101,3 +106,4 @@ export function generateSecurePassword(length: number = 12): string {
   // Shuffle the password
   return password.split('').sort(() => Math.random() - 0.5).join('');
 }
+
