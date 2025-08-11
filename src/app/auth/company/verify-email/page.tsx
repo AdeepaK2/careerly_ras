@@ -9,8 +9,25 @@ function VerifyEmailContent() {
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const token = searchParams.get('token');
+  const error = searchParams.get('error');
 
   useEffect(() => {
+    // Handle error cases first
+    if (error) {
+      setVerificationStatus('error');
+      switch (error) {
+        case 'missing-token':
+          setMessage('Invalid verification link. No token provided.');
+          break;
+        case 'invalid-request':
+          setMessage('Invalid verification request. Please try again.');
+          break;
+        default:
+          setMessage('An error occurred during verification.');
+      }
+      return;
+    }
+
     if (!token) {
       setVerificationStatus('error');
       setMessage('Invalid verification link. No token provided.');
@@ -43,7 +60,7 @@ function VerifyEmailContent() {
     };
 
     verifyEmail();
-  }, [token]);
+  }, [token, error]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -87,6 +104,12 @@ function VerifyEmailContent() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Verification Failed</h2>
               <p className="text-gray-600 mb-6">{message}</p>
               <div className="space-y-3">
+                <Link
+                  href="/auth/company/register"
+                  className="block w-full bg-blue-600 text-white py-2 px-4 rounded-md text-center hover:bg-blue-700 transition duration-200"
+                >
+                  Register Again
+                </Link>
                 <Link
                   href="/auth/company/login"
                   className="block w-full bg-gray-600 text-white py-2 px-4 rounded-md text-center hover:bg-gray-700 transition duration-200"

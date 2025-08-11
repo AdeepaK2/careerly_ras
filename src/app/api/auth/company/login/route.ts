@@ -45,8 +45,10 @@ export async function POST(request: NextRequest) {
       }, { status: 403 });
     }
     
-    // Check if email is verified
-    if (!company.isEmailVerified) {
+    // Check if email verification is required
+    // Only require email verification for accounts that have an emailVerificationToken
+    // (meaning they were created with the new verification system)
+    if (company.emailVerificationToken && !company.isEmailVerified) {
       return NextResponse.json({
         success: false,
         message: "Please verify your email address before logging in. Check your email for the verification link."
