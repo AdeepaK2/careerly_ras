@@ -28,7 +28,19 @@ export async function POST(req: NextRequest){
 
   //create the job
   try{
-    const jobData = {
+    const jobData: {
+      title: any;
+      description: any;
+      jobType: any;
+      category: any;
+      workPlaceType: any;
+      location: any;
+      deadline: Date;
+      qualifiedDegrees: any;
+      skillsRequired: any;
+      companyId: string;
+      salaryRange?: { min: number; max: number };
+    } = {
       title: body.title,
       description: body.description,
       jobType: body.jobType,

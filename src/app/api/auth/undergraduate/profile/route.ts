@@ -103,10 +103,25 @@ export async function PUT(request: NextRequest) {
     console.log('User exists check:', !!existingUser);
     console.log('Existing user skills before update:', existingUser?.skills);
     
-    // Update user with simpler query
+    // Ensure skills is properly handled as an array
+    if (updateData.skills && Array.isArray(updateData.skills)) {
+      console.log('Skills is array with length:', updateData.skills.length);
+      console.log('Skills array contents:', updateData.skills);
+    } else {
+      console.log('Skills is not array or undefined:', updateData.skills);
+    }
+    
+    // Use $set operator to explicitly set the skills field
+    const updateQuery = updateData.skills ? 
+      { $set: updateData } : 
+      { $set: { ...updateData } };
+    
+    console.log('Update query:', JSON.stringify(updateQuery));
+    
+    // Update user with explicit $set operation
     const updatedUser = await UndergradModel.findByIdAndUpdate(
       authResult.user.id,
-      updateData,
+      updateQuery,
       { 
         new: true, 
         runValidators: false, // Disable validation to avoid issues
