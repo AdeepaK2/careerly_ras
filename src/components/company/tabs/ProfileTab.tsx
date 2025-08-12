@@ -305,7 +305,7 @@ export default function ProfileTab() {
                       companyName: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -328,7 +328,7 @@ export default function ProfileTab() {
                       registrationNumber: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -351,7 +351,7 @@ export default function ProfileTab() {
                       businessEmail: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -374,7 +374,7 @@ export default function ProfileTab() {
                       phoneNumber: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -393,7 +393,7 @@ export default function ProfileTab() {
                   onChange={(e) =>
                     setCompanyData({ ...companyData, industry: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 >
                   <option>Software Development</option>
                   <option>Financial Services</option>
@@ -423,7 +423,7 @@ export default function ProfileTab() {
                       companySize: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 >
                   <option>1-10 employees</option>
                   <option>11-50 employees</option>
@@ -452,7 +452,7 @@ export default function ProfileTab() {
                       foundedYear: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -472,7 +472,7 @@ export default function ProfileTab() {
                   onChange={(e) =>
                     setCompanyData({ ...companyData, website: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <a
@@ -504,7 +504,7 @@ export default function ProfileTab() {
                         address: { ...companyData.address, street: e.target.value }
                       })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                   />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <input
@@ -517,7 +517,7 @@ export default function ProfileTab() {
                           address: { ...companyData.address, city: e.target.value }
                         })
                       }
-                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                     />
                     <input
                       type="text"
@@ -529,7 +529,7 @@ export default function ProfileTab() {
                           address: { ...companyData.address, state: e.target.value }
                         })
                       }
-                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -543,7 +543,7 @@ export default function ProfileTab() {
                           address: { ...companyData.address, country: e.target.value }
                         })
                       }
-                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                     />
                     <input
                       type="text"
@@ -555,7 +555,7 @@ export default function ProfileTab() {
                           address: { ...companyData.address, postalCode: e.target.value }
                         })
                       }
-                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                     />
                   </div>
                 </div>
@@ -586,7 +586,7 @@ export default function ProfileTab() {
                       description: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -614,7 +614,7 @@ export default function ProfileTab() {
                           contactPerson: { ...companyData.contactPerson, name: e.target.value }
                         })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                     />
                   ) : (
                     <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -637,7 +637,7 @@ export default function ProfileTab() {
                           contactPerson: { ...companyData.contactPerson, designation: e.target.value }
                         })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                     />
                   ) : (
                     <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -662,7 +662,7 @@ export default function ProfileTab() {
                           contactPerson: { ...companyData.contactPerson, email: e.target.value }
                         })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                     />
                   ) : (
                     <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -685,7 +685,7 @@ export default function ProfileTab() {
                           contactPerson: { ...companyData.contactPerson, phone: e.target.value }
                         })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                     />
                   ) : (
                     <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
