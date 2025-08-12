@@ -30,6 +30,11 @@ export async function comparePassword(password: string, hashedPassword: string):
 }
 
 /**
+ * Alias for comparePassword to maintain backward compatibility
+ */
+export const verifyPassword = comparePassword;
+
+/**
  * Validate password strength
  */
 export function validatePasswordStrength(password: string): { 
