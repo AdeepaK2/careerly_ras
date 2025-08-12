@@ -1,53 +1,221 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function ProfileTab() {
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [companyData, setCompanyData] = useState({
-    companyName: "TechCorp Solutions",
-    registrationNumber: "TC123456789",
-    businessEmail: "contact@techcorp.com",
-    phoneNumber: "+1 (555) 123-4567",
-    industry: "Software Development",
-    companySize: "51-100 employees",
-    foundedYear: "2018",
-    website: "https://techcorp.com",
-    address: "123 Tech Street, San Francisco, CA 94105",
-    description:
-      "TechCorp Solutions is a leading software development company specializing in innovative web and mobile applications. We help businesses transform their digital presence with cutting-edge technology solutions.",
+    companyName: "",
+    registrationNumber: "",
+    businessEmail: "",
+    phoneNumber: "",
+    industry: "",
+    companySize: "",
+    foundedYear: "",
+    website: "",
+    address: {
+      street: "",
+      city: "",
+      state: "",
+      country: "",
+      postalCode: ""
+    },
+    description: "",
+    contactPerson: {
+      name: "",
+      designation: "",
+      email: "",
+      phone: ""
+    },
+    isEmailVerified: false,
+    isVerified: false,
+    verificationStatus: "pending",
+    isActive: true,
     logo: null,
   });
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Here you would typically save to backend
-    console.log("Saving company data:", companyData);
+  // Fetch company data on component mount
+  useEffect(() => {
+    const fetchCompanyData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const token = typeof window !== "undefined" 
+          ? localStorage.getItem("company_accessToken") 
+          : null;
+          
+        if (!token) {
+          setError('Authentication token not found');
+          return;
+        }
+        
+        const response = await fetch('/api/auth/company/me', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          credentials: 'include',
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data?.user) {
+          const userData = result.data.user;
+          setCompanyData({
+            companyName: userData.companyName || "",
+            registrationNumber: userData.registrationNumber || "",
+            businessEmail: userData.businessEmail || "",
+            phoneNumber: userData.phoneNumber || "",
+            industry: userData.industry || "",
+            companySize: userData.companySize || "",
+            foundedYear: userData.foundedYear?.toString() || "",
+            website: userData.website || "",
+            address: userData.address || {
+              street: "",
+              city: "",
+              state: "",
+              country: "",
+              postalCode: ""
+            },
+            description: userData.description || "",
+            contactPerson: userData.contactPerson || {
+              name: "",
+              designation: "",
+              email: "",
+              phone: ""
+            },
+            isEmailVerified: userData.isEmailVerified || false,
+            isVerified: userData.isVerified || false,
+            verificationStatus: userData.verificationStatus || "pending",
+            isActive: userData.isActive || true,
+            logo: userData.logoUrl || null,
+          });
+        } else {
+          setError(result.message || 'Failed to fetch company data');
+        }
+      } catch (error) {
+        console.error('Error fetching company data:', error);
+        setError('Failed to load company data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCompanyData();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      setError(null);
+
+      const token = typeof window !== "undefined" 
+        ? localStorage.getItem("company_accessToken") 
+        : null;
+        
+      if (!token) {
+        setError('Authentication token not found');
+        return;
+      }
+
+      // Prepare data for API call
+      const updateData = {
+        companyName: companyData.companyName,
+        registrationNumber: companyData.registrationNumber,
+        businessEmail: companyData.businessEmail,
+        phoneNumber: companyData.phoneNumber,
+        industry: companyData.industry,
+        companySize: companyData.companySize,
+        foundedYear: parseInt(companyData.foundedYear) || 2020,
+        website: companyData.website,
+        address: companyData.address,
+        description: companyData.description,
+        contactPerson: companyData.contactPerson,
+      };
+
+      const response = await fetch('/api/auth/company/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify(updateData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setIsEditing(false);
+        // Optionally refetch data to ensure consistency
+        console.log('Profile updated successfully');
+      } else {
+        setError(result.message || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setError('Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold gradient-text">Company Profile</h1>
-          <p className="text-gray-600 mt-1">
-            Manage your company information and settings
-          </p>
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center p-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8243ff]"></div>
+          <span className="ml-3 text-gray-600">Loading company profile...</span>
         </div>
-        <div className="mt-4 sm:mt-0">
-          {!isEditing ? (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="bg-gradient-to-r from-[#8243ff] to-purple-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 transform hover:scale-105 flex items-center shadow-lg"
-            >
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content - Only show when not loading */}
+      {!isLoading && (
+        <>
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold gradient-text">Company Profile</h1>
+              <p className="text-gray-600 mt-1">
+                Manage your company information and settings
+              </p>
+            </div>
+            <div className="mt-4 sm:mt-0">
+              {!isEditing ? (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  disabled={isSaving}
+                  className="bg-gradient-to-r from-[#8243ff] to-purple-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 transform hover:scale-105 flex items-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg
+                    className="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth="2"
@@ -60,15 +228,23 @@ export default function ProfileTab() {
             <div className="flex space-x-3">
               <button
                 onClick={() => setIsEditing(false)}
-                className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                disabled={isSaving}
+                className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                disabled={isSaving}
+                className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
-                Save Changes
+                {isSaving && (
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           )}
@@ -129,7 +305,7 @@ export default function ProfileTab() {
                       companyName: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -152,7 +328,7 @@ export default function ProfileTab() {
                       registrationNumber: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -175,7 +351,7 @@ export default function ProfileTab() {
                       businessEmail: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -198,7 +374,7 @@ export default function ProfileTab() {
                       phoneNumber: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -217,7 +393,7 @@ export default function ProfileTab() {
                   onChange={(e) =>
                     setCompanyData({ ...companyData, industry: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 >
                   <option>Software Development</option>
                   <option>Financial Services</option>
@@ -247,7 +423,7 @@ export default function ProfileTab() {
                       companySize: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 >
                   <option>1-10 employees</option>
                   <option>11-50 employees</option>
@@ -276,7 +452,7 @@ export default function ProfileTab() {
                       foundedYear: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
@@ -296,7 +472,7 @@ export default function ProfileTab() {
                   onChange={(e) =>
                     setCompanyData({ ...companyData, website: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <a
@@ -317,17 +493,81 @@ export default function ProfileTab() {
                 Company Address
               </label>
               {isEditing ? (
-                <input
-                  type="text"
-                  value={companyData.address}
-                  onChange={(e) =>
-                    setCompanyData({ ...companyData, address: e.target.value })
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
-                />
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Street Address"
+                    value={companyData.address.street}
+                    onChange={(e) =>
+                      setCompanyData({ 
+                        ...companyData, 
+                        address: { ...companyData.address, street: e.target.value }
+                      })
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      placeholder="City"
+                      value={companyData.address.city}
+                      onChange={(e) =>
+                        setCompanyData({ 
+                          ...companyData, 
+                          address: { ...companyData.address, city: e.target.value }
+                        })
+                      }
+                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    />
+                    <input
+                      type="text"
+                      placeholder="State"
+                      value={companyData.address.state}
+                      onChange={(e) =>
+                        setCompanyData({ 
+                          ...companyData, 
+                          address: { ...companyData.address, state: e.target.value }
+                        })
+                      }
+                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      placeholder="Country"
+                      value={companyData.address.country}
+                      onChange={(e) =>
+                        setCompanyData({ 
+                          ...companyData, 
+                          address: { ...companyData.address, country: e.target.value }
+                        })
+                      }
+                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Postal Code"
+                      value={companyData.address.postalCode}
+                      onChange={(e) =>
+                        setCompanyData({ 
+                          ...companyData, 
+                          address: { ...companyData.address, postalCode: e.target.value }
+                        })
+                      }
+                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    />
+                  </div>
+                </div>
               ) : (
                 <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                  {companyData.address}
+                  {[
+                    companyData.address.street,
+                    companyData.address.city,
+                    companyData.address.state,
+                    companyData.address.country,
+                    companyData.address.postalCode
+                  ].filter(Boolean).join(', ') || 'No address provided'}
                 </p>
               )}
             </div>
@@ -346,13 +586,114 @@ export default function ProfileTab() {
                       description: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                 />
               ) : (
                 <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
                   {companyData.description}
                 </p>
               )}
+            </div>
+
+            {/* Contact Person Section */}
+            <div className="space-y-4 pt-6 border-t border-gray-200">
+              <h4 className="text-lg font-semibold text-gray-900">Contact Person Information</h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Contact Person Name
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={companyData.contactPerson.name}
+                      onChange={(e) =>
+                        setCompanyData({
+                          ...companyData,
+                          contactPerson: { ...companyData.contactPerson, name: e.target.value }
+                        })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    />
+                  ) : (
+                    <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                      {companyData.contactPerson.name || 'Not specified'}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Designation
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={companyData.contactPerson.designation}
+                      onChange={(e) =>
+                        setCompanyData({
+                          ...companyData,
+                          contactPerson: { ...companyData.contactPerson, designation: e.target.value }
+                        })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    />
+                  ) : (
+                    <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                      {companyData.contactPerson.designation || 'Not specified'}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Contact Email
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="email"
+                      value={companyData.contactPerson.email}
+                      onChange={(e) =>
+                        setCompanyData({
+                          ...companyData,
+                          contactPerson: { ...companyData.contactPerson, email: e.target.value }
+                        })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    />
+                  ) : (
+                    <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                      {companyData.contactPerson.email || 'Not specified'}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Contact Phone
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="tel"
+                      value={companyData.contactPerson.phone}
+                      onChange={(e) =>
+                        setCompanyData({
+                          ...companyData,
+                          contactPerson: { ...companyData.contactPerson, phone: e.target.value }
+                        })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    />
+                  ) : (
+                    <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                      {companyData.contactPerson.phone || 'Not specified'}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -476,6 +817,8 @@ export default function ProfileTab() {
           </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }
