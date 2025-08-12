@@ -1,9 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import Link from 'next/link';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import Link from "next/link";
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -12,7 +14,7 @@ export default function Home() {
   useEffect(() => {
     if (!loading && user) {
       // If user is logged in, redirect to their dashboard
-      router.push('/undergrad');
+      router.push("/undergrad");
     }
   }, [user, loading, router]);
 
@@ -29,92 +31,223 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-16">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Welcome to <span className="text-blue-600">Careerly</span>
+    <div className="min-h-screen bg-gradient-to-b from-purple-100 via-[#ffffff] to-purple-100">
+      <Navbar />
+      <main className="flex flex-col md:flex-row items-center max-md:text-center justify-between mt-16 pb-16 px-6 sm:px-10 md:px-24 max-w-7xl mx-auto w-full">
+        <div className="flex flex-col items-center md:items-start">
+          <h1 className="text-gray-900 font-semibold text-5xl xl:text-7xl max-w-2xl leading-none">
+            Welcome to <br />
+            <span className="text-purple-600">Careerly</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Your gateway to career opportunities. Connect with top employers and find your dream job.
+          <p className="mt-4 text-gray-600 max-w-md text-sm sm:text-lg leading-relaxed">
+            Your gateway to career opportunities. Connect with top employers and
+            find your dream job.
           </p>
-        </div>
-
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m-8 0V6a2 2 0 00-2 2v6" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">For Students</h3>
-            <p className="text-gray-600">Find internships, part-time jobs, and graduate opportunities from top companies.</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">For Employers</h3>
-            <p className="text-gray-600">Connect with talented students and recent graduates. Post jobs and find the perfect candidates.</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Verified Platform</h3>
-            <p className="text-gray-600">All users are verified through university email addresses ensuring authenticity and trust.</p>
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Ready to Start Your Career Journey?
-          </h2>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of students and graduates who have found their dream jobs through Careerly.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
+          <div className="flex flex-col md:flex-row items-center mt-8 gap-3">
+            <a
+              className="bg-purple-600 text-white px-6 pr-2.5 py-2.5 rounded-full text-md font-medium flex items-center space-x-2 hover:bg-purple-700 transition"
               href="/auth"
-              className="bg-blue-600 text-white px-8 py-3 rounded-md text-lg font-medium hover:bg-blue-700 transition duration-200"
             >
-              Get Started
-            </Link>
-            <Link
-              href="/auth"
-              className="bg-gray-200 text-gray-900 px-8 py-3 rounded-md text-lg font-medium hover:bg-gray-300 transition duration-200"
-            >
-              Sign In
-            </Link>
-          </div>
-
-          <div className="mt-6">
-            <p className="text-sm text-gray-500">
-              Choose your account type to continue{' '}
-              <Link href="/auth" className="text-blue-600 hover:text-blue-800 font-medium">
-                Get started here
-              </Link>
-            </p>
+              <span>Get Started</span>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4.821 11.999h13.43m0 0-6.714-6.715m6.715 6.715-6.715 6.715"
+                  stroke="#fff"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </a>
           </div>
         </div>
+        <div
+          aria-label="Photos of leaders"
+          className="mt-12 grid grid-cols-2 gap-6 pb-6"
+        >
+          <img
+            alt=""
+            className="w-54 h-66 rounded-lg hover:scale-105 transition duration-300 object-cover flex-shrink-0 shadow-lg"
+            height="140"
+            src="image1.png"
+            width="120"
+          />
+          <img
+            alt=""
+            className="w-54 h-66 rounded-lg hover:scale-105 transition duration-300 object-cover flex-shrink-0 shadow-lg"
+            height="140"
+            src="image2.jpg"
+            width="120"
+          />
+          <img
+            alt=""
+            className="w-54 h-66 rounded-lg hover:scale-105 transition duration-300 object-cover flex-shrink-0 shadow-lg"
+            height="140"
+            src="image3.png"
+            width="120"
+          />
+          <img
+            alt=""
+            className="w-54 h-66 rounded-lg hover:scale-105 transition duration-300 object-cover flex-shrink-0 shadow-lg"
+            height="140"
+            src="image4.jpg"
+            width="120"
+          />
+        </div>
+      </main>
 
-        {/* Footer */}
-        <div className="text-center mt-16">
-          <p className="text-gray-500">
-            © 2025 Careerly. Built for connecting talent with opportunity.
-          </p>
+      <div className="container mx-auto px-4 py-16 mt-20">
+        <h2 className="text-4xl md:text-5xl font-bold text-center text-gray-900 mb-4">
+          Why Choose <span className="text-purple-600">Careerly</span>?
+        </h2>
+        <p className="text-center text-sm md:text-xl text-gray-600 max-w-2xl mx-auto">
+          Careerly is designed to connect students with top employers, providing
+          a platform for internships, part-time jobs, and graduate
+          opportunities.
+        </p>
+        <div className="flex flex-col lg:flex-row items-center justify-center">
+          <img
+            className="2xl:max-w-2xl xl:max-w-xl md:max-w-xl max-w-2xl w-full px-20 py-10"
+            src="features.png"
+            alt=""
+          />
+          <div className="space-y-10 px-4 md:px-0">
+            <div className="flex items-center justify-center gap-6 max-w-md">
+              <div className="p-6 aspect-square bg-violet-100 rounded-full">
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 28 28"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="14"
+                    cy="9"
+                    r="4"
+                    stroke="#7F22FE"
+                    strokeWidth="2"
+                  />
+                  <path
+                    d="M5 22c0-3.866 3.582-7 9-7s9 3.134 9 7"
+                    stroke="#7F22FE"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-base font-semibold text-slate-700">
+                  For Students
+                </h3>
+                <p className="text-sm text-slate-600">
+                  Find internships, part-time jobs, and graduate opportunities
+                  from top companies.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-6 max-w-md">
+              <div className="p-6 aspect-square bg-violet-100 rounded-full">
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 28 28"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    x="5"
+                    y="4"
+                    width="18"
+                    height="20"
+                    rx="2"
+                    stroke="#7F22FE"
+                    strokeWidth="2"
+                  />
+                  <rect x="9" y="8" width="3" height="3" fill="#7F22FE" />
+                  <rect x="16" y="8" width="3" height="3" fill="#7F22FE" />
+                  <rect x="9" y="13" width="3" height="3" fill="#7F22FE" />
+                  <rect x="16" y="13" width="3" height="3" fill="#7F22FE" />
+                  <rect x="12" y="18" width="4" height="6" fill="#7F22FE" />
+                </svg>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-base font-semibold text-slate-700">
+                  For Employers
+                </h3>
+                <p className="text-sm text-slate-600">
+                  Connect with talented students and recent graduates. Post jobs
+                  and find the perfect candidates.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-6 max-w-md">
+              <div className="p-6 aspect-square bg-violet-100 rounded-full">
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 28 28"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="14"
+                    cy="14"
+                    r="12"
+                    stroke="#7F22FE"
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                  <path
+                    d="M9.5 14.5l3 3 6-6"
+                    stroke="#7F22FE"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                </svg>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-base font-semibold text-slate-700">
+                  Verified Platform
+                </h3>
+                <p className="text-sm text-slate-600">
+                  All users are verified through university email addresses
+                  ensuring authenticity and trust.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Features Section */}
+
+      {/* CTA Section */}
+
+      <div className="md:px-16">
+        <div className="max-w-6xl py-16 md:w-full mx-2 md:mx-auto flex flex-col items-center justify-center text-center bg-gradient-to-b from-[#5524B7] to-[#380B60] rounded-2xl p-10 text-white">
+          <h1 className="text-4xl md:text-5xl md:leading-[50px] font-semibold max-w-xl mt-5 bg-gradient-to-r from-white to-[#CAABFF] text-transparent bg-clip-text">
+            Ready to Start Your Career Journey?
+          </h1>
+          <Link
+            href="/auth"
+            className="px-8 py-3 text-white bg-purple-600 hover:bg-purple-700 transition-all rounded-full uppercase text-sm mt-8"
+          >
+            Get Started
+          </Link>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
