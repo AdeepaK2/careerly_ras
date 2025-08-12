@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
   LayoutDashboard,
   Users,
   Shield,
@@ -12,8 +12,31 @@ import {
   FileText,
   Menu,
   LogOut,
-  ChevronDown
-} from 'lucide-react';
+  ChevronDown,
+} from "lucide-react";
+
+// simple JWT decode to pull out role
+function parseJwt(token: string) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(
+      base64.length + ((4 - (base64.length % 4)) % 4),
+      "="
+    );
+    const json = atob(padded);
+    return JSON.parse(
+      decodeURIComponent(
+        json
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      )
+    );
+  } catch {
+    return null;
+  }
+}
 
 interface AdminSidebarProps {
   activeTab: string;
@@ -28,14 +51,29 @@ interface SidebarItem {
   submenu?: { id: string; label: string }[];
 }
 
-export default function AdminSidebar({ activeTab, onTabChange, onCollapsedChange }: AdminSidebarProps) {
+export default function AdminSidebar({
+  activeTab,
+  onTabChange,
+  onCollapsedChange,
+}: AdminSidebarProps) {
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+  const [isSuperadmin, setIsSuperadmin] = useState(false);
+
+  // on mount, determine role
+  useEffect(() => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("admin_access_token")
+        : null;
+    const payload = token ? parseJwt(token) : null;
+    setIsSuperadmin(payload?.role === "superadmin");
+  }, []);
 
   // Add custom CSS for hiding scrollbar
   useEffect(() => {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       .scrollbar-hide {
         -ms-overflow-style: none;  /* Internet Explorer 10+ */
@@ -46,15 +84,25 @@ export default function AdminSidebar({ activeTab, onTabChange, onCollapsedChange
       }
     `;
     document.head.appendChild(style);
-    
+
     return () => {
       document.head.removeChild(style);
     };
   }, []);
 
   const handleLogout = async () => {
-    // Add admin logout logic here
-    router.push('/auth/admin/login');
+    try {
+      // Best effort: call server to revoke refresh token cookie
+      await fetch("/api/auth/admin/logout", { method: "POST" });
+    } catch {
+      // ignore network errors
+    } finally {
+      // Always clear access token from localStorage
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("admin_access_token");
+      }
+      router.replace("/auth/admin/login");
+    }
   };
 
   const toggleCollapse = () => {
@@ -66,78 +114,83 @@ export default function AdminSidebar({ activeTab, onTabChange, onCollapsedChange
   };
 
   const toggleSubmenu = (menuId: string) => {
-    setExpandedMenus(prev => 
-      prev.includes(menuId) 
-        ? prev.filter(id => id !== menuId)
+    setExpandedMenus((prev) =>
+      prev.includes(menuId)
+        ? prev.filter((id) => id !== menuId)
         : [...prev, menuId]
     );
   };
 
   const sidebarItems: SidebarItem[] = [
     {
-      id: 'dashboard',
-      label: 'Dashboard',
+      id: "dashboard",
+      label: "Dashboard",
       icon: <LayoutDashboard className="w-5 h-5" />,
     },
     {
-      id: 'users',
-      label: 'User Management',
+      id: "users",
+      label: "User Management",
       icon: <Users className="w-5 h-5" />,
       submenu: [
-        { id: 'undergraduate-users', label: 'Undergraduate Students' },
-        { id: 'company-users', label: 'Companies' },
-        { id: 'admin-users', label: 'Admin Users' },
-      ]
+        { id: "undergraduate-users", label: "Undergraduate Students" },
+        { id: "company-users", label: "Companies" },
+        // Only show Admin Users for superadmins
+        ...(isSuperadmin ? [{ id: "admin-users", label: "Admin Users" }] : []),
+      ],
     },
     {
-      id: 'verification',
-      label: 'Verification Center',
+      id: "verification",
+      label: "Verification Center",
       icon: <Shield className="w-5 h-5" />,
       submenu: [
-        { id: 'pending-verifications', label: 'Pending Verifications' },
-        { id: 'verified-accounts', label: 'Verified Accounts' },
-      ]
+        { id: "pending-verifications", label: "Pending Verifications" },
+        { id: "verified-accounts", label: "Verified Accounts" },
+      ],
     },
     {
-      id: 'jobs',
-      label: 'Job Management',
+      id: "jobs",
+      label: "Job Management",
       icon: <Briefcase className="w-5 h-5" />,
       submenu: [
-        { id: 'all-jobs', label: 'All Job Postings' },
-        { id: 'active-jobs', label: 'Active Jobs' },
-        { id: 'expired-jobs', label: 'Expired Jobs' },
-        { id: 'reported-jobs', label: 'Reported Jobs' },
-      ]
+        { id: "all-jobs", label: "All Job Postings" },
+        { id: "active-jobs", label: "Active Jobs" },
+        { id: "expired-jobs", label: "Expired Jobs" },
+        { id: "reported-jobs", label: "Reported Jobs" },
+      ],
     },
     {
-      id: 'analytics',
-      label: 'Analytics',
+      id: "analytics",
+      label: "Analytics",
       icon: <BarChart3 className="w-5 h-5" />,
       submenu: [
-        { id: 'user-analytics', label: 'User Analytics' },
-        { id: 'job-analytics', label: 'Job Analytics' },
-        { id: 'system-analytics', label: 'System Analytics' },
-      ]
+        { id: "user-analytics", label: "User Analytics" },
+        { id: "job-analytics", label: "Job Analytics" },
+        { id: "system-analytics", label: "System Analytics" },
+      ],
     },
     {
-      id: 'settings',
-      label: 'System Settings',
+      id: "settings",
+      label: "System Settings",
       icon: <Settings className="w-5 h-5" />,
       submenu: [
-        { id: 'general-settings', label: 'General Settings' },
-        { id: 'email-settings', label: 'Email Settings' },
-        { id: 'security-settings', label: 'Security Settings' },
-      ]
+        { id: "general-settings", label: "General Settings" },
+        { id: "email-settings", label: "Email Settings" },
+        { id: "security-settings", label: "Security Settings" },
+      ],
     },
     {
-      id: 'reports',
-      label: 'Reports',
+      id: "reports",
+      label: "Reports",
       icon: <FileText className="w-5 h-5" />,
     },
   ];
 
   return (
-    <div className={`bg-gray-900 text-white flex flex-col fixed left-0 top-0 h-screen transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'} z-50`}>
+    <div
+      className={`bg-gray-900 text-white flex flex-col fixed left-0 top-0 h-screen transition-all duration-300 ${
+        isCollapsed ? "w-16" : "w-64"
+      } z-50`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
         {!isCollapsed && (
@@ -167,9 +220,10 @@ export default function AdminSidebar({ activeTab, onTabChange, onCollapsedChange
                 }
               }}
               className={`w-full flex items-center px-4 py-3 text-left hover:bg-gray-800 transition-colors ${
-                activeTab === item.id || (item.submenu && expandedMenus.includes(item.id)) 
-                  ? 'bg-gray-800 border-r-2 border-blue-400' 
-                  : ''
+                activeTab === item.id ||
+                (item.submenu && expandedMenus.includes(item.id))
+                  ? "bg-gray-800 border-r-2 border-blue-400"
+                  : ""
               }`}
             >
               <span className="flex-shrink-0">{item.icon}</span>
@@ -177,8 +231,10 @@ export default function AdminSidebar({ activeTab, onTabChange, onCollapsedChange
                 <>
                   <span className="ml-3 flex-1">{item.label}</span>
                   {item.submenu && (
-                    <ChevronDown 
-                      className={`w-4 h-4 transition-transform ${expandedMenus.includes(item.id) ? 'rotate-180' : ''}`} 
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform ${
+                        expandedMenus.includes(item.id) ? "rotate-180" : ""
+                      }`}
                     />
                   )}
                 </>
@@ -186,21 +242,25 @@ export default function AdminSidebar({ activeTab, onTabChange, onCollapsedChange
             </button>
 
             {/* Submenu */}
-            {item.submenu && expandedMenus.includes(item.id) && !isCollapsed && (
-              <div className="bg-gray-800">
-                {item.submenu.map((subItem) => (
-                  <button
-                    key={subItem.id}
-                    onClick={() => onTabChange(subItem.id)}
-                    className={`w-full text-left px-8 py-2 text-sm hover:bg-gray-700 transition-colors ${
-                      activeTab === subItem.id ? 'bg-gray-700 text-blue-400' : 'text-gray-300'
-                    }`}
-                  >
-                    {subItem.label}
-                  </button>
-                ))}
-              </div>
-            )}
+            {item.submenu &&
+              expandedMenus.includes(item.id) &&
+              !isCollapsed && (
+                <div className="bg-gray-800">
+                  {item.submenu.map((subItem) => (
+                    <button
+                      key={subItem.id}
+                      onClick={() => onTabChange(subItem.id)}
+                      className={`w-full text-left px-8 py-2 text-sm hover:bg-gray-700 transition-colors ${
+                        activeTab === subItem.id
+                          ? "bg-gray-700 text-blue-400"
+                          : "text-gray-300"
+                      }`}
+                    >
+                      {subItem.label}
+                    </button>
+                  ))}
+                </div>
+              )}
           </div>
         ))}
       </nav>

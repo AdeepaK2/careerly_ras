@@ -91,25 +91,66 @@ export default function JobOpportunitiesTab() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] rounded-xl shadow-lg p-6 text-white">
-        <h1 className="text-3xl font-bold mb-2">Job Opportunities 🎯</h1>
-        <p className="text-purple-100">Discover your next career opportunity</p>
+      <div className="bg-gradient-to-br from-[#8243ff] via-[#6c2bd9] to-[#5a1fc7] rounded-2xl shadow-xl p-8 text-white relative overflow-hidden">
+        {/* Elegant Overlay Effects */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-60"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black/5 to-white/10"></div>
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/5 rounded-full blur-3xl animate-bounce" style={{animationDuration: '3s'}}></div>
+        
+        {/* Floating Animation Elements */}
+        <div className="absolute top-4 left-1/4 w-6 h-6 bg-white/20 rounded-full animate-bounce" style={{animationDelay: '1s', animationDuration: '2s'}}></div>
+        <div className="absolute bottom-4 right-1/3 w-4 h-4 bg-white/15 rounded-full animate-ping" style={{animationDelay: '2s'}}></div>
+        
+        {/* Main Content */}
+        <div className="relative z-10">
+          <div className="flex items-center justify-between">
+            <div className="transform hover:scale-105 transition-transform duration-300">
+              <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent flex items-center">
+                Job Opportunities
+                <span className="ml-3 text-3xl animate-bounce">🎯</span>
+              </h1>
+              <p className="text-purple-100 text-lg font-medium hover:text-white transition-colors duration-300">Discover your next career opportunity</p>
+              <div className="mt-3 flex items-center space-x-4 text-sm text-purple-200">
+                <span className="flex items-center space-x-1 group hover:text-white transition-colors duration-300 cursor-pointer">
+                  <span className="group-hover:scale-125 transition-transform duration-300 animate-pulse">✨</span>
+                  <span>Curated for you</span>
+                </span>
+                <span className="flex items-center space-x-1 group hover:text-white transition-colors duration-300 cursor-pointer">
+                  <span className="group-hover:scale-125 transition-transform duration-300 animate-pulse">🚀</span>
+                  <span>Updated daily</span>
+                </span>
+              </div>
+            </div>
+            
+            {/* Elegant Stats Badge */}
+            <div className="bg-white/15 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/25 hover:scale-110 transition-all duration-300 group">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white group-hover:scale-110 transition-transform duration-300 animate-pulse">
+                  {jobs.length}
+                </div>
+                <div className="text-xs text-purple-200 font-medium group-hover:text-white transition-colors duration-300">Available Jobs</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+      <div className="bg-gradient-to-br from-white via-gray-50/50 to-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all duration-300">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search Bar */}
           <div className="flex-1">
-            <div className="relative">
+            <div className="relative group">
               <input
                 type="text"
                 placeholder="Search jobs, companies, or skills..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-[#8243ff] outline-none"
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-[#8243ff] outline-none transition-all duration-300 group-hover:border-[#8243ff]/50 bg-gradient-to-r from-white to-gray-50/30"
               />
-              <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl">🔍</span>
+              <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl group-hover:scale-110 transition-transform duration-300">🔍</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#8243ff]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg pointer-events-none"></div>
             </div>
           </div>
 
@@ -119,10 +160,10 @@ export default function JobOpportunitiesTab() {
               <button
                 key={filter.id}
                 onClick={() => setSelectedFilter(filter.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${
                   selectedFilter === filter.id
-                    ? 'bg-[#8243ff] text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] text-white shadow-md'
+                    : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-[#8243ff]/10 hover:to-[#8243ff]/5 hover:text-[#8243ff] hover:shadow-md'
                 }`}
               >
                 {filter.label} ({filter.count})
@@ -133,25 +174,31 @@ export default function JobOpportunitiesTab() {
       </div>
 
       {/* Results Count */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center bg-gradient-to-r from-gray-50/50 to-transparent rounded-lg p-4 hover:from-[#8243ff]/5 hover:to-transparent transition-all duration-300">
         <p className="text-gray-600">
-          Showing <span className="font-semibold">{filteredJobs.length}</span> job opportunities
+          Showing <span className="font-semibold text-[#8243ff]">{filteredJobs.length}</span> job opportunities
         </p>
-        <button className="text-[#8243ff] hover:text-[#6c2bd9] font-medium flex items-center space-x-1">
+        <button className="text-[#8243ff] hover:text-[#6c2bd9] font-medium flex items-center space-x-1 group transition-all duration-300 hover:scale-105">
           <span>Sort by: Newest</span>
-          <span>⬇️</span>
+          <span className="group-hover:translate-y-1 transition-transform duration-300">⬇️</span>
         </button>
       </div>
 
       {/* Job Listings */}
       <div className="space-y-4">
-        {filteredJobs.map(job => (
-          <div key={job.id} className="bg-white rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
-            <div className="p-6">
-              <div className="flex items-start justify-between">
+        {filteredJobs.map((job, index) => (
+          <div 
+            key={job.id} 
+            className="bg-gradient-to-br from-white via-gray-50/30 to-white rounded-xl shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:scale-102 group"
+          >
+            <div className="p-6 relative overflow-hidden">
+              {/* Hover Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#8243ff]/2 via-transparent to-[#8243ff]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="flex items-start justify-between relative z-10">
                 <div className="flex items-start space-x-4 flex-1">
                   {/* Company Logo */}
-                  <div className="w-16 h-16 bg-gradient-to-br from-[#8243ff] to-[#6c2bd9] rounded-xl flex items-center justify-center text-2xl">
+                  <div className="w-16 h-16 bg-gradient-to-br from-[#8243ff] to-[#6c2bd9] rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
                     {job.logo}
                   </div>
 
@@ -159,32 +206,35 @@ export default function JobOpportunitiesTab() {
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-800 mb-1">{job.title}</h3>
-                        <p className="text-[#8243ff] font-medium mb-2">{job.company}</p>
+                        <h3 className="text-xl font-semibold text-gray-800 mb-1 group-hover:text-[#8243ff] transition-colors duration-300">{job.title}</h3>
+                        <p className="text-[#8243ff] font-medium mb-2 group-hover:text-[#6c2bd9] transition-colors duration-300">{job.company}</p>
                         <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                          <span className="flex items-center space-x-1">
+                          <span className="flex items-center space-x-1 group-hover:scale-105 transition-transform duration-300">
                             <span>📍</span>
                             <span>{job.location}</span>
                           </span>
-                          <span className="flex items-center space-x-1">
+                          <span className="flex items-center space-x-1 group-hover:scale-105 transition-transform duration-300">
                             <span>💼</span>
                             <span>{job.type}</span>
                           </span>
-                          <span className="flex items-center space-x-1">
+                          <span className="flex items-center space-x-1 group-hover:scale-105 transition-transform duration-300">
                             <span>💰</span>
                             <span>{job.salary}</span>
                           </span>
-                          <span className="flex items-center space-x-1">
+                          <span className="flex items-center space-x-1 group-hover:scale-105 transition-transform duration-300">
                             <span>🕒</span>
                             <span>{job.posted}</span>
                           </span>
                         </div>
-                        <p className="text-gray-700 mb-3">{job.description}</p>
+                        <p className="text-gray-700 mb-3 group-hover:text-gray-800 transition-colors duration-300">{job.description}</p>
                         
                         {/* Skills */}
                         <div className="flex flex-wrap gap-2 mb-4">
-                          {job.skills.map((skill, index) => (
-                            <span key={index} className="px-3 py-1 bg-purple-100 text-[#8243ff] rounded-full text-sm font-medium">
+                          {job.skills.map((skill, skillIndex) => (
+                            <span 
+                              key={skillIndex} 
+                              className="px-3 py-1 bg-gradient-to-r from-purple-100 to-blue-100 text-[#8243ff] rounded-full text-sm font-medium hover:from-[#8243ff] hover:to-[#6c2bd9] hover:text-white transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                            >
                               {skill}
                             </span>
                           ))}
@@ -193,7 +243,7 @@ export default function JobOpportunitiesTab() {
 
                       {/* Urgent Badge */}
                       {job.urgent && (
-                        <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium">
+                        <span className="bg-gradient-to-r from-red-100 to-orange-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium animate-pulse">
                           🔥 Urgent
                         </span>
                       )}
@@ -201,13 +251,13 @@ export default function JobOpportunitiesTab() {
 
                     {/* Action Buttons */}
                     <div className="flex items-center space-x-3">
-                      <button className="bg-[#8243ff] hover:bg-[#6c2bd9] text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                      <button className="bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] hover:from-[#6c2bd9] hover:to-[#5a1fc7] text-white px-6 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
                         Apply Now
                       </button>
-                      <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                      <button className="bg-gradient-to-r from-gray-100 to-gray-200 hover:from-[#8243ff]/10 hover:to-[#8243ff]/5 text-gray-700 hover:text-[#8243ff] px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 border border-gray-200 hover:border-[#8243ff]/20">
                         Save Job
                       </button>
-                      <button className="text-[#8243ff] hover:text-[#6c2bd9] font-medium">
+                      <button className="text-[#8243ff] hover:text-[#6c2bd9] font-medium group-hover:translate-x-1 transition-all duration-300">
                         View Details →
                       </button>
                     </div>
@@ -221,8 +271,9 @@ export default function JobOpportunitiesTab() {
 
       {/* Load More Button */}
       <div className="text-center pt-6">
-        <button className="bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] hover:from-[#6c2bd9] hover:to-[#5a1fc7] text-white px-8 py-3 rounded-lg font-medium transition-colors">
-          Load More Jobs
+        <button className="bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] hover:from-[#6c2bd9] hover:to-[#5a1fc7] text-white px-8 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-xl relative overflow-hidden group">
+          <span className="relative z-10">Load More Jobs</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </button>
       </div>
     </div>
