@@ -47,6 +47,13 @@ const jobSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    logo: {
+      type: String,
+    },
+    urgent: {
+      type: Boolean,  
+      default: true,
+    },
 
     // job requiremnets
     qualifiedDegrees: {
