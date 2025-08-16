@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useAuthenticatedRequest } from "@/hooks/useAuthenticatedRequest";
+import JobDetailsModal from "../modals/JobDetailsModal";
+import ApplyJobModal from "../modals/ApplyJobModal";
 
 interface CompanyProfile {
   _id: string;
@@ -47,7 +49,6 @@ interface ApplicationFormData {
 }
 
 export default function JobOpportunitiesTab() {
-
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -56,12 +57,13 @@ export default function JobOpportunitiesTab() {
   const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set());
   const [savingJob, setSavingJob] = useState<string | null>(null);
   const [applyingJob, setApplyingJob] = useState<string | null>(null);
+
+  // Modal states
+  const [showJobDetails, setShowJobDetails] = useState(false);
+  const [selectedJobForDetails, setSelectedJobForDetails] =
+    useState<JobOpportunity | null>(null);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const [applicationForm, setApplicationForm] = useState<ApplicationFormData>({
-    expectingSalary: 0,
-    coverLetter: "",
-  });
 
   // Message states for application form
   const [applicationMessage, setApplicationMessage] = useState<{
@@ -164,15 +166,10 @@ export default function JobOpportunitiesTab() {
   const handleApplyClick = (jobId: string) => {
     setSelectedJobId(jobId);
     setShowApplicationForm(true);
-    setApplicationForm({
-      expectingSalary: 0,
-      coverLetter: "",
-    });
     setApplicationMessage({ type: null, text: "" });
   };
 
-  const handleApplicationSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleApplicationSubmit = async (formData: ApplicationFormData) => {
     if (!selectedJobId) return;
     setApplicationMessage({ type: null, text: "" });
     setApplyingJob(selectedJobId);
@@ -183,7 +180,7 @@ export default function JobOpportunitiesTab() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(applicationForm),
+        body: JSON.stringify(formData),
       });
 
       if (response.success) {
@@ -220,6 +217,18 @@ export default function JobOpportunitiesTab() {
     } finally {
       setApplyingJob(null);
     }
+  };
+
+  // Handle view details click
+  const handleViewDetailsClick = (job: JobOpportunity) => {
+    setSelectedJobForDetails(job);
+    setShowJobDetails(true);
+  };
+
+  // Handle apply from details modal
+  const handleApplyFromDetails = (jobId: string) => {
+    setShowJobDetails(false);
+    handleApplyClick(jobId);
   };
 
   // Helper function to format salary
@@ -521,8 +530,12 @@ export default function JobOpportunitiesTab() {
                             "Save Job"
                           )}
                         </button>
-                        <button className="text-[#8243ff] hover:text-[#6c2bd9] font-medium group-hover:translate-x-1 transition-all duration-300">
-                          View Details →
+                        <button
+                          onClick={() => handleViewDetailsClick(job)}
+                          className="text-[#8243ff] hover:text-[#6c2bd9] font-medium group-hover:translate-x-1 transition-all duration-300 flex items-center space-x-1"
+                        >
+                          <span>View Details</span>
+                          <span>→</span>
                         </button>
                       </div>
                     </div>
@@ -554,158 +567,38 @@ export default function JobOpportunitiesTab() {
         )}
       </div>
 
-      {/* Application form modal */}
-      {showApplicationForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-[#8243ff] to-purple-600 text-white rounded-t-2xl">
-              <h3 className="text-xl font-bold">Apply for Job</h3>
-              <p className="text-purple-100 text-sm">
-                Fill in your application details
-              </p>
-              <h3 className="text-red-100 text-sm">
-                Important : Make sure you have updated your CV and skills in the
-                profile tab
-              </h3>
-            </div>
+      {/* Job Details Modal */}
+      <JobDetailsModal
+        isOpen={showJobDetails}
+        onClose={() => setShowJobDetails(false)}
+        job={selectedJobForDetails}
+        onApply={handleApplyFromDetails}
+        onSave={handleSaveJob}
+        isJobSaved={
+          selectedJobForDetails
+            ? savedJobs.has(selectedJobForDetails._id)
+            : false
+        }
+        isJobApplied={
+          selectedJobForDetails
+            ? appliedJobs.has(selectedJobForDetails._id)
+            : false
+        }
+        isSaving={
+          selectedJobForDetails
+            ? savingJob === selectedJobForDetails._id
+            : false
+        }
+      />
 
-            <form onSubmit={handleApplicationSubmit} className="p-6 space-y-6">
-              {/* Expected Salary */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Expected Salary (LKR)
-                </label>
-                <input
-                  type="number"
-                  value={applicationForm.expectingSalary || ""}
-                  onChange={(e) =>
-                    setApplicationForm((prev) => ({
-                      ...prev,
-                      expectingSalary: e.target.value
-                        ? parseInt(e.target.value)
-                        : 0,
-                    }))
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  placeholder="e.g. 50000"
-                  min="0"
-                />
-              </div>
-
-              {/* Cover Letter */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Cover Letter *
-                </label>
-                <textarea
-                  rows={4}
-                  value={applicationForm.coverLetter}
-                  onChange={(e) =>
-                    setApplicationForm((prev) => ({
-                      ...prev,
-                      coverLetter: e.target.value,
-                    }))
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all"
-                  placeholder="Tell us why you're perfect for this role..."
-                  required
-                />
-              </div>
-
-              {/* Message Display and Buttons */}
-              <div className="pt-6 border-t border-gray-200">
-                <div className="flex items-center justify-between">
-                  {/* Message Display */}
-                  <div className="flex-1 mr-4">
-                    {applicationMessage.type && (
-                      <div
-                        className={`p-3 rounded-lg text-sm font-medium ${
-                          applicationMessage.type === "success"
-                            ? "bg-purple-100 text-purple-800 border border-purple-200"
-                            : "bg-red-100 text-red-800 border border-red-200"
-                        }`}
-                      >
-                        <div className="flex items-center">
-                          {applicationMessage.type === "success" ? (
-                            <svg
-                              className="w-4 h-4 mr-2"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          ) : (
-                            <svg
-                              className="w-4 h-4 mr-2"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          )}
-                          {applicationMessage.text}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Buttons */}
-                  <div className="flex space-x-4">
-                    <button
-                      type="button"
-                      onClick={() => setShowApplicationForm(false)}
-                      disabled={applyingJob === selectedJobId}
-                      className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={
-                        applyingJob === selectedJobId ||
-                        applicationMessage.type === "success"
-                      }
-                      className="px-6 py-3 bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] hover:from-[#6c2bd9] hover:to-[#5a1fc7] text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
-                    >
-                      {applyingJob === selectedJobId ? (
-                        <span className="flex items-center space-x-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                          <span>Submitting...</span>
-                        </span>
-                      ) : applicationMessage.type === "success" ? (
-                        <span className="flex items-center space-x-1">
-                          <svg
-                            className="w-4 h-4"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          <span>Submitted</span>
-                        </span>
-                      ) : (
-                        "Submit Application"
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Apply Job Modal */}
+      <ApplyJobModal
+        isOpen={showApplicationForm}
+        onClose={() => setShowApplicationForm(false)}
+        onSubmit={handleApplicationSubmit}
+        isSubmitting={applyingJob === selectedJobId}
+        message={applicationMessage}
+      />
 
       {/* Load More Button */}
       {filteredJobs.length > 0 && (
