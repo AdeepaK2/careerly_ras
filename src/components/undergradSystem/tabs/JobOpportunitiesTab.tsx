@@ -3,9 +3,6 @@
 import { useState, useEffect } from "react";
 import { useAuthenticatedRequest } from "@/hooks/useAuthenticatedRequest";
 
-
-
-
 interface CompanyProfile {
   _id: string;
   companyName: string;
@@ -31,7 +28,7 @@ interface JobOpportunity {
     min?: number;
     max?: number;
   };
-  deadline: string; 
+  deadline: string;
   logo?: string;
   urgent: boolean;
   qualifiedDegrees: string[];
@@ -44,11 +41,33 @@ interface JobOpportunity {
   updatedAt: string;
 }
 
+interface ApplicationFormData {
+  expectingSalary: number;
+  coverLetter: string;
+}
+
 export default function JobOpportunitiesTab() {
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [jobs, setJobs] = useState<JobOpportunity[]>([]);
+  const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
+  const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set());
+  const [savingJob, setSavingJob] = useState<string | null>(null);
+  const [applyingJob, setApplyingJob] = useState<string | null>(null);
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [applicationForm, setApplicationForm] = useState<ApplicationFormData>({
+    expectingSalary: 0,
+    coverLetter: "",
+  });
+
+  // Message states for application form
+  const [applicationMessage, setApplicationMessage] = useState<{
+    type: "success" | "error" | null;
+    text: string;
+  }>({ type: null, text: "" });
 
   const { makeAuthenticatedRequest } = useAuthenticatedRequest();
 
@@ -58,10 +77,12 @@ export default function JobOpportunitiesTab() {
   };
 
   useEffect(() => {
-    fetchjobs();
+    fetchJobs();
+    fetchSavedJobs();
+    fetchAppliedJobs();
   }, []);
 
-  const fetchjobs = async () => {
+  const fetchJobs = async () => {
     try {
       const response = await makeRequest("/api/job/undergrad", {
         method: "GET",
@@ -81,14 +102,134 @@ export default function JobOpportunitiesTab() {
     }
   };
 
+  const fetchSavedJobs = async () => {
+    try {
+      const response = await makeRequest("/api/job/undergrad/saved", {
+        method: "GET",
+      });
+
+      if (response.success && Array.isArray(response.data)) {
+        setSavedJobs(new Set(response.data));
+      }
+    } catch (error) {
+      console.error("Error fetching saved jobs:", error);
+    }
+  };
+
+  const fetchAppliedJobs = async () => {
+    try {
+      const response = await makeRequest("/api/application/applied", {
+        method: "GET",
+      });
+
+      if (response.success && Array.isArray(response.data)) {
+        setAppliedJobs(new Set(response.data));
+      }
+    } catch (error) {
+      console.error("Error fetching applied jobs:", error);
+    }
+  };
+
+  const handleSaveJob = async (jobId: string) => {
+    const isSaved = savedJobs.has(jobId);
+    setSavingJob(jobId);
+
+    try {
+      const response = await makeRequest(`/api/job/${jobId}/save`, {
+        method: isSaved ? "DELETE" : "POST",
+      });
+
+      if (response.success || !response.error) {
+        if (isSaved) {
+          setSavedJobs((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(jobId);
+            return newSet;
+          });
+        } else {
+          setSavedJobs((prev) => new Set(prev).add(jobId));
+        }
+      } else {
+        console.error("Failed to save/unsave job:", response.error);
+        alert(response.error || "Failed to save job");
+      }
+    } catch (error) {
+      console.error("Error saving/unsaving job:", error);
+      alert("Failed to save job. Please try again.");
+    } finally {
+      setSavingJob(null);
+    }
+  };
+
+  const handleApplyClick = (jobId: string) => {
+    setSelectedJobId(jobId);
+    setShowApplicationForm(true);
+    setApplicationForm({
+      expectingSalary: 0,
+      coverLetter: "",
+    });
+    setApplicationMessage({ type: null, text: "" });
+  };
+
+  const handleApplicationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedJobId) return;
+    setApplicationMessage({ type: null, text: "" });
+    setApplyingJob(selectedJobId);
+
+    try {
+      const response = await makeRequest(`/api/job/${selectedJobId}/apply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(applicationForm),
+      });
+
+      if (response.success) {
+        setAppliedJobs((prev) => new Set(prev).add(selectedJobId));
+        setApplicationMessage({
+          type: "success",
+          text: "Application submitted successfully!",
+        });
+
+        setJobs((prev) =>
+          prev.map((job) =>
+            job._id === selectedJobId
+              ? { ...job, applicantsCount: job.applicantsCount + 1 }
+              : job
+          )
+        );
+
+        setTimeout(() => {
+          setShowApplicationForm(false);
+        }, 2000);
+      } else {
+        setApplicationMessage({
+          type: "error",
+          text:
+            response.error || "Failed to submit application. Please try again.",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      setApplicationMessage({
+        type: "error",
+        text: "Failed to submit application. Please check your connection and try again.",
+      });
+    } finally {
+      setApplyingJob(null);
+    }
+  };
+
   // Helper function to format salary
   const formatSalary = (salaryRange?: { min?: number; max?: number }) => {
     if (!salaryRange) return "Salary not specified";
     const { min, max } = salaryRange;
     if (min && max)
-      return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
-    if (min) return `From $${min.toLocaleString()}`;
-    if (max) return `Up to $${max.toLocaleString()}`;
+      return `LKR ${min.toLocaleString()} - LKR ${max.toLocaleString()}`;
+    if (min) return `From LKR ${min.toLocaleString()}`;
+    if (max) return `Up to LKR ${max.toLocaleString()}`;
     return "Salary not specified";
   };
 
@@ -150,7 +291,7 @@ export default function JobOpportunitiesTab() {
     return (
       <div className="p-6">
         <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
           <p className="text-gray-600 mt-4">Loading job opportunities...</p>
         </div>
       </div>
@@ -161,7 +302,6 @@ export default function JobOpportunitiesTab() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-br from-[#8243ff] via-[#6c2bd9] to-[#5a1fc7] rounded-2xl shadow-xl p-8 text-white relative overflow-hidden">
-        {/* Elegant Overlay Effects */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-60"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black/5 to-white/10"></div>
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
@@ -170,7 +310,6 @@ export default function JobOpportunitiesTab() {
           style={{ animationDuration: "3s" }}
         ></div>
 
-        {/* Floating Animation Elements */}
         <div
           className="absolute top-4 left-1/4 w-6 h-6 bg-white/20 rounded-full animate-bounce"
           style={{ animationDelay: "1s", animationDuration: "2s" }}
@@ -180,7 +319,6 @@ export default function JobOpportunitiesTab() {
           style={{ animationDelay: "2s" }}
         ></div>
 
-        {/* Main Content */}
         <div className="relative z-10">
           <div className="flex items-center justify-between">
             <div className="transform hover:scale-105 transition-transform duration-300">
@@ -207,7 +345,6 @@ export default function JobOpportunitiesTab() {
               </div>
             </div>
 
-            {/* Elegant Stats Badge */}
             <div className="bg-white/15 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/25 hover:scale-110 transition-all duration-300 group">
               <div className="text-center">
                 <div className="text-2xl font-bold text-white group-hover:scale-110 transition-transform duration-300 animate-pulse">
@@ -225,7 +362,6 @@ export default function JobOpportunitiesTab() {
       {/* Search and Filters */}
       <div className="bg-gradient-to-br from-white via-gray-50/50 to-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all duration-300">
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search Bar */}
           <div className="flex-1">
             <div className="relative group">
               <input
@@ -242,7 +378,6 @@ export default function JobOpportunitiesTab() {
             </div>
           </div>
 
-          {/* Filter Buttons */}
           <div className="flex gap-2 flex-wrap">
             {filters.map((filter) => (
               <button
@@ -261,7 +396,6 @@ export default function JobOpportunitiesTab() {
         </div>
       </div>
 
-      {/* Results Count */}
       <div className="flex justify-between items-center bg-gradient-to-r from-gray-50/50 to-transparent rounded-lg p-4 hover:from-[#8243ff]/5 hover:to-transparent transition-all duration-300">
         <p className="text-gray-600">
           Showing{" "}
@@ -270,7 +404,10 @@ export default function JobOpportunitiesTab() {
           </span>{" "}
           job opportunities
         </p>
-        <button className="text-[#8243ff] hover:text-[#6c2bd9] font-medium flex items-center space-x-1 group transition-all duration-300 hover:scale-105">
+        <button
+          onClick={fetchJobs}
+          className="text-[#8243ff] hover:text-[#6c2bd9] font-medium flex items-center space-x-1 group transition-all duration-300 hover:scale-105"
+        >
           <span>Sort by: Newest</span>
           <span className="group-hover:translate-y-1 transition-transform duration-300">
             ⬇️
@@ -287,17 +424,14 @@ export default function JobOpportunitiesTab() {
               className="bg-gradient-to-br from-white via-gray-50/30 to-white rounded-xl shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:scale-102 group"
             >
               <div className="p-6 relative overflow-hidden">
-                {/* Hover Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-[#8243ff]/2 via-transparent to-[#8243ff]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
                 <div className="flex items-start justify-between relative z-10">
                   <div className="flex items-start space-x-4 flex-1">
-                    {/* Company Logo */}
                     <div className="w-16 h-16 bg-gradient-to-br from-[#8243ff] to-[#6c2bd9] rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
                       {job.logo || "🏢"}
                     </div>
 
-                    {/* Job Details */}
                     <div className="flex-1">
                       <div className="flex items-start justify-between">
                         <div>
@@ -305,7 +439,7 @@ export default function JobOpportunitiesTab() {
                             {job.title}
                           </h3>
                           <p className="text-[#8243ff] font-medium mb-2 group-hover:text-[#6c2bd9] transition-colors duration-300">
-                            {job.companyId?.companyName || "Unko=nown Company"}
+                            {job.companyId?.companyName || "Unknown Company"}
                           </p>
                           <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3 flex-wrap">
                             <span className="flex items-center space-x-1 group-hover:scale-105 transition-transform duration-300">
@@ -333,7 +467,6 @@ export default function JobOpportunitiesTab() {
                             {job.description}
                           </p>
 
-                          {/* Skills */}
                           <div className="flex flex-wrap gap-2 mb-4">
                             {job.skillsRequired?.map((skill, skillIndex) => (
                               <span
@@ -346,7 +479,6 @@ export default function JobOpportunitiesTab() {
                           </div>
                         </div>
 
-                        {/* Urgent Badge */}
                         {job.urgent && (
                           <span className="bg-gradient-to-r from-red-100 to-orange-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium animate-pulse ml-4 shrink-0">
                             🔥 Urgent
@@ -354,16 +486,40 @@ export default function JobOpportunitiesTab() {
                         )}
                       </div>
 
-                      {/* Action Buttons */}
                       <div className="flex items-center space-x-3">
                         <button
-                          className="bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] hover:from-[#6c2bd9] hover:to-[#5a1fc7] text-white px-6 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
-                          disabled={job.status !== "active"}
+                          onClick={() => handleApplyClick(job._id)}
+                          disabled={
+                            job.status !== "active" || appliedJobs.has(job._id)
+                          }
+                          className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
+                            appliedJobs.has(job._id)
+                              ? "bg-gray-400 text-white cursor-not-allowed"
+                              : job.status !== "active"
+                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                              : "bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] hover:from-[#6c2bd9] hover:to-[#5a1fc7] text-white"
+                          }`}
                         >
-                          Apply Now
+                          {appliedJobs.has(job._id) ? "Applied ✓" : "Apply Now"}
                         </button>
-                        <button className="bg-gradient-to-r from-gray-100 to-gray-200 hover:from-[#8243ff]/10 hover:to-[#8243ff]/5 text-gray-700 hover:text-[#8243ff] px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 border border-gray-200 hover:border-[#8243ff]/20">
-                          Save Job
+                        <button
+                          onClick={() => handleSaveJob(job._id)}
+                          disabled={savingJob === job._id}
+                          className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 border ${
+                            savedJobs.has(job._id)
+                              ? "bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] text-white border-[#8243ff] hover:from-[#6c2bd9] hover:to-[#5a1fc7]"
+                              : "bg-gradient-to-r from-gray-100 to-gray-200 hover:from-[#8243ff]/10 hover:to-[#8243ff]/5 text-gray-700 hover:text-[#8243ff] border-gray-200 hover:border-[#8243ff]/20"
+                          }`}
+                        >
+                          {savingJob === job._id ? (
+                            <span className="flex items-center space-x-1">
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-400 border-t-transparent"></div>
+                            </span>
+                          ) : savedJobs.has(job._id) ? (
+                            "Saved ❤️"
+                          ) : (
+                            "Save Job"
+                          )}
                         </button>
                         <button className="text-[#8243ff] hover:text-[#6c2bd9] font-medium group-hover:translate-x-1 transition-all duration-300">
                           View Details →
@@ -398,10 +554,166 @@ export default function JobOpportunitiesTab() {
         )}
       </div>
 
+      {/* Application form modal */}
+      {showApplicationForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-[#8243ff] to-purple-600 text-white rounded-t-2xl">
+              <h3 className="text-xl font-bold">Apply for Job</h3>
+              <p className="text-purple-100 text-sm">
+                Fill in your application details
+              </p>
+              <h3 className="text-red-100 text-sm">
+                Important : Make sure you have updated your CV and skills in the
+                profile tab
+              </h3>
+            </div>
+
+            <form onSubmit={handleApplicationSubmit} className="p-6 space-y-6">
+              {/* Expected Salary */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Expected Salary (LKR)
+                </label>
+                <input
+                  type="number"
+                  value={applicationForm.expectingSalary || ""}
+                  onChange={(e) =>
+                    setApplicationForm((prev) => ({
+                      ...prev,
+                      expectingSalary: e.target.value
+                        ? parseInt(e.target.value)
+                        : 0,
+                    }))
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  placeholder="e.g. 50000"
+                  min="0"
+                />
+              </div>
+
+              {/* Cover Letter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Cover Letter *
+                </label>
+                <textarea
+                  rows={4}
+                  value={applicationForm.coverLetter}
+                  onChange={(e) =>
+                    setApplicationForm((prev) => ({
+                      ...prev,
+                      coverLetter: e.target.value,
+                    }))
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all"
+                  placeholder="Tell us why you're perfect for this role..."
+                  required
+                />
+              </div>
+
+              {/* Message Display and Buttons */}
+              <div className="pt-6 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  {/* Message Display */}
+                  <div className="flex-1 mr-4">
+                    {applicationMessage.type && (
+                      <div
+                        className={`p-3 rounded-lg text-sm font-medium ${
+                          applicationMessage.type === "success"
+                            ? "bg-purple-100 text-purple-800 border border-purple-200"
+                            : "bg-red-100 text-red-800 border border-red-200"
+                        }`}
+                      >
+                        <div className="flex items-center">
+                          {applicationMessage.type === "success" ? (
+                            <svg
+                              className="w-4 h-4 mr-2"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="w-4 h-4 mr-2"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          )}
+                          {applicationMessage.text}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex space-x-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowApplicationForm(false)}
+                      disabled={applyingJob === selectedJobId}
+                      className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={
+                        applyingJob === selectedJobId ||
+                        applicationMessage.type === "success"
+                      }
+                      className="px-6 py-3 bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] hover:from-[#6c2bd9] hover:to-[#5a1fc7] text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
+                    >
+                      {applyingJob === selectedJobId ? (
+                        <span className="flex items-center space-x-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                          <span>Submitting...</span>
+                        </span>
+                      ) : applicationMessage.type === "success" ? (
+                        <span className="flex items-center space-x-1">
+                          <svg
+                            className="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span>Submitted</span>
+                        </span>
+                      ) : (
+                        "Submit Application"
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Load More Button */}
       {filteredJobs.length > 0 && (
         <div className="text-center pt-6">
-          <button className="bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] hover:from-[#6c2bd9] hover:to-[#5a1fc7] text-white px-8 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-xl relative overflow-hidden group">
+          <button
+            onClick={fetchJobs}
+            className="bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] hover:from-[#6c2bd9] hover:to-[#5a1fc7] text-white px-8 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-xl relative overflow-hidden group"
+          >
             <span className="relative z-10">Load More Jobs</span>
             <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </button>
