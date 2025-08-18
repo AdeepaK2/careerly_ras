@@ -5,7 +5,11 @@ import connect from "@/utils/db";
 
 connect();
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  
+  const params = await context.params;
+  const jobId = params.id;
+
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
   if (!token) {
     return NextResponse.json({ error: "No token given" }, { status: 401 });
@@ -23,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   try {
     const job = await JobModel.findOneAndUpdate(
-      { _id: params.id, companyId: company.id },
+      { _id: jobId, companyId: company.id },
       { status: body.status },
       { new: true }
     );
