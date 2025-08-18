@@ -77,6 +77,14 @@ export default function AdminDashboard() {
         }
         return <AdminUsersTab />;
 
+      case "admin-management":
+        // guard: only superadmins get this, redirect regular admins to dashboard
+        if (!isSuperadmin) {
+          setActiveTab("dashboard");
+          return <DashboardTab />;
+        }
+        return <AdminUsersTab />;
+
       case "pending-verifications":
         return <PendingVerificationsTab />;
 
