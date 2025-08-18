@@ -143,15 +143,15 @@ export default function AdminSidebar({
     },
     // Only show Admin Management for superadmins
     ...(isSuperadmin
-      ? [
-          {
-            id: "admin-management",
-            label: "Admin Management",
-            icon: <Shield className="w-5 h-5" />,
-            submenu: [{ id: "admin-users", label: "Admin Users" }],
-          },
-        ]
-      : []),
+  ? [
+      {
+        id: "admin-management",
+        label: "Admin Management",
+        icon: <Shield className="w-5 h-5" />,
+      },
+    ]
+  : []),
+
     {
       id: "verification",
       label: "Verification Center",
