@@ -18,10 +18,8 @@ export async function GET(req: NextRequest) {
     }
 
     // Get undergraduate with saved jobs
-    const undergradProfile = await UndergradModel.findById(undergrad.payload.id)
-      .select('savedJobs')
-      .lean();
-
+    const undergradProfile = await UndergradModel.findById(undergrad.payload.id).select('savedJobs')
+   
     if (!undergradProfile) {
       return NextResponse.json({ error: "Undergraduate not found" }, { status: 404 });
     }
