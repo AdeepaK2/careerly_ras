@@ -18,6 +18,16 @@ const jobSchema = new mongoose.Schema(
     },
     category: {
       type: String,
+      enum: [
+        "Architecture",
+        "Business",
+        "Engineering",
+        "Information Technology",
+        "Medicine",
+        "Design",
+        "Management",
+        "Other"
+      ],
       required: true,
     },
     workPlaceType: {
@@ -36,6 +46,13 @@ const jobSchema = new mongoose.Schema(
     deadline: {
       type: Date,
       required: true,
+    },
+    logo: {
+      type: String,
+    },
+    urgent: {
+      type: Boolean,  
+      default: true,
     },
 
     // job requiremnets
