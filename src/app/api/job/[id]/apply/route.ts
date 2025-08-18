@@ -24,25 +24,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const body = await req.json();
 
+    // Validate required fields
+    if (!body.cv || !body.coverLetter?.trim()) {
+      return NextResponse.json({ 
+        error: "CV and cover letter are required" 
+      }, { status: 400 });
+    }
+
     // Get undergraduate profile for degree information
     const undergradProfile = await UndergradModel.findById(undergrad.payload.id);
     if (!undergradProfile) {
       return NextResponse.json({ error: "Undergraduate profile not found" }, { status: 404 });
     }
 
-    if (!undergradProfile.cvUrl) {
-      return NextResponse.json({ error: "CV is required to apply! Upload your CV in the profile tab." }, { status: 400 });
-    }
-
-    // Create application
+    // Create application with new schema
     const application = await ApplicationModel.create({
       jobId: jobId,
       applicantId: undergrad.payload.id,
       applicantDegree: undergradProfile.education.degreeProgramme,
-      expectingSalary: body.expectingSalary || 0,
+      cv: body.cv, // URL from uploaded CV
+      coverLetter: body.coverLetter,
+      specialRequirements: body.specialRequirements || "",
       skills: undergradProfile.skills || [],
-      cv: undergradProfile.cvUrl,
-      coverLetter: body.coverLetter || "",
       appliedAt: new Date(),
     });
 

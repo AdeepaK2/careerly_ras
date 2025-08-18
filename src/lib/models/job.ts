@@ -111,7 +111,7 @@ const jobSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["active", "closed", "pending"],
-      default: "pending",
+      default: "active", // Changed from "pending" to "active" - jobs go live immediately
     },
     applicantsCount: {
       type: Number,

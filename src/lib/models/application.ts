@@ -53,21 +53,22 @@ const applicationSchema = new mongoose.Schema(
         "Bachelor of Medicine and Bachelor of Surgery",
       ]
     },
-    expectingSalary: {
-      type: Number,
-      required: false
-    },
-    skills: {
-      type: [String],
-      required: false,
-    },
+    // Application documents and details
     cv: {
-      type: String,
+      type: String, // URL/path to uploaded CV file
       required: true,
     },
     coverLetter: {
       type: String,
       required: true,
+    },
+    specialRequirements: {
+      type: String, // Any special requirements or additional information
+      required: false,
+    },
+    skills: {
+      type: [String],
+      required: false,
     },
     status: {
       type: String,
