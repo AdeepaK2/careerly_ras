@@ -44,8 +44,9 @@ interface JobOpportunity {
 }
 
 interface ApplicationFormData {
-  expectingSalary: number;
+  cv: File | null;
   coverLetter: string;
+  specialRequirements?: string;
 }
 
 export default function JobOpportunitiesTab() {
@@ -57,6 +58,8 @@ export default function JobOpportunitiesTab() {
   const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set());
   const [savingJob, setSavingJob] = useState<string | null>(null);
   const [applyingJob, setApplyingJob] = useState<string | null>(null);
+  const [showAllJobs, setShowAllJobs] = useState(false);
+  const [showWarningModal, setShowWarningModal] = useState(false);
 
   // Modal states
   const [showJobDetails, setShowJobDetails] = useState(false);
@@ -82,11 +85,12 @@ export default function JobOpportunitiesTab() {
     fetchJobs();
     fetchSavedJobs();
     fetchAppliedJobs();
-  }, []);
+  }, [showAllJobs]);
 
   const fetchJobs = async () => {
     try {
-      const response = await makeRequest("/api/job/undergrad", {
+      const endpoint = showAllJobs ? "/api/job/undergrad/all" : "/api/job/undergrad";
+      const response = await makeRequest(endpoint, {
         method: "GET",
       });
       console.log("Response Data:", response.jobs);
@@ -175,12 +179,38 @@ export default function JobOpportunitiesTab() {
     setApplyingJob(selectedJobId);
 
     try {
+      // First, upload the CV file if provided
+      let cvUrl = "";
+      if (formData.cv) {
+        const cvFormData = new FormData();
+        cvFormData.append("file", formData.cv);
+        cvFormData.append("folderPath", "applications/cv");
+
+        const uploadResponse = await makeAuthenticatedRequest("/api/file/upload", {
+          method: "POST",
+          body: cvFormData,
+        });
+
+        const uploadResult = await uploadResponse.json();
+        if (!uploadResponse.ok || !uploadResult.success) {
+          throw new Error(uploadResult.message || "Failed to upload CV");
+        }
+        cvUrl = uploadResult.data.url;
+      }
+
+      // Then submit the application
+      const applicationData = {
+        cv: cvUrl,
+        coverLetter: formData.coverLetter,
+        specialRequirements: formData.specialRequirements || "",
+      };
+
       const response = await makeRequest(`/api/job/${selectedJobId}/apply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(applicationData),
       });
 
       if (response.success) {
@@ -212,7 +242,7 @@ export default function JobOpportunitiesTab() {
       console.error("Error submitting application:", error);
       setApplicationMessage({
         type: "error",
-        text: "Failed to submit application. Please check your connection and try again.",
+        text: error instanceof Error ? error.message : "Failed to submit application. Please check your connection and try again.",
       });
     } finally {
       setApplyingJob(null);
@@ -229,6 +259,22 @@ export default function JobOpportunitiesTab() {
   const handleApplyFromDetails = (jobId: string) => {
     setShowJobDetails(false);
     handleApplyClick(jobId);
+  };
+
+  // Handle view all jobs with warning
+  const handleViewAllJobs = () => {
+    if (!showAllJobs) {
+      setShowWarningModal(true);
+    } else {
+      setShowAllJobs(false);
+      setLoading(true);
+    }
+  };
+
+  const confirmViewAllJobs = () => {
+    setShowWarningModal(false);
+    setShowAllJobs(true);
+    setLoading(true);
   };
 
   // Helper function to format salary
@@ -412,16 +458,33 @@ export default function JobOpportunitiesTab() {
             {filteredJobs.length}
           </span>{" "}
           job opportunities
+          {showAllJobs && (
+            <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+              ⚠️ All Jobs (Including Non-Matching Degrees)
+            </span>
+          )}
         </p>
-        <button
-          onClick={fetchJobs}
-          className="text-[#8243ff] hover:text-[#6c2bd9] font-medium flex items-center space-x-1 group transition-all duration-300 hover:scale-105"
-        >
-          <span>Sort by: Newest</span>
-          <span className="group-hover:translate-y-1 transition-transform duration-300">
-            ⬇️
-          </span>
-        </button>
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={handleViewAllJobs}
+            className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${
+              showAllJobs
+                ? "bg-gradient-to-r from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700"
+                : "bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600"
+            }`}
+          >
+            {showAllJobs ? "Show Matching Jobs Only" : "View All Jobs"}
+          </button>
+          <button
+            onClick={fetchJobs}
+            className="text-[#8243ff] hover:text-[#6c2bd9] font-medium flex items-center space-x-1 group transition-all duration-300 hover:scale-105"
+          >
+            <span>Sort by: Newest</span>
+            <span className="group-hover:translate-y-1 transition-transform duration-300">
+              ⬇️
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Job Listings */}
@@ -599,6 +662,43 @@ export default function JobOpportunitiesTab() {
         isSubmitting={applyingJob === selectedJobId}
         message={applicationMessage}
       />
+
+      {/* Warning Modal for View All Jobs */}
+      {showWarningModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md mx-4 transform transition-all duration-300 scale-100 animate-bounce-in">
+            <div className="text-center">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                View All Jobs Warning
+              </h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                You're about to view all jobs, including those that may not match your degree program. 
+                These jobs might have different qualification requirements that don't align with your academic background.
+              </p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
+                <p className="text-sm text-yellow-800">
+                  <strong>Recommendation:</strong> Focus on jobs matching your degree for better application success rates.
+                </p>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowWarningModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors duration-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmViewAllJobs}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-lg font-medium transition-all duration-300"
+                >
+                  Continue Anyway
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Load More Button */}
       {filteredJobs.length > 0 && (
