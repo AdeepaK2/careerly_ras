@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Shield } from "lucide-react";
 
 // Reuse the same parseJwt helper logic used elsewhere in the app
 function parseJwt(token: string) {
@@ -49,23 +49,16 @@ export default function AdminLoginPage() {
 
   // Redirect already-authenticated admins away from the login page
   useEffect(() => {
-    try {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("admin_access_token")
-          : null;
-      if (!token) return;
-      const payload = parseJwt(token);
-      if (!payload || typeof payload !== "object") return;
-      const exp = (payload as any).exp as number | undefined; // seconds since epoch
-      if (!exp) return;
-      const nowInSeconds = Math.floor(Date.now() / 1000);
-      if (exp > nowInSeconds) {
-        router.replace("/admin");
-      }
-    } catch {
-      // ignore parse/redirect errors
-    }
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("admin_access_token")
+        : null;
+    if (!token) return;
+    const payload = parseJwt(token);
+    const exp = (payload as any)?.exp as number | undefined;
+    if (!exp) return;
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    if (exp > nowInSeconds) router.replace("/admin");
   }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +91,7 @@ export default function AdminLoginPage() {
       } else {
         setError(result.message || "Login failed");
       }
-    } catch (err) {
+    } catch {
       setError("Login failed. Please try again.");
     } finally {
       setLoading(false);
@@ -106,30 +99,49 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="bg-white shadow-md rounded-lg p-8">
-          <div className="text-center mb-6">
-            <h2 className="text-3xl font-bold text-gray-900 mb-1">
-              Admin Login
-            </h2>
-            <p className="text-gray-600 text-sm">
-              Sign in to your admin account
+    <div className="min-h-screen bg-white">
+      {/* Top bar: brand left, back link right */}
+      <div className="mx-auto max-w-7xl px-6 pt-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="h-9 w-9 rounded-full bg-purple-600/20 flex items-center justify-center">
+            <span className="font-bold text-purple-700">C</span>
+          </div>
+          <span className="text-lg font-semibold text-purple-700">Careerly</span>
+        </div>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-100 transition"
+        >
+          ← Back to Home
+        </Link>
+      </div>
+
+      {/* Centered card */}
+      <div className="mx-auto max-w-md px-6 py-10">
+        <div className="bg-white shadow-md rounded-2xl px-8 py-10 border border-gray-100">
+          {/* Icon bubble + title */}
+          <div className="text-center mb-8">
+            <div className="mx-auto mb-4 h-14 w-14 rounded-full bg-purple-600/10 flex items-center justify-center">
+              <Shield className="h-7 w-7 text-purple-600" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900">Admin Portal</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Welcome back! Sign in to access the admin dashboard
             </p>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+            <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
               <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Username */}
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="mb-1 block text-sm font-medium text-gray-800"
               >
                 Username
               </label>
@@ -140,17 +152,17 @@ export default function AdminLoginPage() {
                 required
                 value={formData.username}
                 onChange={handleChange}
-                placeholder="admin username"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="admin"
                 autoComplete="username"
+                className="h-11 w-full rounded-md border border-gray-300 px-3 text-gray-900 placeholder-gray-400 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30"
               />
             </div>
 
-            {/* Password with toggle */}
+            {/* Password */}
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="mb-1 block text-sm font-medium text-gray-800"
               >
                 Password
               </label>
@@ -163,16 +175,15 @@ export default function AdminLoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pr-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-10"
                   autoComplete="current-password"
                   aria-label="Password"
+                  className="h-11 w-full rounded-md border border-gray-300 px-3 pr-10 text-gray-900 placeholder-gray-400 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((s) => !s)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   className="absolute inset-y-0 right-2 flex items-center justify-center p-1"
-                  tabIndex={0}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5 text-gray-500" />
@@ -184,24 +195,23 @@ export default function AdminLoginPage() {
             </div>
 
             {/* Submit */}
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center items-center bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition"
-              >
-                {loading && (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                )}
-                {loading ? "Signing in..." : "Sign In"}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 inline-flex w-full items-center justify-center rounded-md bg-purple-600 px-4 py-3 text-white font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-60 transition"
+            >
+              {loading && (
+                <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-b-transparent" />
+              )}
+              {loading ? "Signing in..." : "Sign In to Dashboard"}
+            </button>
           </form>
 
-          <div className="text-center mt-4 text-sm text-gray-600">
+          {/* Footer link */}
+          <div className="mt-5 text-center text-sm text-gray-600">
             <p>
               Not an admin?{" "}
-              <Link href="/auth" className="text-blue-600 hover:underline">
+              <Link href="/auth" className="text-purple-700 hover:underline">
                 Choose user type
               </Link>
             </p>
