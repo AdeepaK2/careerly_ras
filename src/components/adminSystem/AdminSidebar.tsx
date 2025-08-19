@@ -107,12 +107,18 @@ export default function AdminSidebar({
 
   const toggleSubmenu = (menuId: string) => {
     setExpandedMenus((prev) =>
-      prev.includes(menuId) ? prev.filter((id) => id !== menuId) : [...prev, menuId]
+      prev.includes(menuId)
+        ? prev.filter((id) => id !== menuId)
+        : [...prev, menuId]
     );
   };
 
   const sidebarItems: SidebarItem[] = [
-    { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: <LayoutDashboard className="w-5 h-5" />,
+    },
     {
       id: "users",
       label: "User Management",
@@ -151,16 +157,7 @@ export default function AdminSidebar({
         { id: "reported-jobs", label: "Reported Jobs" },
       ],
     },
-    {
-      id: "analytics",
-      label: "Analytics",
-      icon: <BarChart3 className="w-5 h-5" />,
-      submenu: [
-        { id: "user-analytics", label: "User Analytics" },
-        { id: "job-analytics", label: "Job Analytics" },
-        { id: "system-analytics", label: "System Analytics" },
-      ],
-    },
+
     {
       id: "settings",
       label: "System Settings",
@@ -209,7 +206,7 @@ export default function AdminSidebar({
           // - If it has no submenu (true top-level leaf), keep the purple bg on active.
           const parentBtnClasses = `w-full flex items-center px-4 py-3 text-left transition-colors ${
             hasSub
-              ? (isExpanded || isActiveTop)
+              ? isExpanded || isActiveTop
                 ? "text-purple-700 hover:bg-purple-50"
                 : "hover:bg-purple-50"
               : isActiveTop
@@ -219,7 +216,9 @@ export default function AdminSidebar({
 
           const iconClasses = `flex-shrink-0 ${
             hasSub
-              ? (isExpanded || isActiveTop) ? "text-purple-700" : "text-purple-600"
+              ? isExpanded || isActiveTop
+                ? "text-purple-700"
+                : "text-purple-600"
               : isActiveTop
               ? "text-purple-700"
               : "text-purple-600"
@@ -244,7 +243,9 @@ export default function AdminSidebar({
                     {hasSub && (
                       <ChevronDown
                         className={`w-4 h-4 ${
-                          isExpanded ? "rotate-180 text-purple-700" : "text-gray-400"
+                          isExpanded
+                            ? "rotate-180 text-purple-700"
+                            : "text-gray-400"
                         } transition-transform`}
                       />
                     )}
