@@ -75,25 +75,23 @@ export default function AdminSidebar({
     if (payload?.email) setAdminEmail(payload.email);
   }, []);
 
-useEffect(() => {
-  const style = document.createElement("style");
-  style.textContent = `
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-  `;
-  document.head.appendChild(style);
-
-  // ✅ return a function that returns void
-  return () => {
-    document.head.removeChild(style);
-  };
-}, []);
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/admin/logout", { method: "POST" });
-    } catch {}
-    finally {
+    } catch {
+    } finally {
       if (typeof window !== "undefined") {
         localStorage.removeItem("admin_access_token");
       }
@@ -202,33 +200,51 @@ useEffect(() => {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 scrollbar-hide">
         {sidebarItems.map((item) => {
-          const isOpen = item.submenu && expandedMenus.includes(item.id);
-          const isActiveGroup =
-            activeTab === item.id || (!!item.submenu && expandedMenus.includes(item.id));
+          const hasSub = !!item.submenu;
+          const isExpanded = hasSub && expandedMenus.includes(item.id);
+          const isActiveTop = activeTab === item.id; // "active" for this item id
+
+          // Parent button classes:
+          // - If it has a submenu, never give bg; only text-purple when expanded/active.
+          // - If it has no submenu (true top-level leaf), keep the purple bg on active.
+          const parentBtnClasses = `w-full flex items-center px-4 py-3 text-left transition-colors ${
+            hasSub
+              ? (isExpanded || isActiveTop)
+                ? "text-purple-700 hover:bg-purple-50"
+                : "hover:bg-purple-50"
+              : isActiveTop
+              ? "bg-purple-100 border-r-2 border-purple-600 text-purple-700"
+              : "hover:bg-purple-50"
+          }`;
+
+          const iconClasses = `flex-shrink-0 ${
+            hasSub
+              ? (isExpanded || isActiveTop) ? "text-purple-700" : "text-purple-600"
+              : isActiveTop
+              ? "text-purple-700"
+              : "text-purple-600"
+          }`;
+
           return (
             <div key={item.id}>
               <button
                 onClick={() => {
-                  if (item.submenu) {
+                  if (hasSub) {
                     toggleSubmenu(item.id);
                   } else {
                     onTabChange(item.id);
                   }
                 }}
-                className={`w-full flex items-center px-4 py-3 text-left transition-colors ${
-                  isActiveGroup
-                    ? "bg-purple-100 border-r-2 border-purple-600 text-purple-700"
-                    : "hover:bg-purple-50"
-                }`}
+                className={parentBtnClasses}
               >
-                <span className="flex-shrink-0 text-purple-600">{item.icon}</span>
+                <span className={iconClasses}>{item.icon}</span>
                 {!isCollapsed && (
                   <>
                     <span className="ml-3 flex-1">{item.label}</span>
-                    {item.submenu && (
+                    {hasSub && (
                       <ChevronDown
                         className={`w-4 h-4 ${
-                          isOpen ? "rotate-180 text-purple-700" : "text-gray-400"
+                          isExpanded ? "rotate-180 text-purple-700" : "text-gray-400"
                         } transition-transform`}
                       />
                     )}
@@ -237,9 +253,9 @@ useEffect(() => {
               </button>
 
               {/* Submenu */}
-              {item.submenu && isOpen && !isCollapsed && (
+              {hasSub && isExpanded && !isCollapsed && (
                 <div className="bg-white">
-                  {item.submenu.map((subItem) => {
+                  {item.submenu!.map((subItem) => {
                     const subActive = activeTab === subItem.id;
                     return (
                       <button
@@ -247,7 +263,7 @@ useEffect(() => {
                         onClick={() => onTabChange(subItem.id)}
                         className={`w-full text-left px-8 py-2 text-sm transition-colors ${
                           subActive
-                            ? "bg-purple-100 text-purple-700"
+                            ? "bg-purple-100 text-purple-700" // ✅ only child gets background
                             : "text-gray-600 hover:bg-purple-50"
                         }`}
                       >
