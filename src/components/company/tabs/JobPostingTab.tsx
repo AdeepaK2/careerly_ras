@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import ViewApplicantsModal from "@/components/company/modals/ViewApplicantsModal";
 
 interface JobPosting {
   _id: string;
@@ -30,6 +31,17 @@ export default function JobPostingTab() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  // Modal state for viewing applicants
+  const [viewApplicantsModal, setViewApplicantsModal] = useState<{
+    isOpen: boolean;
+    jobId: string;
+    jobTitle: string;
+  }>({
+    isOpen: false,
+    jobId: "",
+    jobTitle: "",
+  });
+
   // Form data structure matching our job model
   const [formData, setFormData] = useState({
     title: "",
@@ -49,8 +61,14 @@ export default function JobPostingTab() {
 
   const jobTypes = ["Full-time", "Part-time", "Internship"];
   const categories = [
-    "Architecture", "Business", "Engineering", "Information Technology", 
-    "Medicine", "Design", "Management", "Other"
+    "Architecture",
+    "Business",
+    "Engineering",
+    "Information Technology",
+    "Medicine",
+    "Design",
+    "Management",
+    "Other",
   ];
   const workPlaceTypes = ["On-site", "Remote", "Hybrid"];
   const degrees = [
@@ -91,10 +109,10 @@ export default function JobPostingTab() {
       const token = localStorage.getItem("company_accessToken");
       const response = await fetch("/api/job/company", {
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setJobs(data.jobs || []);
@@ -118,12 +136,12 @@ export default function JobPostingTab() {
 
     try {
       const token = localStorage.getItem("company_accessToken");
-      
+
       const response = await fetch("/api/job/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
@@ -160,11 +178,15 @@ export default function JobPostingTab() {
 
   const deleteJob = async (id: string) => {
     // Find the job to get its title for confirmation
-    const job = jobs.find(j => j._id === id);
+    const job = jobs.find((j) => j._id === id);
     const jobTitle = job ? job.title : "this job";
 
     // Confirm deletion
-    if (!confirm(`Are you sure you want to permanently delete "${jobTitle}"? This action cannot be undone.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to permanently delete "${jobTitle}"? This action cannot be undone.`
+      )
+    ) {
       return;
     }
 
@@ -173,7 +195,7 @@ export default function JobPostingTab() {
       const response = await fetch(`/api/job/${id}`, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -184,7 +206,9 @@ export default function JobPostingTab() {
         setTimeout(() => setMessage(""), 5000);
       } else {
         const errorData = await response.json();
-        setMessage(`❌ Failed to delete job: ${errorData.error || "Unknown error"}`);
+        setMessage(
+          `❌ Failed to delete job: ${errorData.error || "Unknown error"}`
+        );
         setTimeout(() => setMessage(""), 5000);
       }
     } catch (error) {
@@ -196,37 +220,43 @@ export default function JobPostingTab() {
 
   const toggleJobStatus = async (id: string) => {
     try {
-      const job = jobs.find(j => j._id === id);
+      const job = jobs.find((j) => j._id === id);
       if (!job) return;
 
       const newStatus = job.status === "active" ? "closed" : "active";
       const action = newStatus === "active" ? "activate" : "close";
-      
+
       // Confirm status change
-      if (!confirm(`Are you sure you want to ${action} the job "${job.title}"?`)) {
+      if (
+        !confirm(`Are you sure you want to ${action} the job "${job.title}"?`)
+      ) {
         return;
       }
 
       const token = localStorage.getItem("company_accessToken");
-      
+
       const response = await fetch(`/api/job/${id}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status: newStatus }),
       });
 
       if (response.ok) {
-        setJobs(jobs.map((job) =>
-          job._id === id ? { ...job, status: newStatus } : job
-        ));
+        setJobs(
+          jobs.map((job) =>
+            job._id === id ? { ...job, status: newStatus } : job
+          )
+        );
         setMessage(`✅ Job "${job.title}" ${action}d successfully`);
         setTimeout(() => setMessage(""), 5000);
       } else {
         const errorData = await response.json();
-        setMessage(`❌ Failed to ${action} job: ${errorData.error || "Unknown error"}`);
+        setMessage(
+          `❌ Failed to ${action} job: ${errorData.error || "Unknown error"}`
+        );
         setTimeout(() => setMessage(""), 5000);
       }
     } catch (error) {
@@ -238,14 +268,14 @@ export default function JobPostingTab() {
 
   const handleDegreeChange = (degree: string, checked: boolean) => {
     if (checked) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        qualifiedDegrees: [...prev.qualifiedDegrees, degree]
+        qualifiedDegrees: [...prev.qualifiedDegrees, degree],
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        qualifiedDegrees: prev.qualifiedDegrees.filter(d => d !== degree)
+        qualifiedDegrees: prev.qualifiedDegrees.filter((d) => d !== degree),
       }));
     }
   };
@@ -253,17 +283,19 @@ export default function JobPostingTab() {
   const handleSkillAdd = (skill: string) => {
     const trimmedSkill = skill.trim();
     if (trimmedSkill && !formData.skillsRequired.includes(trimmedSkill)) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        skillsRequired: [...prev.skillsRequired, trimmedSkill]
+        skillsRequired: [...prev.skillsRequired, trimmedSkill],
       }));
     }
   };
 
   const handleSkillRemove = (skillToRemove: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      skillsRequired: prev.skillsRequired.filter(skill => skill !== skillToRemove)
+      skillsRequired: prev.skillsRequired.filter(
+        (skill) => skill !== skillToRemove
+      ),
     }));
   };
 
@@ -300,52 +332,89 @@ export default function JobPostingTab() {
 
       {/* Info Box - Job Management Actions */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-blue-800 mb-2">Job Management Actions:</h3>
+        <h3 className="text-sm font-semibold text-blue-800 mb-2">
+          Job Management Actions:
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-blue-700">
           <div className="flex items-start space-x-2">
-            <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Activate</span>
-            <span>Makes the job visible to students and allows new applications</span>
+            <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
+              Activate
+            </span>
+            <span>
+              Makes the job visible to students and allows new applications
+            </span>
           </div>
           <div className="flex items-start space-x-2">
-            <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">Close</span>
-            <span>Stops new applications but keeps existing applicant data</span>
+            <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
+              Close
+            </span>
+            <span>
+              Stops new applications but keeps existing applicant data
+            </span>
           </div>
           <div className="flex items-start space-x-2">
-            <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">Delete</span>
-            <span>Permanently removes the job and all applicant data (cannot be undone)</span>
+            <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
+              Delete
+            </span>
+            <span>
+              Permanently removes the job and all applicant data (cannot be
+              undone)
+            </span>
           </div>
         </div>
       </div>
 
       {/* Message Display */}
       {message && (
-        <div className={`p-4 rounded-lg border flex items-center justify-between ${
-          message.includes("✅") 
-            ? "bg-green-50 border-green-200 text-green-800" 
-            : message.includes("❌")
-            ? "bg-red-50 border-red-200 text-red-800"
-            : message.includes("successfully") 
-            ? "bg-green-50 border-green-200 text-green-800"
-            : "bg-red-50 border-red-200 text-red-800"
-        }`}>
+        <div
+          className={`p-4 rounded-lg border flex items-center justify-between ${
+            message.includes("✅")
+              ? "bg-green-50 border-green-200 text-green-800"
+              : message.includes("❌")
+              ? "bg-red-50 border-red-200 text-red-800"
+              : message.includes("successfully")
+              ? "bg-green-50 border-green-200 text-green-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          }`}
+        >
           <span className="flex items-center">
             {message.includes("✅") ? (
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
               </svg>
             ) : (
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
               </svg>
             )}
             {message}
           </span>
-          <button 
+          <button
             onClick={() => setMessage("")}
             className="text-gray-500 hover:text-gray-700 ml-4"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
             </svg>
           </button>
         </div>
@@ -356,8 +425,16 @@ export default function JobPostingTab() {
         <div className="glass-effect p-6 rounded-lg border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-blue-100">
-              <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
+              <svg
+                className="w-6 h-6 text-blue-600"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div className="ml-4">
@@ -372,12 +449,18 @@ export default function JobPostingTab() {
         <div className="glass-effect p-6 rounded-lg border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-green-100">
-              <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg
+                className="w-6 h-6 text-green-600"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
                 <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Applications</p>
+              <p className="text-sm font-medium text-gray-600">
+                Total Applications
+              </p>
               <p className="text-2xl font-semibold text-gray-900">
                 {jobs.reduce((sum, job) => sum + job.applicantsCount, 0)}
               </p>
@@ -388,8 +471,16 @@ export default function JobPostingTab() {
         <div className="glass-effect p-6 rounded-lg border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-yellow-100">
-              <svg className="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+              <svg
+                className="w-6 h-6 text-yellow-600"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div className="ml-4">
@@ -404,17 +495,26 @@ export default function JobPostingTab() {
         <div className="glass-effect p-6 rounded-lg border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-purple-100">
-              <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg
+                className="w-6 h-6 text-purple-600"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
                 <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
                 <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
               </svg>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Avg Applications</p>
+              <p className="text-sm font-medium text-gray-600">
+                Avg Applications
+              </p>
               <p className="text-2xl font-semibold text-gray-900">
-                {jobs.length ? Math.round(
-                  jobs.reduce((sum, job) => sum + job.applicantsCount, 0) / jobs.length
-                ) : 0}
+                {jobs.length
+                  ? Math.round(
+                      jobs.reduce((sum, job) => sum + job.applicantsCount, 0) /
+                        jobs.length
+                    )
+                  : 0}
               </p>
             </div>
           </div>
@@ -465,14 +565,18 @@ export default function JobPostingTab() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-600">{job.jobType}</div>
-                    <div className="text-sm text-gray-500">{job.workPlaceType}</div>
+                    <div className="text-sm text-gray-500">
+                      {job.workPlaceType}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <span className="text-2xl font-bold text-blue-600">
                         {job.applicantsCount}
                       </span>
-                      <span className="ml-2 text-sm text-gray-500">applicants</span>
+                      <span className="ml-2 text-sm text-gray-500">
+                        applicants
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -492,9 +596,10 @@ export default function JobPostingTab() {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => toggleJobStatus(job._id)}
-                        title={job.status === "active" 
-                          ? "Close this job posting (stops new applications)" 
-                          : "Activate this job posting (allows new applications)"
+                        title={
+                          job.status === "active"
+                            ? "Close this job posting (stops new applications)"
+                            : "Activate this job posting (allows new applications)"
                         }
                         className={`px-3 py-1 rounded text-sm transition-colors duration-200 ${
                           job.status === "active"
@@ -511,7 +616,14 @@ export default function JobPostingTab() {
                       >
                         Delete
                       </button>
-                      <button 
+                      <button
+                        onClick={() =>
+                          setViewApplicantsModal({
+                            isOpen: true,
+                            jobId: job._id,
+                            jobTitle: job.title,
+                          })
+                        }
                         title="View all applicants for this job"
                         className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors duration-200"
                       >
@@ -536,37 +648,96 @@ export default function JobPostingTab() {
                 Fill in the details to create a new job posting
               </p>
               <div className="mt-2 text-xs text-purple-200">
-                Required fields: Title, Category, Job Type, Work Place Type, Location, Deadline, Qualified Degrees
+                Required fields: Title, Category, Job Type, Work Place Type,
+                Location, Deadline, Qualified Degrees
               </div>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               {/* Form Progress Indicator */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <h4 className="text-sm font-semibold text-blue-800 mb-2">Form Completion Status:</h4>
+                <h4 className="text-sm font-semibold text-blue-800 mb-2">
+                  Form Completion Status:
+                </h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                  <div className={`flex items-center ${formData.title ? 'text-green-600' : 'text-gray-500'}`}>
-                    <span className="mr-1">{formData.title ? '✓' : '○'}</span> Title
+                  <div
+                    className={`flex items-center ${
+                      formData.title ? "text-green-600" : "text-gray-500"
+                    }`}
+                  >
+                    <span className="mr-1">{formData.title ? "✓" : "○"}</span>{" "}
+                    Title
                   </div>
-                  <div className={`flex items-center ${formData.category ? 'text-green-600' : 'text-gray-500'}`}>
-                    <span className="mr-1">{formData.category ? '✓' : '○'}</span> Category
+                  <div
+                    className={`flex items-center ${
+                      formData.category ? "text-green-600" : "text-gray-500"
+                    }`}
+                  >
+                    <span className="mr-1">
+                      {formData.category ? "✓" : "○"}
+                    </span>{" "}
+                    Category
                   </div>
-                  <div className={`flex items-center ${formData.jobType ? 'text-green-600' : 'text-gray-500'}`}>
-                    <span className="mr-1">{formData.jobType ? '✓' : '○'}</span> Job Type
+                  <div
+                    className={`flex items-center ${
+                      formData.jobType ? "text-green-600" : "text-gray-500"
+                    }`}
+                  >
+                    <span className="mr-1">{formData.jobType ? "✓" : "○"}</span>{" "}
+                    Job Type
                   </div>
-                  <div className={`flex items-center ${formData.workPlaceType ? 'text-green-600' : 'text-gray-500'}`}>
-                    <span className="mr-1">{formData.workPlaceType ? '✓' : '○'}</span> Work Type
+                  <div
+                    className={`flex items-center ${
+                      formData.workPlaceType
+                        ? "text-green-600"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    <span className="mr-1">
+                      {formData.workPlaceType ? "✓" : "○"}
+                    </span>{" "}
+                    Work Type
                   </div>
-                  <div className={`flex items-center ${formData.location ? 'text-green-600' : 'text-gray-500'}`}>
-                    <span className="mr-1">{formData.location ? '✓' : '○'}</span> Location
+                  <div
+                    className={`flex items-center ${
+                      formData.location ? "text-green-600" : "text-gray-500"
+                    }`}
+                  >
+                    <span className="mr-1">
+                      {formData.location ? "✓" : "○"}
+                    </span>{" "}
+                    Location
                   </div>
-                  <div className={`flex items-center ${formData.deadline ? 'text-green-600' : 'text-gray-500'}`}>
-                    <span className="mr-1">{formData.deadline ? '✓' : '○'}</span> Deadline
+                  <div
+                    className={`flex items-center ${
+                      formData.deadline ? "text-green-600" : "text-gray-500"
+                    }`}
+                  >
+                    <span className="mr-1">
+                      {formData.deadline ? "✓" : "○"}
+                    </span>{" "}
+                    Deadline
                   </div>
-                  <div className={`flex items-center ${formData.description ? 'text-green-600' : 'text-gray-500'}`}>
-                    <span className="mr-1">{formData.description ? '✓' : '○'}</span> Description
+                  <div
+                    className={`flex items-center ${
+                      formData.description ? "text-green-600" : "text-gray-500"
+                    }`}
+                  >
+                    <span className="mr-1">
+                      {formData.description ? "✓" : "○"}
+                    </span>{" "}
+                    Description
                   </div>
-                  <div className={`flex items-center ${formData.qualifiedDegrees.length > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    <span className="mr-1">{formData.qualifiedDegrees.length > 0 ? '✓' : '✗'}</span> Degrees ({formData.qualifiedDegrees.length})
+                  <div
+                    className={`flex items-center ${
+                      formData.qualifiedDegrees.length > 0
+                        ? "text-green-600"
+                        : "text-red-500"
+                    }`}
+                  >
+                    <span className="mr-1">
+                      {formData.qualifiedDegrees.length > 0 ? "✓" : "✗"}
+                    </span>{" "}
+                    Degrees ({formData.qualifiedDegrees.length})
                   </div>
                 </div>
               </div>
@@ -599,8 +770,10 @@ export default function JobPostingTab() {
                     required
                   >
                     <option value="">Select Category</option>
-                    {categories.map(category => (
-                      <option key={category} value={category}>{category}</option>
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -620,8 +793,10 @@ export default function JobPostingTab() {
                     required
                   >
                     <option value="">Select Type</option>
-                    {jobTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
+                    {jobTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -632,14 +807,19 @@ export default function JobPostingTab() {
                   <select
                     value={formData.workPlaceType}
                     onChange={(e) =>
-                      setFormData({ ...formData, workPlaceType: e.target.value })
+                      setFormData({
+                        ...formData,
+                        workPlaceType: e.target.value,
+                      })
                     }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
                     required
                   >
                     <option value="">Select Work Place Type</option>
-                    {workPlaceTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
+                    {workPlaceTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -685,12 +865,12 @@ export default function JobPostingTab() {
                       placeholder="Min"
                       value={formData.salaryRange.min || ""}
                       onChange={(e) =>
-                        setFormData({ 
-                          ...formData, 
-                          salaryRange: { 
-                            ...formData.salaryRange, 
-                            min: parseInt(e.target.value) || 0 
-                          } 
+                        setFormData({
+                          ...formData,
+                          salaryRange: {
+                            ...formData.salaryRange,
+                            min: parseInt(e.target.value) || 0,
+                          },
                         })
                       }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
@@ -700,12 +880,12 @@ export default function JobPostingTab() {
                       placeholder="Max"
                       value={formData.salaryRange.max || ""}
                       onChange={(e) =>
-                        setFormData({ 
-                          ...formData, 
-                          salaryRange: { 
-                            ...formData.salaryRange, 
-                            max: parseInt(e.target.value) || 0 
-                          } 
+                        setFormData({
+                          ...formData,
+                          salaryRange: {
+                            ...formData.salaryRange,
+                            max: parseInt(e.target.value) || 0,
+                          },
                         })
                       }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
@@ -732,7 +912,7 @@ export default function JobPostingTab() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Qualified Degrees * 
+                  Qualified Degrees *
                   <span className="text-xs text-gray-500 ml-2">
                     ({formData.qualifiedDegrees.length} selected)
                   </span>
@@ -740,10 +920,15 @@ export default function JobPostingTab() {
                 <div className="border rounded-lg p-4 bg-gray-50">
                   {formData.qualifiedDegrees.length > 0 && (
                     <div className="mb-3">
-                      <p className="text-sm text-gray-600 mb-2">Selected degrees:</p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        Selected degrees:
+                      </p>
                       <div className="flex flex-wrap gap-2">
-                        {formData.qualifiedDegrees.map(degree => (
-                          <span key={degree} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                        {formData.qualifiedDegrees.map((degree) => (
+                          <span
+                            key={degree}
+                            className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs"
+                          >
                             {degree}
                           </span>
                         ))}
@@ -751,12 +936,17 @@ export default function JobPostingTab() {
                     </div>
                   )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-64 overflow-y-auto border border-gray-200 bg-white p-3 rounded">
-                    {degrees.map(degree => (
-                      <label key={degree} className="flex items-start space-x-2 text-sm cursor-pointer hover:bg-blue-50 p-1 rounded">
+                    {degrees.map((degree) => (
+                      <label
+                        key={degree}
+                        className="flex items-start space-x-2 text-sm cursor-pointer hover:bg-blue-50 p-1 rounded"
+                      >
                         <input
                           type="checkbox"
                           checked={formData.qualifiedDegrees.includes(degree)}
-                          onChange={(e) => handleDegreeChange(degree, e.target.checked)}
+                          onChange={(e) =>
+                            handleDegreeChange(degree, e.target.checked)
+                          }
                           className="mt-1 rounded border-gray-300 text-[#8243ff] focus:ring-[#8243ff]"
                         />
                         <span className="leading-5">{degree}</span>
@@ -764,7 +954,9 @@ export default function JobPostingTab() {
                     ))}
                   </div>
                   {formData.qualifiedDegrees.length === 0 && (
-                    <p className="text-red-500 text-xs mt-2">Please select at least one qualified degree</p>
+                    <p className="text-red-500 text-xs mt-2">
+                      Please select at least one qualified degree
+                    </p>
                   )}
                 </div>
               </div>
@@ -779,8 +971,11 @@ export default function JobPostingTab() {
                 <div className="border rounded-lg p-4 bg-gray-50">
                   {formData.skillsRequired.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {formData.skillsRequired.map(skill => (
-                        <span key={skill} className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm flex items-center">
+                      {formData.skillsRequired.map((skill) => (
+                        <span
+                          key={skill}
+                          className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm flex items-center"
+                        >
                           {skill}
                           <button
                             type="button"
@@ -799,18 +994,19 @@ export default function JobPostingTab() {
                     placeholder="Type a skill and press Enter to add (e.g., JavaScript, Leadership, etc.)"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
                     onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === "Enter") {
                         e.preventDefault();
                         const skill = e.currentTarget.value.trim();
                         if (skill) {
                           handleSkillAdd(skill);
-                          e.currentTarget.value = '';
+                          e.currentTarget.value = "";
                         }
                       }
                     }}
                   />
                   <p className="text-xs text-gray-500 mt-2">
-                    Tip: Press Enter after typing each skill to add it to the list
+                    Tip: Press Enter after typing each skill to add it to the
+                    list
                   </p>
                 </div>
               </div>
@@ -831,13 +1027,33 @@ export default function JobPostingTab() {
                       ? "bg-gray-400 text-gray-200 cursor-not-allowed"
                       : "bg-gradient-to-r from-[#8243ff] to-purple-600 text-white hover:from-purple-700 hover:to-purple-800"
                   }`}
-                  title={formData.qualifiedDegrees.length === 0 ? "Please select at least one qualified degree" : ""}
+                  title={
+                    formData.qualifiedDegrees.length === 0
+                      ? "Please select at least one qualified degree"
+                      : ""
+                  }
                 >
                   {loading ? (
                     <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Posting Job...
                     </span>
@@ -850,6 +1066,20 @@ export default function JobPostingTab() {
           </div>
         </div>
       )}
+
+      {/* View Applicants Modal */}
+      <ViewApplicantsModal
+        isOpen={viewApplicantsModal.isOpen}
+        onClose={() =>
+          setViewApplicantsModal({
+            isOpen: false,
+            jobId: "",
+            jobTitle: "",
+          })
+        }
+        jobId={viewApplicantsModal.jobId}
+        jobTitle={viewApplicantsModal.jobTitle}
+      />
     </div>
   );
 }

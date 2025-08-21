@@ -19,6 +19,7 @@ export type TabKey =
   | "home"
   | "jobPosting"
   | "selected"
+  | "shortlist"
   | "profile"
   | "verification";
 
@@ -71,6 +72,7 @@ export default function CompanyNavbar({ activeTab, onTabChange }: NavbarProps) {
     { key: "home", label: "Home" },
     { key: "jobPosting", label: "Job Posting" },
     { key: "selected", label: "Selected" },
+    { key: "shortlist", label: "Shortlisted" },
     { key: "verification", label: "Verification" },
     { key: "profile", label: "Profile" },
   ];
