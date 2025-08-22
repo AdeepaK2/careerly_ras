@@ -465,7 +465,7 @@ export default function JobOpportunitiesTab() {
                 placeholder="Search jobs, companies, or skills..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-[#8243ff] outline-none transition-all duration-300 group-hover:border-[#8243ff]/50 bg-gradient-to-r from-white to-gray-50/30"
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-[#8243ff] outline-none transition-all duration-300 group-hover:border-[#8243ff]/50 bg-gradient-to-r from-white to-gray-50/30 text-black placeholder:text-gray-500"
               />
               <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl group-hover:scale-110 transition-transform duration-300">
                 🔍
