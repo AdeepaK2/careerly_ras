@@ -7,6 +7,7 @@ import VerificationBanner from "@/components/company/VerificationBanner";
 import HomeTab from "@/components/company/tabs/HomeTab";
 import JobPostingTab from "@/components/company/tabs/JobPostingTab";
 import SelectedTab from "@/components/company/tabs/SelectedTab";
+import ShortlistTab from "@/components/company/tabs/ShortlistTab";
 import ProfileTab from "@/components/company/tabs/ProfileTab";
 import VerificationTab from "@/components/company/tabs/VerificationTab";
 
@@ -34,7 +35,13 @@ export default function CompanyDashboard() {
   const [user, setUser] = useState<CompanyUser | null>(null);
   const [loading, setLoading] = useState(true);
   // Tab state for navigation
-  type TabKey = "home" | "jobPosting" | "selected" | "profile" | "verification";
+  type TabKey =
+    | "home"
+    | "jobPosting"
+    | "selected"
+    | "shortlist"
+    | "profile"
+    | "verification";
   const [activeTab, setActiveTab] = useState<TabKey>("home");
 
   useEffect(() => {
@@ -115,6 +122,7 @@ export default function CompanyDashboard() {
           {activeTab === "home" && <HomeTab />}
           {activeTab === "jobPosting" && <JobPostingTab />}
           {activeTab === "selected" && <SelectedTab />}
+          {activeTab === "shortlist" && <ShortlistTab />}
           {activeTab === "verification" && <VerificationTab />}
           {activeTab === "profile" && <ProfileTab />}
         </main>
