@@ -61,6 +61,14 @@ export default function JobOpportunitiesTab() {
   const [showAllJobs, setShowAllJobs] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
 
+  // pagination states
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+
+  // state for tracking sort order
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+
   // Modal states
   const [showJobDetails, setShowJobDetails] = useState(false);
   const [selectedJobForDetails, setSelectedJobForDetails] =
@@ -87,16 +95,31 @@ export default function JobOpportunitiesTab() {
     fetchAppliedJobs();
   }, [showAllJobs]);
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (isLoadMore = false) => {
+
+    const currentPage = isLoadMore ? page + 1 : 1;
+    if (isLoadMore) {
+      setIsFetchingMore(true);
+    } else {
+      setLoading(true);
+    }
+
     try {
-      const endpoint = showAllJobs ? "/api/job/undergrad/all" : "/api/job/undergrad";
+      const endpoint = showAllJobs ? "/api/job/undergrad/all" : `/api/job/undergrad?page=${currentPage}&limit=10`;
       const response = await makeRequest(endpoint, {
         method: "GET",
       });
       console.log("Response Data:", response.jobs);
 
       if (response.jobs && Array.isArray(response.jobs)) {
-        setJobs(response.jobs);
+        const sortedJobs = sortJobsByDate(response.jobs, sortOrder);
+        if (isLoadMore) {
+          setJobs((prevJobs) => [...prevJobs, ...sortedJobs]);
+        } else {
+          setJobs(sortedJobs);
+        }
+        setPage(currentPage);
+        setHasMore(response.jobs.length === 10);
       } else {
         throw new Error("Failed to fetch job opportunities");
       }
@@ -105,6 +128,7 @@ export default function JobOpportunitiesTab() {
       setJobs([]);
     } finally {
       setLoading(false);
+      setIsFetchingMore(false);
     }
   };
 
@@ -134,6 +158,14 @@ export default function JobOpportunitiesTab() {
     } catch (error) {
       console.error("Error fetching applied jobs:", error);
     }
+  };
+
+
+  const handleSortClick = () => {
+    const newSortOrder = sortOrder === "desc" ? "asc" : "desc";
+    setSortOrder(newSortOrder);
+    const sortedJobs = sortJobsByDate(jobs, newSortOrder);
+    setJobs(sortedJobs);
   };
 
   const handleSaveJob = async (jobId: string) => {
@@ -277,6 +309,15 @@ export default function JobOpportunitiesTab() {
     setLoading(true);
   };
 
+  // Helper function to sort jobs by date
+  const sortJobsByDate = (jobsToSort: JobOpportunity[],order: "asc" | "desc") => {
+    return [...jobsToSort].sort((a, b) => {
+      const dateA = new Date(a.posted_date).getTime();
+      const dateB = new Date(b.posted_date).getTime();
+      return order === "desc" ? dateB - dateA : dateA - dateB;
+    });
+  };
+
   // Helper function to format salary
   const formatSalary = (salaryRange?: { min?: number; max?: number }) => {
     if (!salaryRange) return "Salary not specified";
@@ -327,10 +368,10 @@ export default function JobOpportunitiesTab() {
   const filteredJobs = jobs.filter((job) => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.companyId.companyName
+      job.companyId?.companyName
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      job.skillsRequired.some((skill) =>
+      job.skillsRequired?.some((skill) =>
         skill.toLowerCase().includes(searchTerm.toLowerCase())
       );
 
@@ -476,14 +517,14 @@ export default function JobOpportunitiesTab() {
             {showAllJobs ? "Show Matching Jobs Only" : "View All Jobs"}
           </button>
           <button
-            onClick={fetchJobs}
-            className="text-[#8243ff] hover:text-[#6c2bd9] font-medium flex items-center space-x-1 group transition-all duration-300 hover:scale-105"
-          >
-            <span>Sort by: Newest</span>
-            <span className="group-hover:translate-y-1 transition-transform duration-300">
-              ⬇️
-            </span>
-          </button>
+          onClick={handleSortClick}
+          className="text-[#8243ff] hover:text-[#6c2bd9] font-medium flex items-center space-x-1 group transition-all duration-300 hover:scale-105"
+        >
+          <span>Sort by: {sortOrder === "desc" ? "Newest" : "Oldest"}</span>
+          <span className="group-hover:translate-y-1 transition-transform duration-300">
+            {sortOrder === "desc" ? "⬇️" : "⬆️"}
+          </span>
+        </button>
         </div>
       </div>
 
@@ -701,13 +742,16 @@ export default function JobOpportunitiesTab() {
       )}
 
       {/* Load More Button */}
-      {filteredJobs.length > 0 && (
+      {hasMore && filteredJobs.length > 0 && (
         <div className="text-center pt-6">
           <button
-            onClick={fetchJobs}
-            className="bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] hover:from-[#6c2bd9] hover:to-[#5a1fc7] text-white px-8 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-xl relative overflow-hidden group"
-          >
-            <span className="relative z-10">Load More Jobs</span>
+            onClick={() => fetchJobs(true)}
+            disabled={isFetchingMore}
+            className="bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] hover:from-[#6c2bd9] hover:to-[#5a1fc7] text-white px-8 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-xl relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+            <span className="relative z-10">
+              {isFetchingMore ? "Loading..." : "Load More Jobs"}
+            </span>
             <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </button>
         </div>
