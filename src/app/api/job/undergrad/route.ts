@@ -19,6 +19,11 @@ export async function GET(req: NextRequest) {
   try {
     await connect();
 
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const skip = (page - 1) * limit;
+
     // Fetch the undergraduate profile
     const undergradProfile = await UndergradModel.findById(
       undergrad.payload.id
@@ -34,7 +39,9 @@ export async function GET(req: NextRequest) {
       model: CompanyModel, 
       select: 'companyName' 
     })
-    .sort({ posted_date: -1 });
+    .sort({ posted_date: -1 })
+    .skip(skip) 
+    .limit(limit); 
 
     return NextResponse.json(
       {
