@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       // Extract filename from path
       const fileName = extractedPath.split('/').pop() || 'download';
       
-      return new NextResponse(downloadResult.fileBuffer, {
+      return new NextResponse(downloadResult.fileBuffer as any, {
         status: 200,
         headers: {
           'Content-Type': downloadResult.contentType || 'application/octet-stream',

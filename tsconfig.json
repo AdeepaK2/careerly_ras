@@ -21,6 +21,9 @@
     "paths": {
       "@/*": ["./src/*"]
     }
+  }, "ts-node": {
+    "transpileOnly": true,
+    "esm": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
