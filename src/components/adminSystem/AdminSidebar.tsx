@@ -13,6 +13,7 @@ import {
   Menu,
   LogOut,
   ChevronDown,
+  CheckCircle,
 } from "lucide-react";
 
 // simple JWT decode to pull out role
@@ -59,9 +60,10 @@ export default function AdminSidebar({
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+  const [adminName, setAdminName] = useState<string>("");
+  const [adminEmail, setAdminEmail] = useState<string>("");
   const [isSuperadmin, setIsSuperadmin] = useState(false);
 
-  // on mount, determine role
   useEffect(() => {
     const token =
       typeof window !== "undefined"
@@ -69,22 +71,17 @@ export default function AdminSidebar({
         : null;
     const payload = token ? parseJwt(token) : null;
     setIsSuperadmin(payload?.role === "superadmin");
+    if (payload?.username) setAdminName(payload.username);
+    if (payload?.email) setAdminEmail(payload.email);
   }, []);
 
-  // Add custom CSS for hiding scrollbar
   useEffect(() => {
     const style = document.createElement("style");
     style.textContent = `
-      .scrollbar-hide {
-        -ms-overflow-style: none;  /* Internet Explorer 10+ */
-        scrollbar-width: none;  /* Firefox */
-      }
-      .scrollbar-hide::-webkit-scrollbar {
-        display: none;  /* Safari and Chrome */
-      }
+      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
     `;
     document.head.appendChild(style);
-
     return () => {
       document.head.removeChild(style);
     };
@@ -92,12 +89,9 @@ export default function AdminSidebar({
 
   const handleLogout = async () => {
     try {
-      // Best effort: call server to revoke refresh token cookie
       await fetch("/api/auth/admin/logout", { method: "POST" });
     } catch {
-      // ignore network errors
     } finally {
-      // Always clear access token from localStorage
       if (typeof window !== "undefined") {
         localStorage.removeItem("admin_access_token");
       }
@@ -106,11 +100,9 @@ export default function AdminSidebar({
   };
 
   const toggleCollapse = () => {
-    const newCollapsedState = !isCollapsed;
-    setIsCollapsed(newCollapsedState);
-    if (onCollapsedChange) {
-      onCollapsedChange(newCollapsedState);
-    }
+    const next = !isCollapsed;
+    setIsCollapsed(next);
+    onCollapsedChange?.(next);
   };
 
   const toggleSubmenu = (menuId: string) => {
@@ -134,14 +126,21 @@ export default function AdminSidebar({
       submenu: [
         { id: "undergraduate-users", label: "Undergraduate Students" },
         { id: "company-users", label: "Companies" },
-        // Only show Admin Users for superadmins
-        ...(isSuperadmin ? [{ id: "admin-users", label: "Admin Users" }] : []),
       ],
     },
+    ...(isSuperadmin
+      ? [
+          {
+            id: "admin-management",
+            label: "Admin Management",
+            icon: <Shield className="w-5 h-5" />,
+          },
+        ]
+      : []),
     {
       id: "verification",
       label: "Verification Center",
-      icon: <Shield className="w-5 h-5" />,
+      icon: <CheckCircle className="w-5 h-5" />,
       submenu: [
         { id: "pending-verifications", label: "Pending Verifications" },
         { id: "verified-accounts", label: "Verified Accounts" },
@@ -158,16 +157,7 @@ export default function AdminSidebar({
         { id: "reported-jobs", label: "Reported Jobs" },
       ],
     },
-    {
-      id: "analytics",
-      label: "Analytics",
-      icon: <BarChart3 className="w-5 h-5" />,
-      submenu: [
-        { id: "user-analytics", label: "User Analytics" },
-        { id: "job-analytics", label: "Job Analytics" },
-        { id: "system-analytics", label: "System Analytics" },
-      ],
-    },
+
     {
       id: "settings",
       label: "System Settings",
@@ -178,30 +168,27 @@ export default function AdminSidebar({
         { id: "security-settings", label: "Security Settings" },
       ],
     },
-    {
-      id: "reports",
-      label: "Reports",
-      icon: <FileText className="w-5 h-5" />,
-    },
+    { id: "reports", label: "Reports", icon: <FileText className="w-5 h-5" /> },
   ];
 
   return (
     <div
-      className={`bg-gray-900 text-white flex flex-col fixed left-0 top-0 h-screen transition-all duration-300 ${
+      className={`bg-white text-gray-900 flex flex-col fixed left-0 top-0 h-screen transition-all duration-300 border-r border-gray-200 ${
         isCollapsed ? "w-16" : "w-64"
       } z-50`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
         {!isCollapsed && (
           <div>
-            <h1 className="text-xl font-bold text-blue-400">Careerly</h1>
-            <p className="text-xs text-gray-400">Admin Panel</p>
+            <h1 className="text-xl font-bold text-purple-700">Careerly</h1>
+            <p className="text-xs text-gray-500">Admin Panel</p>
           </div>
         )}
         <button
           onClick={toggleCollapse}
-          className="p-2 rounded-lg hover:bg-gray-800 transition-colors"
+          className="p-2 rounded-lg hover:bg-purple-50 text-purple-700 transition-colors"
+          aria-label="Toggle sidebar"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -209,78 +196,107 @@ export default function AdminSidebar({
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 scrollbar-hide">
-        {sidebarItems.map((item) => (
-          <div key={item.id}>
-            <button
-              onClick={() => {
-                if (item.submenu) {
-                  toggleSubmenu(item.id);
-                } else {
-                  onTabChange(item.id);
-                }
-              }}
-              className={`w-full flex items-center px-4 py-3 text-left hover:bg-gray-800 transition-colors ${
-                activeTab === item.id ||
-                (item.submenu && expandedMenus.includes(item.id))
-                  ? "bg-gray-800 border-r-2 border-blue-400"
-                  : ""
-              }`}
-            >
-              <span className="flex-shrink-0">{item.icon}</span>
-              {!isCollapsed && (
-                <>
-                  <span className="ml-3 flex-1">{item.label}</span>
-                  {item.submenu && (
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform ${
-                        expandedMenus.includes(item.id) ? "rotate-180" : ""
-                      }`}
-                    />
-                  )}
-                </>
-              )}
-            </button>
+        {sidebarItems.map((item) => {
+          const hasSub = !!item.submenu;
+          const isExpanded = hasSub && expandedMenus.includes(item.id);
+          const isActiveTop = activeTab === item.id; // "active" for this item id
 
-            {/* Submenu */}
-            {item.submenu &&
-              expandedMenus.includes(item.id) &&
-              !isCollapsed && (
-                <div className="bg-gray-800">
-                  {item.submenu.map((subItem) => (
-                    <button
-                      key={subItem.id}
-                      onClick={() => onTabChange(subItem.id)}
-                      className={`w-full text-left px-8 py-2 text-sm hover:bg-gray-700 transition-colors ${
-                        activeTab === subItem.id
-                          ? "bg-gray-700 text-blue-400"
-                          : "text-gray-300"
-                      }`}
-                    >
-                      {subItem.label}
-                    </button>
-                  ))}
+          // Parent button classes:
+          // - If it has a submenu, never give bg; only text-purple when expanded/active.
+          // - If it has no submenu (true top-level leaf), keep the purple bg on active.
+          const parentBtnClasses = `w-full flex items-center px-4 py-3 text-left transition-colors ${
+            hasSub
+              ? isExpanded || isActiveTop
+                ? "text-purple-700 hover:bg-purple-50"
+                : "hover:bg-purple-50"
+              : isActiveTop
+              ? "bg-purple-100 border-r-2 border-purple-600 text-purple-700"
+              : "hover:bg-purple-50"
+          }`;
+
+          const iconClasses = `flex-shrink-0 ${
+            hasSub
+              ? isExpanded || isActiveTop
+                ? "text-purple-700"
+                : "text-purple-600"
+              : isActiveTop
+              ? "text-purple-700"
+              : "text-purple-600"
+          }`;
+
+          return (
+            <div key={item.id}>
+              <button
+                onClick={() => {
+                  if (hasSub) {
+                    toggleSubmenu(item.id);
+                  } else {
+                    onTabChange(item.id);
+                  }
+                }}
+                className={parentBtnClasses}
+              >
+                <span className={iconClasses}>{item.icon}</span>
+                {!isCollapsed && (
+                  <>
+                    <span className="ml-3 flex-1">{item.label}</span>
+                    {hasSub && (
+                      <ChevronDown
+                        className={`w-4 h-4 ${
+                          isExpanded
+                            ? "rotate-180 text-purple-700"
+                            : "text-gray-400"
+                        } transition-transform`}
+                      />
+                    )}
+                  </>
+                )}
+              </button>
+
+              {/* Submenu */}
+              {hasSub && isExpanded && !isCollapsed && (
+                <div className="bg-white">
+                  {item.submenu!.map((subItem) => {
+                    const subActive = activeTab === subItem.id;
+                    return (
+                      <button
+                        key={subItem.id}
+                        onClick={() => onTabChange(subItem.id)}
+                        className={`w-full text-left px-8 py-2 text-sm transition-colors ${
+                          subActive
+                            ? "bg-purple-100 text-purple-700" // ✅ only child gets background
+                            : "text-gray-600 hover:bg-purple-50"
+                        }`}
+                      >
+                        {subItem.label}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-700 flex-shrink-0">
+      <div className="p-4 border-t border-gray-200 flex-shrink-0">
         {!isCollapsed && (
           <div className="flex items-center mb-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium">A</span>
+            <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center">
+              <span className="text-sm font-medium">
+                {adminName.charAt(0)?.toUpperCase() || "A"}
+              </span>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium">Admin User</p>
-              <p className="text-xs text-gray-400">admin@careerly.com</p>
+              <p className="text-sm font-medium text-gray-900">{adminName}</p>
+              <p className="text-xs text-gray-500">{adminEmail}</p>
             </div>
           </div>
         )}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center px-3 py-2 text-sm text-red-400 hover:bg-gray-800 rounded-lg transition-colors"
+          className="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
         >
           <LogOut className="w-4 h-4" />
           {!isCollapsed && <span className="ml-2">Logout</span>}

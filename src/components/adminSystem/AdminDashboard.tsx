@@ -14,9 +14,6 @@ import AllJobsTab from "@/components/adminSystem/tabs/AllJobsTab";
 import ActiveJobsTab from "@/components/adminSystem/tabs/ActiveJobsTab";
 import ExpiredJobsTab from "@/components/adminSystem/tabs/ExpiredJobsTab";
 import ReportedJobsTab from "@/components/adminSystem/tabs/ReportedJobsTab";
-import UserAnalyticsTab from "@/components/adminSystem/tabs/UserAnalyticsTab";
-import JobAnalyticsTab from "@/components/adminSystem/tabs/JobAnalyticsTab";
-import SystemAnalyticsTab from "@/components/adminSystem/tabs/SystemAnalyticsTab";
 import GeneralSettingsTab from "@/components/adminSystem/tabs/GeneralSettingsTab";
 import EmailSettingsTab from "@/components/adminSystem/tabs/EmailSettingsTab";
 import SecuritySettingsTab from "@/components/adminSystem/tabs/SecuritySettingsTab";
@@ -77,6 +74,14 @@ export default function AdminDashboard() {
         }
         return <AdminUsersTab />;
 
+      case "admin-management":
+        // guard: only superadmins get this, redirect regular admins to dashboard
+        if (!isSuperadmin) {
+          setActiveTab("dashboard");
+          return <DashboardTab />;
+        }
+        return <AdminUsersTab />;
+
       case "pending-verifications":
         return <PendingVerificationsTab />;
 
@@ -94,15 +99,6 @@ export default function AdminDashboard() {
 
       case "reported-jobs":
         return <ReportedJobsTab />;
-
-      case "user-analytics":
-        return <UserAnalyticsTab />;
-
-      case "job-analytics":
-        return <JobAnalyticsTab />;
-
-      case "system-analytics":
-        return <SystemAnalyticsTab />;
 
       case "general-settings":
         return <GeneralSettingsTab />;
