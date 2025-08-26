@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
       })
       .populate({
         path: "applicantId",
-        select: "firstName lastName universityEmail education skills",
+        select: "name nameWithInitials universityEmail education skills",
       })
       .populate({
         path: "applicationId",
