@@ -103,7 +103,7 @@ const jobSchema = new mongoose.Schema(
     // Company info
     companyId: {
       type: Schema.Types.ObjectId,
-      ref: "CompanyModel",
+      ref: "Company",
       required: false, // Made optional for admin-posted jobs
     },
 
@@ -126,7 +126,7 @@ const jobSchema = new mongoose.Schema(
     },
     adminId: {
       type: Schema.Types.ObjectId,
-      ref: "AdminModel",
+      ref: "Admin",
       required: false,
     },
     adminUsername: {
@@ -143,6 +143,42 @@ const jobSchema = new mongoose.Schema(
     applicantsCount: {
       type: Number,
       default: 0,
+    },
+
+    // report-related fields
+    reported: {
+      type: Boolean,
+      default: false,
+    },
+    reportReason: {
+      type: String,
+      required: false,
+    },
+    reportDescription: {
+      type: String,
+      required: false,
+    },
+    reportedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "Undergraduate",
+      required: false,
+    },
+    reportedAt: {
+      type: Date,
+      required: false,
+    },
+    reviewedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "Admin",
+      required: false,
+    },
+    reviewedAt: {
+      type: Date,
+      required: false,
+    },
+    adminNote: {
+      type: String,
+      required: false,
     },
 
     // metadata
