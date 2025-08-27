@@ -10,6 +10,7 @@ if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET) {
 export type AdminTokenPayload = {
   id: string;
   username: string;
+  email: string;
   role: "superadmin" | "admin";
   type: "admin";
 };
@@ -17,11 +18,13 @@ export type AdminTokenPayload = {
 export function generateAdminTokens(payload: {
   id: string;
   username: string;
+  email: string;
   role: "superadmin" | "admin";
 }) {
   const base: AdminTokenPayload = {
     id: payload.id,
     username: payload.username,
+    email: payload.email,
     role: payload.role,
     type: "admin",
   };

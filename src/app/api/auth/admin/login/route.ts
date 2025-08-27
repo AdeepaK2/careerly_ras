@@ -19,7 +19,9 @@ export async function POST(request: NextRequest) {
 
     const { username, password } = body;
 
-    const user = await AdminModel.findOne({ username: username.toLowerCase().trim() });
+    const user = await AdminModel.findOne({
+      username: username.toLowerCase().trim(),
+    });
     if (!user) {
       return NextResponse.json(
         { success: false, message: "Invalid username or password" },
@@ -32,7 +34,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           message:
-            "Account is temporarily locked due to multiple failed login attempts. Please try again later."
+            "Account is temporarily locked due to multiple failed login attempts. Please try again later.",
         },
         { status: 423 }
       );
@@ -55,7 +57,8 @@ export async function POST(request: NextRequest) {
     const { accessToken, refreshToken } = generateAdminTokens({
       id: user._id.toString(),
       username: user.username,
-      role: user.role
+      email: user.email,
+      role: user.role,
     });
 
     const refreshTokenExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
@@ -70,10 +73,10 @@ export async function POST(request: NextRequest) {
             id: user._id,
             username: user.username,
             role: user.role,
-            lastLogin: user.lastLogin
+            lastLogin: user.lastLogin,
           },
-          accessToken
-        }
+          accessToken,
+        },
       },
       { status: 200 }
     );
@@ -82,7 +85,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 30 * 24 * 60 * 60 // 30 days
+      maxAge: 30 * 24 * 60 * 60, // 30 days
     });
 
     return response;
@@ -92,7 +95,8 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         message: "Internal server error",
-        error: process.env.NODE_ENV === "development" ? error.message : undefined
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       },
       { status: 500 }
     );

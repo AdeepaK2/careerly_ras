@@ -10,6 +10,8 @@ import CompanyUsersTab from "@/components/adminSystem/tabs/CompanyUsersTab";
 import AdminUsersTab from "@/components/adminSystem/tabs/AdminUsersTab";
 import PendingVerificationsTab from "@/components/adminSystem/tabs/PendingVerificationsTab";
 import VerifiedAccountsTab from "@/components/adminSystem/tabs/VerifiedAccountsTab";
+import AdminJobPostTab from "@/components/adminSystem/tabs/AdminJobPostTab";
+import AdminPostedJobsTab from "@/components/adminSystem/tabs/AdminPostedJobsTab";
 import AllJobsTab from "@/components/adminSystem/tabs/AllJobsTab";
 import ActiveJobsTab from "@/components/adminSystem/tabs/ActiveJobsTab";
 import ExpiredJobsTab from "@/components/adminSystem/tabs/ExpiredJobsTab";
@@ -87,6 +89,12 @@ export default function AdminDashboard() {
 
       case "verified-accounts":
         return <VerifiedAccountsTab />;
+
+      case "admin-job-post":
+        return <AdminJobPostTab />;
+
+      case "admin-posted-jobs":
+        return <AdminPostedJobsTab />;
 
       case "all-jobs":
         return <AllJobsTab />;
