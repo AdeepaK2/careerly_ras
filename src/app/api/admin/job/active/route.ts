@@ -26,11 +26,10 @@ export async function GET(request: NextRequest) {
     // Get current date to filter active jobs
     const currentDate = new Date();
 
-    // Fetch active jobs (deadline hasn't passed, status is active, not reported)
+    // Fetch active jobs (deadline hasn't passed, status is active)
     const jobs = await Job.find({
       status: "active",
       deadline: { $gte: currentDate },
-      reported: { $ne: true }, // Exclude reported jobs
     })
       .populate("companyId", "companyName logo")
       .sort({ createdAt: -1 })

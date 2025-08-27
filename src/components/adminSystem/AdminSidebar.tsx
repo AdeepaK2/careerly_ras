@@ -156,7 +156,6 @@ export default function AdminSidebar({
         { id: "all-jobs", label: "All Job Postings" },
         { id: "active-jobs", label: "Active Jobs" },
         { id: "expired-jobs", label: "Expired Jobs" },
-        { id: "reported-jobs", label: "Reported Jobs" },
       ],
     },
 

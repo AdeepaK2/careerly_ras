@@ -145,42 +145,6 @@ const jobSchema = new mongoose.Schema(
       default: 0,
     },
 
-    // report-related fields
-    reported: {
-      type: Boolean,
-      default: false,
-    },
-    reportReason: {
-      type: String,
-      required: false,
-    },
-    reportDescription: {
-      type: String,
-      required: false,
-    },
-    reportedBy: {
-      type: Schema.Types.ObjectId,
-      ref: "Undergraduate",
-      required: false,
-    },
-    reportedAt: {
-      type: Date,
-      required: false,
-    },
-    reviewedBy: {
-      type: Schema.Types.ObjectId,
-      ref: "Admin",
-      required: false,
-    },
-    reviewedAt: {
-      type: Date,
-      required: false,
-    },
-    adminNote: {
-      type: String,
-      required: false,
-    },
-
     // metadata
     posted_date: {
       type: Date,
