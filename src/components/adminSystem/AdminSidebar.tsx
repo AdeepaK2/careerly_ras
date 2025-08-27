@@ -151,7 +151,7 @@ export default function AdminSidebar({
       label: "Job Management",
       icon: <Briefcase className="w-5 h-5" />,
       submenu: [
-        { id: "admin-job-post", label: "Admin Job Post" },
+        { id: "admin-job-post", label: "Create Job Post" },
         { id: "all-jobs", label: "All Job Postings" },
       ],
     },
