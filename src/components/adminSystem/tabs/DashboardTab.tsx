@@ -11,7 +11,6 @@ import {
   FileText,
   TrendingUp,
   ArrowRight,
-  Settings,
 } from "lucide-react";
 
 interface DashboardStats {
@@ -220,29 +219,6 @@ export default function DashboardTab() {
             </button>
 
             {/* Analytics removed - button intentionally omitted */}
-
-            <button className="flex items-center justify-between p-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
-              <div className="flex items-center space-x-3">
-                <Settings className="w-5 h-5 text-orange-600" />
-                <span className="text-sm font-medium text-gray-900">
-                  System Settings
-                </span>
-              </div>
-              <ArrowRight className="w-4 h-4 text-gray-400" />
-              <svg
-                className="w-4 h-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
           </div>
         </div>
       </div>
