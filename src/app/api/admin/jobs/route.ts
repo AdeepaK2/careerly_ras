@@ -23,15 +23,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    // Get current date to filter expired jobs
-    const currentDate = new Date();
-
-    // Fetch expired jobs (deadline has passed)
-    const jobs = await Job.find({
-      deadline: { $lt: currentDate },
-    })
+    // Fetch all jobs (no filtering by status or deadline here - let frontend handle it)
+    const jobs = await Job.find({})
       .populate("companyId", "companyName logo")
-      .sort({ deadline: -1 })
+      .sort({ createdAt: -1 })
       .lean();
 
     // Get applicant counts for each job
@@ -55,7 +50,7 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error fetching expired jobs:", error);
+    console.error("Error fetching all jobs:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

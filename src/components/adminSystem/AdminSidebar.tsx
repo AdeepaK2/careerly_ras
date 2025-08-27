@@ -152,10 +152,7 @@ export default function AdminSidebar({
       icon: <Briefcase className="w-5 h-5" />,
       submenu: [
         { id: "admin-job-post", label: "Admin Job Post" },
-        { id: "admin-posted-jobs", label: "Admin Posted Jobs" },
         { id: "all-jobs", label: "All Job Postings" },
-        { id: "active-jobs", label: "Active Jobs" },
-        { id: "expired-jobs", label: "Expired Jobs" },
       ],
     },
 
