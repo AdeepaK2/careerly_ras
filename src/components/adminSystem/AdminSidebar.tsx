@@ -8,8 +8,6 @@ import {
   Shield,
   Briefcase,
   BarChart3,
-  Settings,
-  FileText,
   Menu,
   LogOut,
   ChevronDown,
@@ -151,24 +149,10 @@ export default function AdminSidebar({
       label: "Job Management",
       icon: <Briefcase className="w-5 h-5" />,
       submenu: [
+        { id: "admin-job-post", label: "Create Job Post" },
         { id: "all-jobs", label: "All Job Postings" },
-        { id: "active-jobs", label: "Active Jobs" },
-        { id: "expired-jobs", label: "Expired Jobs" },
-        { id: "reported-jobs", label: "Reported Jobs" },
       ],
     },
-
-    {
-      id: "settings",
-      label: "System Settings",
-      icon: <Settings className="w-5 h-5" />,
-      submenu: [
-        { id: "general-settings", label: "General Settings" },
-        { id: "email-settings", label: "Email Settings" },
-        { id: "security-settings", label: "Security Settings" },
-      ],
-    },
-    { id: "reports", label: "Reports", icon: <FileText className="w-5 h-5" /> },
   ];
 
   return (

@@ -26,7 +26,7 @@ const jobSchema = new mongoose.Schema(
         "Medicine",
         "Design",
         "Management",
-        "Other"
+        "Other",
       ],
       required: true,
     },
@@ -51,7 +51,7 @@ const jobSchema = new mongoose.Schema(
       type: String,
     },
     urgent: {
-      type: Boolean,  
+      type: Boolean,
       default: true,
     },
 
@@ -103,8 +103,35 @@ const jobSchema = new mongoose.Schema(
     // Company info
     companyId: {
       type: Schema.Types.ObjectId,
-      ref: "CompanyModel",
-      required: true,
+      ref: "Company",
+      required: false, // Made optional for admin-posted jobs
+    },
+
+    // Admin-posted job fields
+    customCompanyName: {
+      type: String,
+      required: false,
+    },
+    companyWebsite: {
+      type: String,
+      required: false,
+    },
+    originalAdLink: {
+      type: String,
+      required: false,
+    },
+    postedByAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    adminId: {
+      type: Schema.Types.ObjectId,
+      ref: "Admin",
+      required: false,
+    },
+    adminUsername: {
+      type: String,
+      required: false,
     },
 
     // status of the job
@@ -126,6 +153,13 @@ const jobSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Add pre-save validation to ensure either companyId or customCompanyName is provided
+jobSchema.pre("save", function () {
+  if (!this.companyId && !this.customCompanyName) {
+    throw new Error("Either companyId or customCompanyName must be provided");
+  }
+});
 
 // Single-field indexes
 jobSchema.index({ companyId: 1 });
