@@ -261,11 +261,11 @@ export default function AdminJobPostTab() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Admin Job Post</h2>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-900 mt-1">
             Post job opportunities on behalf of companies
           </p>
         </div>
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
+        <div className="flex items-center space-x-2 text-sm text-gray-900">
           <Building2 className="w-4 h-4" />
           <span>Admin Panel</span>
         </div>
@@ -521,7 +521,7 @@ export default function AdminJobPostTab() {
                 placeholder="Provide detailed job description, requirements, responsibilities, etc."
                 required
               />
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-900 mt-1">
                 Company website and original advertisement links will be
                 automatically appended to the description.
               </p>

@@ -112,13 +112,13 @@ export default function AdminDashboard() {
               <h1 className="text-2xl font-bold text-gray-900">
                 Admin Dashboard
               </h1>
-              <p className="text-gray-600">Manage your Careerly platform</p>
+              <p className="text-gray-900">Manage your Careerly platform</p>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-400 hover:text-gray-600">
+              <button className="p-2 text-gray-800 hover:text-gray-900">
                 <Search className="w-6 h-6" />
               </button>
-              <button className="relative p-2 text-gray-400 hover:text-gray-600">
+              <button className="relative p-2 text-gray-800 hover:text-gray-900">
                 <Bell className="w-6 h-6" />
                 <span
                   className="absolute top-0 right-0 inline-flex items-center justify-center 

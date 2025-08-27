@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import React, { useEffect, useState, FormEvent } from "react";
 import {
   Edit2,
   Trash2,
@@ -288,8 +288,7 @@ export default function AdminUsersTab() {
 
   /* -------------------- Derived (filters) -------------------- */
   const filtered = admins.filter((a) => {
-    const matchesRole =
-      roleFilter === "all" ? true : a.role === roleFilter;
+    const matchesRole = roleFilter === "all" ? true : a.role === roleFilter;
     const q = search.trim().toLowerCase();
     const matchesSearch =
       !q ||
@@ -325,7 +324,7 @@ export default function AdminUsersTab() {
           <Shield className="w-7 h-7 text-purple-600" />
           <h2 className="text-3xl font-extrabold">Admin Management</h2>
         </div>
-        <p className="text-gray-500 mt-1">
+        <p className="text-gray-900 mt-1">
           Manage administrator accounts and permissions
         </p>
       </div>
@@ -390,11 +389,11 @@ export default function AdminUsersTab() {
       {/* Table */}
       <div className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
         {loading ? (
-          <div className="p-8 text-gray-500">Loading admins…</div>
+          <div className="p-8 text-gray-900">Loading admins…</div>
         ) : (
           <table className="w-full">
             <thead className="bg-gray-50">
-              <tr className="text-left text-xs uppercase tracking-wider text-gray-500">
+              <tr className="text-left text-xs uppercase tracking-wider text-gray-900">
                 <th className="px-6 py-3">Admin</th>
                 <th className="px-6 py-3">Email</th>
                 <th className="px-6 py-3">Role</th>
@@ -414,9 +413,7 @@ export default function AdminUsersTab() {
                   </td>
 
                   {/* Email in its own column */}
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {a.email}
-                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{a.email}</td>
 
                   {/* Role badge */}
                   <td className="px-6 py-4">{roleBadge(a.role)}</td>
@@ -429,7 +426,7 @@ export default function AdminUsersTab() {
                         : "—"}
                     </div>
                     {a.createdBy && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-900">
                         by {a.createdBy}
                       </div>
                     )}
@@ -480,7 +477,7 @@ export default function AdminUsersTab() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-6 py-10 text-center text-gray-500"
+                    className="px-6 py-10 text-center text-gray-900"
                   >
                     No admins match your filters.
                   </td>
