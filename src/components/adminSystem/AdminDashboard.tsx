@@ -12,7 +12,6 @@ import PendingVerificationsTab from "@/components/adminSystem/tabs/PendingVerifi
 import VerifiedAccountsTab from "@/components/adminSystem/tabs/VerifiedAccountsTab";
 import AdminJobPostTab from "@/components/adminSystem/tabs/AdminJobPostTab";
 import AllJobsTab from "@/components/adminSystem/tabs/AllJobsTab";
-import ReportsTab from "@/components/adminSystem/tabs/ReportsTab";
 import { parseJwt } from "@/utils/jwt-client";
 
 export default function AdminDashboard() {
@@ -88,9 +87,6 @@ export default function AdminDashboard() {
 
       case "all-jobs":
         return <AllJobsTab />;
-
-      case "reports":
-        return <ReportsTab />;
 
       default:
         return <DashboardTab />;

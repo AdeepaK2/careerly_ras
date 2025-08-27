@@ -8,7 +8,6 @@ import {
   Shield,
   Briefcase,
   BarChart3,
-  FileText,
   Menu,
   LogOut,
   ChevronDown,
@@ -154,7 +153,6 @@ export default function AdminSidebar({
         { id: "all-jobs", label: "All Job Postings" },
       ],
     },
-    { id: "reports", label: "Reports", icon: <FileText className="w-5 h-5" /> },
   ];
 
   return (
