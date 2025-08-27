@@ -287,8 +287,8 @@ export default function AdminJobPostTab() {
         <div className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Company Selection */}
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
                 <Building2 className="w-5 h-5 mr-2" />
                 Company Information
               </h3>
