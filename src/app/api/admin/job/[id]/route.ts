@@ -5,7 +5,7 @@ import { verifyAdminAccessToken } from "@/lib/auth/admin/jwt";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await dbConnect();
@@ -21,7 +21,7 @@ export async function PUT(
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    const jobId = params.id;
+    const { id: jobId } = await params;
     const body = await request.json();
 
     // Find the job
@@ -79,7 +79,7 @@ export async function PUT(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await dbConnect();
@@ -95,7 +95,7 @@ export async function GET(
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    const jobId = params.id;
+    const { id: jobId } = await params;
     const job = await Job.findById(jobId).populate(
       "companyId",
       "companyName logo"
@@ -114,7 +114,7 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await dbConnect();
@@ -130,7 +130,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    const jobId = params.id;
+    const { id: jobId } = await params;
 
     // Find the job
     const existingJob = await Job.findById(jobId);
