@@ -5,39 +5,45 @@ import Application from "@/lib/models/application";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return await updateApplicationStatus(request, { params });
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return await updateApplicationStatus(request, { params });
 }
 
 async function updateApplicationStatus(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Await the params to get the actual values
+    const { id } = await params;
+
     // Verify JWT token - check Authorization header first, then cookies
     let token = request.headers.get("authorization")?.replace("Bearer ", "");
     if (!token) {
       token = request.cookies.get("token")?.value;
     }
-    
+
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const company = await verifyCompanyAccessToken(token);
     if (!company) {
-      return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid or expired token" },
+        { status: 401 }
+      );
     }
     const { status } = await request.json();
-    const applicationId = params.id;
+    const applicationId = id;
 
     if (!status) {
       return NextResponse.json(
@@ -55,10 +61,7 @@ async function updateApplicationStatus(
     ];
 
     if (!validStatuses.includes(status)) {
-      return NextResponse.json(
-        { error: "Invalid status" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
 
     await connectToDatabase();
