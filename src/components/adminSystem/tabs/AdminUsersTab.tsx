@@ -322,7 +322,9 @@ export default function AdminUsersTab() {
       <div>
         <div className="flex items-center gap-3">
           <Shield className="w-7 h-7 text-purple-600" />
-          <h2 className="text-3xl font-extrabold">Admin Management</h2>
+          <h2 className="text-3xl font-extrabold text-gray-900">
+            Admin Management
+          </h2>
         </div>
         <p className="text-gray-900 mt-1">
           Manage administrator accounts and permissions
@@ -337,7 +339,7 @@ export default function AdminUsersTab() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by username or email..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400 placeholder:text-gray-600"
           />
         </div>
 
@@ -346,11 +348,17 @@ export default function AdminUsersTab() {
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value as "all" | AdminRole)}
-            className="appearance-none bg-white pl-9 pr-9 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
+            className="appearance-none bg-white pl-9 pr-9 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400 text-gray-800"
           >
-            <option value="all">All Roles</option>
-            <option value="superadmin">Super Admin</option>
-            <option value="admin">Admin</option>
+            <option value="all" className="text-gray-800">
+              All Roles
+            </option>
+            <option value="superadmin" className="text-gray-800">
+              Super Admin
+            </option>
+            <option value="admin" className="text-gray-800">
+              Admin
+            </option>
           </select>
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
             ▾
@@ -559,10 +567,14 @@ export default function AdminUsersTab() {
                 <select
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value as AdminRole)}
-                  className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 text-gray-800"
                 >
-                  <option value="admin">Admin</option>
-                  <option value="superadmin">Super Admin</option>
+                  <option value="admin" className="text-gray-800">
+                    Admin
+                  </option>
+                  <option value="superadmin" className="text-gray-800">
+                    Super Admin
+                  </option>
                 </select>
               </div>
 
@@ -666,10 +678,14 @@ export default function AdminUsersTab() {
                 <select
                   value={editRole}
                   onChange={(e) => setEditRole(e.target.value as AdminRole)}
-                  className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 text-gray-800"
                 >
-                  <option value="admin">Admin</option>
-                  <option value="superadmin">Super Admin</option>
+                  <option value="admin" className="text-gray-800">
+                    Admin
+                  </option>
+                  <option value="superadmin" className="text-gray-800">
+                    Super Admin
+                  </option>
                 </select>
               </div>
 
