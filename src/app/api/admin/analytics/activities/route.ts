@@ -31,11 +31,11 @@ async function handler(request: NextRequest) {
       .select("title companyId posted_date category");
 
     const recentApplications = await ApplicationModel.find({})
-      .sort({ createdAt: -1 })
+      .sort({ appliedAt: -1 })
       .limit(limit / 4)
       .populate("jobId", "title")
-      .populate("undergradId", "name")
-      .select("jobId undergradId createdAt status");
+      .populate("applicantId", "name")
+      .select("jobId applicantId appliedAt status");
 
     const activities: Array<{
       id: string;
@@ -96,9 +96,9 @@ async function handler(request: NextRequest) {
         id: `app-${application._id}`,
         type: "application_submitted",
         message: `Application submitted: ${
-          (application.undergradId as any)?.name || "Unknown Student"
+          (application.applicantId as any)?.name || "Unknown Student"
         } applied for ${(application.jobId as any)?.title || "Unknown Job"}`,
-        timestamp: application.createdAt.toISOString(),
+        timestamp: application.appliedAt.toISOString(),
         data: { applicationId: application._id, status: application.status },
       });
     });
