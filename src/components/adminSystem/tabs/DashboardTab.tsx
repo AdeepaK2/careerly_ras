@@ -676,48 +676,54 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
 
       {/* Activity and Actions Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Recent Activity
-            </h3>
-            <button
-              onClick={() => handleExport("applications")}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-            >
-              Export all →
-            </button>
-          </div>
-          <div className="space-y-4 max-h-80 overflow-y-auto">
-            {activities.map((activity) => (
-              <div key={activity.id} className="flex items-start space-x-3">
-                <div
-                  className={`w-2 h-2 rounded-full mt-2 ${
-                    activity.type === "user_registration"
-                      ? "bg-blue-500"
-                      : activity.type === "company_verification"
-                      ? "bg-green-500"
-                      : activity.type === "job_posting"
-                      ? "bg-purple-500"
-                      : activity.type === "application_submitted"
-                      ? "bg-orange-500"
-                      : "bg-gray-500"
-                  }`}
-                ></div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-900">{activity.message}</p>
-                  <p className="text-xs text-gray-500">
-                    {formatRelativeTime(activity.timestamp)}
-                  </p>
+        {/* Recent Activity - Only show if there are activities */}
+        {activities.length > 0 && (
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Recent Activity
+              </h3>
+              <button
+                onClick={() => handleExport("applications")}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Export all →
+              </button>
+            </div>
+            <div className="space-y-4 max-h-80 overflow-y-auto">
+              {activities.map((activity) => (
+                <div key={activity.id} className="flex items-start space-x-3">
+                  <div
+                    className={`w-2 h-2 rounded-full mt-2 ${
+                      activity.type === "user_registration"
+                        ? "bg-blue-500"
+                        : activity.type === "company_verification"
+                        ? "bg-green-500"
+                        : activity.type === "job_posting"
+                        ? "bg-purple-500"
+                        : activity.type === "application_submitted"
+                        ? "bg-orange-500"
+                        : "bg-gray-500"
+                    }`}
+                  ></div>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-900">{activity.message}</p>
+                    <p className="text-xs text-gray-500">
+                      {formatRelativeTime(activity.timestamp)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Quick Actions */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div
+          className={`bg-white p-6 rounded-lg shadow-sm border ${
+            activities.length === 0 ? "lg:col-span-2" : ""
+          }`}
+        >
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Quick Actions
           </h3>
