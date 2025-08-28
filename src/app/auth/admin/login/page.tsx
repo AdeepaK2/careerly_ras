@@ -46,19 +46,41 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Redirect already-authenticated admins away from the login page
   useEffect(() => {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("admin_access_token")
-        : null;
-    if (!token) return;
-    const payload = parseJwt(token);
-    const exp = (payload as any)?.exp as number | undefined;
-    if (!exp) return;
-    const nowInSeconds = Math.floor(Date.now() / 1000);
-    if (exp > nowInSeconds) router.replace("/admin");
+    const checkAuthAndRedirect = () => {
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("admin_access_token")
+          : null;
+
+      if (!token) {
+        setIsCheckingAuth(false);
+        return;
+      }
+
+      const payload = parseJwt(token);
+      const exp = (payload as any)?.exp as number | undefined;
+
+      if (!exp) {
+        setIsCheckingAuth(false);
+        return;
+      }
+
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      if (exp > nowInSeconds) {
+        // Valid token - redirect immediately
+        router.replace("/admin");
+        return;
+      }
+
+      // Token expired - show login form
+      setIsCheckingAuth(false);
+    };
+
+    checkAuthAndRedirect();
   }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,6 +120,23 @@ export default function AdminLoginPage() {
     }
   };
 
+  // Show loading screen while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-14 w-14 rounded-full bg-purple-600/10 flex items-center justify-center">
+            <Shield className="h-7 w-7 text-purple-600" />
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-purple-600 border-b-transparent" />
+            <span className="text-gray-600">Checking authentication...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Top bar: brand left, back link right */}
@@ -106,7 +145,9 @@ export default function AdminLoginPage() {
           <div className="h-9 w-9 rounded-full bg-purple-600/20 flex items-center justify-center">
             <span className="font-bold text-purple-700">C</span>
           </div>
-          <span className="text-lg font-semibold text-purple-700">Careerly</span>
+          <span className="text-lg font-semibold text-purple-700">
+            Careerly
+          </span>
         </div>
         <Link
           href="/"
