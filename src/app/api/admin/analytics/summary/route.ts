@@ -15,6 +15,21 @@ async function handler(request: NextRequest) {
     const totalUndergrads = await UndergradModel.countDocuments({});
     const totalCompanies = await CompanyModel.countDocuments({});
 
+    // KPI: Total registered students
+    const totalRegisteredStudents = totalUndergrads;
+
+    // KPI: Total verified companies
+    const totalVerifiedCompanies = await CompanyModel.countDocuments({
+      isVerified: true,
+    });
+
+    // KPI: Verified students
+    const verifiedStudents = await UndergradModel.countDocuments({
+      isVerified: true,
+    });
+    const unverifiedStudents = totalUndergrads - verifiedStudents;
+    const unverifiedCompanies = totalCompanies - totalVerifiedCompanies;
+
     // new users in last 24h
     const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const newUndergrads24 = await UndergradModel.countDocuments({
@@ -22,6 +37,17 @@ async function handler(request: NextRequest) {
     });
     const newCompanies24 = await CompanyModel.countDocuments({
       createdAt: { $gte: since24h },
+    });
+
+    // KPI: Active job postings (not expired)
+    const now = new Date();
+    const activeJobPostings = await JobModel.countDocuments({
+      $or: [{ deadline: { $gte: now } }, { deadline: { $exists: false } }],
+    });
+
+    // KPI: Expired jobs
+    const expiredJobs = await JobModel.countDocuments({
+      deadline: { $lt: now },
     });
 
     // DAU/MAU approximations based on lastLogin
@@ -38,13 +64,44 @@ async function handler(request: NextRequest) {
       (await CompanyModel.countDocuments({ isVerified: false })) +
       (await UndergradModel.countDocuments({ isVerified: false }));
 
+    // KPI: Applications submitted (today/week/month)
+    const applicationsToday = await ApplicationModel.countDocuments({
+      createdAt: { $gte: since24h },
+    });
+
+    const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const applicationsThisWeek = await ApplicationModel.countDocuments({
+      createdAt: { $gte: since7d },
+    });
+
+    const applicationsThisMonth = await ApplicationModel.countDocuments({
+      createdAt: { $gte: since30d },
+    });
+
     // Jobs and applications in 24h
     const jobs24h = await JobModel.countDocuments({
       posted_date: { $gte: since24h },
     });
-    const applications24h = await ApplicationModel.countDocuments({
-      createdAt: { $gte: since24h },
+
+    // KPI: Successful placements/hires (applications with status 'hired' or 'accepted')
+    const successfulPlacements = await ApplicationModel.countDocuments({
+      status: { $in: ["hired", "accepted", "selected"] },
     });
+
+    // KPI: Platform growth rate (30-day growth)
+    const since60d = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    const users30dAgo =
+      (await UndergradModel.countDocuments({
+        createdAt: { $lte: since30d },
+      })) +
+      (await CompanyModel.countDocuments({
+        createdAt: { $lte: since30d },
+      }));
+
+    const platformGrowthRate =
+      users30dAgo > 0
+        ? ((totalUndergrads + totalCompanies - users30dAgo) / users30dAgo) * 100
+        : 0;
 
     // average applications per job (simple aggregate)
     const appsAgg = await ApplicationModel.aggregate([
@@ -64,6 +121,7 @@ async function handler(request: NextRequest) {
       {
         success: true,
         data: {
+          // Original metrics
           totalUsers: totalUndergrads + totalCompanies,
           new24h: newUndergrads24 + newCompanies24,
           dau,
@@ -74,8 +132,22 @@ async function handler(request: NextRequest) {
           conversionRatePercent,
           totalCompanies,
           jobs24h,
-          applications24h,
+          applications24h: applicationsToday,
           avgApplicationsPerJob,
+          // Enhanced KPIs
+          totalRegisteredStudents,
+          totalVerifiedCompanies,
+          activeJobPostings,
+          applicationsToday,
+          applicationsThisWeek,
+          applicationsThisMonth,
+          successfulPlacements,
+          platformGrowthRate: Math.round(platformGrowthRate * 100) / 100,
+          verifiedStudents,
+          unverifiedStudents,
+          unverifiedCompanies,
+          expiredJobs,
+          totalJobs: activeJobPostings + expiredJobs,
         },
       },
       { status: 200 }

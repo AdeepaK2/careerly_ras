@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Send, X, ExternalLink, Building2 } from "lucide-react";
+import {
+  Plus,
+  Send,
+  X,
+  ExternalLink,
+  Building2,
+  ChevronDown,
+  Search,
+} from "lucide-react";
 
 interface Company {
   _id: string;
@@ -17,6 +25,10 @@ export default function AdminJobPostTab() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [isOtherCompany, setIsOtherCompany] = useState(false);
+  const [isDegreeDropdownOpen, setIsDegreeDropdownOpen] = useState(false);
+  const [degreeSearchTerm, setDegreeSearchTerm] = useState("");
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [categorySearchTerm, setCategorySearchTerm] = useState("");
 
   // Form data structure matching job model + admin-specific fields
   const [formData, setFormData] = useState({
@@ -84,6 +96,32 @@ export default function AdminJobPostTab() {
   useEffect(() => {
     fetchCompanies();
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      if (
+        isDegreeDropdownOpen &&
+        !target.closest(".degree-dropdown-container")
+      ) {
+        setIsDegreeDropdownOpen(false);
+      }
+
+      if (
+        isCategoryDropdownOpen &&
+        !target.closest(".category-dropdown-container")
+      ) {
+        setIsCategoryDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDegreeDropdownOpen, isCategoryDropdownOpen]);
 
   const fetchCompanies = async () => {
     try {
@@ -160,6 +198,42 @@ export default function AdminJobPostTab() {
       [field]: prev[field].includes(value)
         ? prev[field].filter((item) => item !== value)
         : [...prev[field], value],
+    }));
+  };
+
+  const filteredDegrees = degrees.filter((degree) =>
+    degree.toLowerCase().includes(degreeSearchTerm.toLowerCase())
+  );
+
+  const filteredCategories = categories.filter((category) =>
+    category.toLowerCase().includes(categorySearchTerm.toLowerCase())
+  );
+
+  const handleCategorySelect = (category: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      category: category,
+    }));
+    setCategorySearchTerm("");
+    setIsCategoryDropdownOpen(false);
+  };
+
+  const handleDegreeSelect = (degree: string) => {
+    if (!formData.qualifiedDegrees.includes(degree)) {
+      setFormData((prev) => ({
+        ...prev,
+        qualifiedDegrees: [...prev.qualifiedDegrees, degree],
+      }));
+    }
+    setDegreeSearchTerm("");
+  };
+
+  const removeDegree = (degreeToRemove: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      qualifiedDegrees: prev.qualifiedDegrees.filter(
+        (degree) => degree !== degreeToRemove
+      ),
     }));
   };
 
@@ -412,20 +486,85 @@ export default function AdminJobPostTab() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Category *
                   </label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
-                    required
-                  >
-                    <option value="">Select category</option>
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
+
+                  {/* Searchable Category Dropdown */}
+                  <div className="relative category-dropdown-container">
+                    <div
+                      className="w-full p-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent bg-white cursor-pointer"
+                      onClick={() =>
+                        setIsCategoryDropdownOpen(!isCategoryDropdownOpen)
+                      }
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Search className="w-4 h-4 text-gray-400" />
+                          <input
+                            type="text"
+                            placeholder={
+                              formData.category ||
+                              "Search and select category..."
+                            }
+                            value={categorySearchTerm}
+                            onChange={(e) =>
+                              setCategorySearchTerm(e.target.value)
+                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsCategoryDropdownOpen(true);
+                            }}
+                            className="flex-1 border-0 outline-none bg-transparent text-gray-900 placeholder-gray-500"
+                          />
+                        </div>
+                        <ChevronDown
+                          className={`w-4 h-4 text-gray-400 transition-transform ${
+                            isCategoryDropdownOpen ? "rotate-180" : ""
+                          }`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Display Selected Category */}
+                    {formData.category && !isCategoryDropdownOpen && (
+                      <div className="absolute inset-0 p-3 flex items-center justify-between bg-white pointer-events-none">
+                        <span className="text-gray-900">
+                          {formData.category}
+                        </span>
+                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                      </div>
+                    )}
+
+                    {/* Dropdown Options */}
+                    {isCategoryDropdownOpen && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        {filteredCategories.length > 0 ? (
+                          filteredCategories.map((category) => (
+                            <div
+                              key={category}
+                              onClick={() => handleCategorySelect(category)}
+                              className={`p-3 hover:bg-purple-50 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                                formData.category === category
+                                  ? "bg-purple-50 text-purple-700"
+                                  : "text-gray-900"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm">{category}</span>
+                                {formData.category === category && (
+                                  <span className="text-purple-600 text-xs">
+                                    ✓ Selected
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-3 text-gray-500 text-sm">
+                            No categories found matching "{categorySearchTerm}"
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -532,23 +671,108 @@ export default function AdminJobPostTab() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Qualified Degrees * (Select at least one)
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-white">
-                {degrees.map((degree) => (
-                  <label
-                    key={degree}
-                    className="flex items-center space-x-2 text-sm hover:bg-gray-50 p-2 rounded text-gray-900 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={formData.qualifiedDegrees.includes(degree)}
-                      onChange={() =>
-                        handleCheckboxChange(degree, "qualifiedDegrees")
-                      }
-                      className="text-purple-600 focus:ring-purple-500 focus:ring-2 w-4 h-4 rounded border-gray-300"
+
+              {/* Selected Degrees Display */}
+              {formData.qualifiedDegrees.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {formData.qualifiedDegrees.map((degree, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+                    >
+                      {degree}
+                      <button
+                        type="button"
+                        onClick={() => removeDegree(degree)}
+                        className="ml-2 text-purple-600 hover:text-purple-800"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Searchable Dropdown */}
+              <div className="relative degree-dropdown-container">
+                <div
+                  className="w-full p-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent bg-white cursor-pointer"
+                  onClick={() => setIsDegreeDropdownOpen(!isDegreeDropdownOpen)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Search className="w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search and select degrees..."
+                        value={degreeSearchTerm}
+                        onChange={(e) => setDegreeSearchTerm(e.target.value)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsDegreeDropdownOpen(true);
+                        }}
+                        className="flex-1 border-0 outline-none bg-transparent text-gray-900 placeholder-gray-500"
+                      />
+                    </div>
+                    <ChevronDown
+                      className={`w-4 h-4 text-gray-400 transition-transform ${
+                        isDegreeDropdownOpen ? "rotate-180" : ""
+                      }`}
                     />
-                    <span className="text-gray-900">{degree}</span>
-                  </label>
-                ))}
+                  </div>
+                </div>
+
+                {/* Dropdown Options */}
+                {isDegreeDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {filteredDegrees.length > 0 ? (
+                      filteredDegrees.map((degree) => (
+                        <div
+                          key={degree}
+                          onClick={() => {
+                            handleDegreeSelect(degree);
+                            setIsDegreeDropdownOpen(false);
+                          }}
+                          className={`p-3 hover:bg-purple-50 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                            formData.qualifiedDegrees.includes(degree)
+                              ? "bg-purple-50 text-purple-700"
+                              : "text-gray-900"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm">{degree}</span>
+                            {formData.qualifiedDegrees.includes(degree) && (
+                              <span className="text-purple-600 text-xs">
+                                ✓ Selected
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-3 text-gray-500 text-sm">
+                        No degrees found matching "{degreeSearchTerm}"
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Actions */}
+              <div className="mt-2 flex items-center space-x-3 text-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData((prev) => ({ ...prev, qualifiedDegrees: [] }));
+                  }}
+                  className="text-purple-600 hover:text-purple-700"
+                >
+                  Clear All
+                </button>
+                <span className="text-gray-400">•</span>
+                <span className="text-gray-600">
+                  {formData.qualifiedDegrees.length} selected
+                </span>
               </div>
             </div>
 
