@@ -52,7 +52,7 @@ export default function AdminDashboard() {
   const renderActiveTab = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardTab />;
+        return <DashboardTab onNavigateToTab={setActiveTab} />;
 
       case "undergraduate-users":
         return <UndergraduateUsersTab />;
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
         // guard: only superadmins get this, redirect regular admins to dashboard
         if (!isSuperadmin) {
           setActiveTab("dashboard");
-          return <DashboardTab />;
+          return <DashboardTab onNavigateToTab={setActiveTab} />;
         }
         return <AdminUsersTab />;
 
@@ -72,7 +72,7 @@ export default function AdminDashboard() {
         // guard: only superadmins get this, redirect regular admins to dashboard
         if (!isSuperadmin) {
           setActiveTab("dashboard");
-          return <DashboardTab />;
+          return <DashboardTab onNavigateToTab={setActiveTab} />;
         }
         return <AdminUsersTab />;
 
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
         return <AllJobsTab />;
 
       default:
-        return <DashboardTab />;
+        return <DashboardTab onNavigateToTab={setActiveTab} />;
     }
   };
 
