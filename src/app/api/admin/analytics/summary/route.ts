@@ -11,46 +11,85 @@ async function handler(request: NextRequest) {
   try {
     await connect();
 
+    // Parse query parameters for date filtering
+    const { searchParams } = new URL(request.url);
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const days = searchParams.get("days");
+
+    // Calculate date range
+    let dateFilter: any = {};
+    let applicationDateFilter: any = {};
+    if (startDate && endDate) {
+      dateFilter = {
+        createdAt: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        },
+      };
+      applicationDateFilter = {
+        appliedAt: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        },
+      };
+    } else if (days) {
+      const daysNum = parseInt(days);
+      const since = new Date(Date.now() - daysNum * 24 * 60 * 60 * 1000);
+      dateFilter = {
+        createdAt: { $gte: since },
+      };
+      applicationDateFilter = {
+        appliedAt: { $gte: since },
+      };
+    }
+
     // total users = undergraduates + companies (count accounts)
-    const totalUndergrads = await UndergradModel.countDocuments({});
-    const totalCompanies = await CompanyModel.countDocuments({});
+    const totalUndergrads = await UndergradModel.countDocuments(dateFilter);
+    const totalCompanies = await CompanyModel.countDocuments(dateFilter);
 
-    // KPI: Total registered students
-    const totalRegisteredStudents = totalUndergrads;
+    // KPI: Total registered students (always total, not filtered by date)
+    const totalRegisteredStudents = await UndergradModel.countDocuments({});
+    const totalCompaniesAll = await CompanyModel.countDocuments({});
 
-    // KPI: Total verified companies
+    // KPI: Total verified companies (always total, not filtered by date)
     const totalVerifiedCompanies = await CompanyModel.countDocuments({
       isVerified: true,
     });
 
-    // KPI: Verified students
+    // KPI: Verified students (always total, not filtered by date)
     const verifiedStudents = await UndergradModel.countDocuments({
       isVerified: true,
     });
-    const unverifiedStudents = totalUndergrads - verifiedStudents;
-    const unverifiedCompanies = totalCompanies - totalVerifiedCompanies;
+    const unverifiedStudents = totalRegisteredStudents - verifiedStudents;
+    const unverifiedCompanies = totalCompaniesAll - totalVerifiedCompanies;
 
-    // new users in last 24h
-    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const newUndergrads24 = await UndergradModel.countDocuments({
-      createdAt: { $gte: since24h },
-    });
-    const newCompanies24 = await CompanyModel.countDocuments({
-      createdAt: { $gte: since24h },
-    });
+    // Users registered in the selected period
+    const newUndergradsInPeriod = totalUndergrads;
+    const newCompaniesInPeriod = totalCompanies;
 
-    // KPI: Active job postings (not expired)
+    // KPI: Jobs and applications in the selected period
+    const jobDateFilter = dateFilter.createdAt
+      ? { posted_date: dateFilter.createdAt }
+      : {};
+    const jobsInPeriod = await JobModel.countDocuments(jobDateFilter);
+    const applicationsInPeriod = await ApplicationModel.countDocuments(
+      applicationDateFilter
+    );
+
+    // KPI: Active job postings (not expired) - always total
     const now = new Date();
     const activeJobPostings = await JobModel.countDocuments({
       $or: [{ deadline: { $gte: now } }, { deadline: { $exists: false } }],
     });
 
-    // KPI: Expired jobs
+    // KPI: Expired jobs - always total
     const expiredJobs = await JobModel.countDocuments({
       deadline: { $lt: now },
     });
 
     // DAU/MAU approximations based on lastLogin
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const dau =
       (await UndergradModel.countDocuments({ lastLogin: { $gte: since24h } })) +
       (await CompanyModel.countDocuments({ lastLogin: { $gte: since24h } }));
@@ -59,28 +98,36 @@ async function handler(request: NextRequest) {
       (await UndergradModel.countDocuments({ lastLogin: { $gte: since30d } })) +
       (await CompanyModel.countDocuments({ lastLogin: { $gte: since30d } }));
 
-    // pending verifications
+    // pending verifications (always total, not filtered by date)
     const pendingVerifications =
       (await CompanyModel.countDocuments({ isVerified: false })) +
       (await UndergradModel.countDocuments({ isVerified: false }));
 
-    // KPI: Applications submitted (today/week/month)
+    // KPI: Applications submitted (always current totals for today/week/month)
     const applicationsToday = await ApplicationModel.countDocuments({
-      createdAt: { $gte: since24h },
+      appliedAt: { $gte: since24h },
     });
 
     const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const applicationsThisWeek = await ApplicationModel.countDocuments({
-      createdAt: { $gte: since7d },
+      appliedAt: { $gte: since7d },
     });
 
     const applicationsThisMonth = await ApplicationModel.countDocuments({
-      createdAt: { $gte: since30d },
+      appliedAt: { $gte: since30d },
     });
 
-    // Jobs and applications in 24h
+    // Jobs posted in last 24h (always current, not affected by date filter)
     const jobs24h = await JobModel.countDocuments({
       posted_date: { $gte: since24h },
+    });
+
+    // New users in last 24h (always current, not affected by date filter)
+    const newUndergrads24 = await UndergradModel.countDocuments({
+      createdAt: { $gte: since24h },
+    });
+    const newCompanies24 = await CompanyModel.countDocuments({
+      createdAt: { $gte: since24h },
     });
 
     // KPI: Successful placements/hires (applications with status 'hired' or 'accepted')
@@ -117,6 +164,18 @@ async function handler(request: NextRequest) {
     const retention7dPercent = null;
     const conversionRatePercent = null;
 
+    console.log("Analytics Summary Debug:", {
+      applicationsInPeriod,
+      applicationsToday,
+      applicationsThisWeek,
+      applicationsThisMonth,
+      dateFilter,
+      applicationDateFilter,
+      startDate,
+      endDate,
+      days,
+    });
+
     return NextResponse.json(
       {
         success: true,
@@ -134,10 +193,10 @@ async function handler(request: NextRequest) {
           jobs24h,
           applications24h: applicationsToday,
           avgApplicationsPerJob,
-          // Enhanced KPIs
-          totalRegisteredStudents,
-          totalVerifiedCompanies,
-          activeJobPostings,
+          // Enhanced KPIs - use time-filtered values when date filter is applied
+          totalRegisteredStudents: totalUndergrads, // filtered by date range
+          totalVerifiedCompanies, // always total (verification status doesn't change based on time)
+          activeJobPostings, // always total active jobs
           applicationsToday,
           applicationsThisWeek,
           applicationsThisMonth,
@@ -147,7 +206,9 @@ async function handler(request: NextRequest) {
           unverifiedStudents,
           unverifiedCompanies,
           expiredJobs,
-          totalJobs: activeJobPostings + expiredJobs,
+          totalJobs: activeJobPostings, // for dashboard card showing jobs
+          totalApplications: applicationsInPeriod, // filtered by date range
+          totalUsersRegistered: totalUndergrads + totalCompanies, // filtered by date range
         },
       },
       { status: 200 }

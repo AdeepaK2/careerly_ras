@@ -49,7 +49,11 @@ import {
   CombinedTrendPoint,
 } from "@/types/AdminTypes";
 
-export default function DashboardTab() {
+interface DashboardTabProps {
+  onNavigateToTab?: (tab: string) => void;
+}
+
+export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalCompanies: 0,
@@ -98,14 +102,53 @@ export default function DashboardTab() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // Fetch summary stats
-      const summaryResponse = await makeAuthenticatedRequest(
-        "/api/admin/analytics/summary"
-      );
+      // Build URL parameters for date filtering
+      const urlParams = new URLSearchParams();
+      if (dateRange.start) {
+        urlParams.append("startDate", dateRange.start.toISOString());
+      }
+      if (dateRange.end) {
+        urlParams.append("endDate", dateRange.end.toISOString());
+      }
+      if (selectedTimeframe) {
+        urlParams.append("days", selectedTimeframe);
+      }
+
+      // Fetch summary stats with date range parameters
+      const summaryUrl = `/api/admin/analytics/summary?${urlParams.toString()}`;
+      const summaryResponse = await makeAuthenticatedRequest(summaryUrl);
       const summaryData = await summaryResponse.json();
 
       if (summaryData.success) {
         setStats(summaryData.data);
+        console.log(
+          "Dashboard data fetched for time period:",
+          selectedTimeframe,
+          summaryData.data
+        );
+      } else {
+        console.error("Summary API returned success: false", summaryData);
+      }
+
+      // Fetch accurate pending verifications count from dedicated API
+      const pendingStatsResponse = await makeAuthenticatedRequest(
+        "/api/admin/pending-verifications/stats"
+      );
+      const pendingStatsData = await pendingStatsResponse.json();
+
+      if (pendingStatsData.success) {
+        const actualPendingCount = pendingStatsData.data.overview.totalPending;
+
+        // Update the stats with the more accurate pending count
+        setStats((prevStats) => ({
+          ...prevStats,
+          pendingVerifications: actualPendingCount,
+        }));
+      } else {
+        console.error(
+          "Pending stats API returned success: false",
+          pendingStatsData
+        );
       }
 
       // Fetch recent activities
@@ -133,6 +176,7 @@ export default function DashboardTab() {
       }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+      // Set some error state or show user-friendly message
     } finally {
       setLoading(false);
     }
@@ -141,10 +185,23 @@ export default function DashboardTab() {
   // Handle timeframe change
   const handleTimeframeChange = (timeframe: string) => {
     setSelectedTimeframe(timeframe);
-    const days = parseInt(timeframe);
+
+    let startDate: Date;
+    const endDate = new Date();
+
+    if (timeframe === "today") {
+      // For today, start from beginning of today
+      startDate = new Date();
+      startDate.setHours(0, 0, 0, 0);
+    } else {
+      // For other timeframes, subtract days
+      const days = parseInt(timeframe);
+      startDate = subDays(new Date(), days);
+    }
+
     setDateRange({
-      start: subDays(new Date(), days),
-      end: new Date(),
+      start: startDate,
+      end: endDate,
     });
   };
 
@@ -407,7 +464,7 @@ export default function DashboardTab() {
               }}
             >
               <option
-                value="1"
+                value="today"
                 style={{ color: "#1f2937", backgroundColor: "#ffffff" }}
               >
                 Today
@@ -665,7 +722,10 @@ export default function DashboardTab() {
             Quick Actions
           </h3>
           <div className="grid grid-cols-1 gap-3">
-            <button className="flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+            <button
+              onClick={() => onNavigateToTab?.("pending-verifications")}
+              className="flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+            >
               <div className="flex items-center space-x-3">
                 <CheckCircle className="w-5 h-5 text-blue-600" />
                 <span className="text-sm font-medium text-gray-900">
