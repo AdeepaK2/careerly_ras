@@ -138,8 +138,10 @@ export default function JobOpportunitiesTab() {
         method: "GET",
       });
 
-      if (response.success && Array.isArray(response.data)) {
-        setSavedJobs(new Set(response.data));
+      if (response.success) {
+        const savedJobs = response.data.savedJobs.map((job: any) => job.jobId._id);
+        console.log("Saved Jobs:", savedJobs);
+        setSavedJobs(new Set(savedJobs));
       }
     } catch (error) {
       console.error("Error fetching saved jobs:", error);
