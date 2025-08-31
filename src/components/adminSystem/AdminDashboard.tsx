@@ -10,14 +10,8 @@ import CompanyUsersTab from "@/components/adminSystem/tabs/CompanyUsersTab";
 import AdminUsersTab from "@/components/adminSystem/tabs/AdminUsersTab";
 import PendingVerificationsTab from "@/components/adminSystem/tabs/PendingVerificationsTab";
 import VerifiedAccountsTab from "@/components/adminSystem/tabs/VerifiedAccountsTab";
+import AdminJobPostTab from "@/components/adminSystem/tabs/AdminJobPostTab";
 import AllJobsTab from "@/components/adminSystem/tabs/AllJobsTab";
-import ActiveJobsTab from "@/components/adminSystem/tabs/ActiveJobsTab";
-import ExpiredJobsTab from "@/components/adminSystem/tabs/ExpiredJobsTab";
-import ReportedJobsTab from "@/components/adminSystem/tabs/ReportedJobsTab";
-import GeneralSettingsTab from "@/components/adminSystem/tabs/GeneralSettingsTab";
-import EmailSettingsTab from "@/components/adminSystem/tabs/EmailSettingsTab";
-import SecuritySettingsTab from "@/components/adminSystem/tabs/SecuritySettingsTab";
-import ReportsTab from "@/components/adminSystem/tabs/ReportsTab";
 import { parseJwt } from "@/utils/jwt-client";
 
 export default function AdminDashboard() {
@@ -58,7 +52,7 @@ export default function AdminDashboard() {
   const renderActiveTab = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardTab />;
+        return <DashboardTab onNavigateToTab={setActiveTab} />;
 
       case "undergraduate-users":
         return <UndergraduateUsersTab />;
@@ -70,7 +64,7 @@ export default function AdminDashboard() {
         // guard: only superadmins get this, redirect regular admins to dashboard
         if (!isSuperadmin) {
           setActiveTab("dashboard");
-          return <DashboardTab />;
+          return <DashboardTab onNavigateToTab={setActiveTab} />;
         }
         return <AdminUsersTab />;
 
@@ -78,7 +72,7 @@ export default function AdminDashboard() {
         // guard: only superadmins get this, redirect regular admins to dashboard
         if (!isSuperadmin) {
           setActiveTab("dashboard");
-          return <DashboardTab />;
+          return <DashboardTab onNavigateToTab={setActiveTab} />;
         }
         return <AdminUsersTab />;
 
@@ -88,32 +82,14 @@ export default function AdminDashboard() {
       case "verified-accounts":
         return <VerifiedAccountsTab />;
 
+      case "admin-job-post":
+        return <AdminJobPostTab />;
+
       case "all-jobs":
         return <AllJobsTab />;
 
-      case "active-jobs":
-        return <ActiveJobsTab />;
-
-      case "expired-jobs":
-        return <ExpiredJobsTab />;
-
-      case "reported-jobs":
-        return <ReportedJobsTab />;
-
-      case "general-settings":
-        return <GeneralSettingsTab />;
-
-      case "email-settings":
-        return <EmailSettingsTab />;
-
-      case "security-settings":
-        return <SecuritySettingsTab />;
-
-      case "reports":
-        return <ReportsTab />;
-
       default:
-        return <DashboardTab />;
+        return <DashboardTab onNavigateToTab={setActiveTab} />;
     }
   };
 
@@ -136,13 +112,13 @@ export default function AdminDashboard() {
               <h1 className="text-2xl font-bold text-gray-900">
                 Admin Dashboard
               </h1>
-              <p className="text-gray-600">Manage your Careerly platform</p>
+              <p className="text-gray-900">Manage your Careerly platform</p>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-400 hover:text-gray-600">
+              <button className="p-2 text-gray-800 hover:text-gray-900">
                 <Search className="w-6 h-6" />
               </button>
-              <button className="relative p-2 text-gray-400 hover:text-gray-600">
+              <button className="relative p-2 text-gray-800 hover:text-gray-900">
                 <Bell className="w-6 h-6" />
                 <span
                   className="absolute top-0 right-0 inline-flex items-center justify-center 

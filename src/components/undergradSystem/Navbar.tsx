@@ -20,7 +20,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const tabs = [
     { id: 'home', label: 'Home' },
     { id: 'jobs', label: 'Job Opportunities' },
-    { id: 'selected', label: 'Selected' },
+    { id: 'selected', label: 'My Applications' },
     { id: 'profile', label: 'Profile' }
   ];
 

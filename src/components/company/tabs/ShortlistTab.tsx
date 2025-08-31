@@ -40,6 +40,15 @@ export default function ShortlistTab() {
   const [removing, setRemoving] = useState<string | null>(null);
   const [selectedApplicant, setSelectedApplicant] =
     useState<ShortlistedApplicant | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailData, setEmailData] = useState({
+    to: "",
+    subject: "",
+    message: "",
+    applicationId: "",
+    applicantName: "",
+  });
 
   useEffect(() => {
     fetchShortlisted();
@@ -106,6 +115,154 @@ export default function ShortlistTab() {
     }
   };
 
+  const handleSendEmail = (applicant: ShortlistedApplicant, type: 'interview' | 'selected' | 'custom') => {
+    const templates = {
+      interview: {
+        subject: `Interview Invitation - ${applicant.jobId.title}`,
+        message: `Dear ${applicant.applicantId.firstName} ${applicant.applicantId.lastName},
+
+We are pleased to inform you that your application for the ${applicant.jobId.title} position has been reviewed and we would like to invite you for an interview.
+
+Interview Details:
+- Position: ${applicant.jobId.title}
+- Date: [Please specify date]
+- Time: [Please specify time]
+- Location/Platform: [Please specify location or video call link]
+
+Please confirm your availability by replying to this email.
+
+We look forward to meeting with you.
+
+Best regards,
+[Your Company Name]`
+      },
+      selected: {
+        subject: `Congratulations - Job Offer for ${applicant.jobId.title}`,
+        message: `Dear ${applicant.applicantId.firstName} ${applicant.applicantId.lastName},
+
+Congratulations! We are delighted to offer you the position of ${applicant.jobId.title} at our company.
+
+After careful consideration of your qualifications and interview performance, we believe you would be an excellent addition to our team.
+
+Please find the detailed job offer attached to this email. We would like to hear from you by [date] regarding your acceptance of this offer.
+
+If you have any questions, please don't hesitate to reach out.
+
+Welcome to the team!
+
+Best regards,
+[Your Company Name]`
+      },
+      custom: {
+        subject: `Regarding your application for ${applicant.jobId.title}`,
+        message: `Dear ${applicant.applicantId.firstName} ${applicant.applicantId.lastName},
+
+[Your custom message here]
+
+Best regards,
+[Your Company Name]`
+      }
+    };
+
+    setEmailData({
+      to: applicant.applicantId.universityEmail,
+      subject: templates[type].subject,
+      message: templates[type].message,
+      applicationId: applicant.applicationId._id,
+      applicantName: `${applicant.applicantId.firstName} ${applicant.applicantId.lastName}`,
+    });
+    setShowEmailModal(true);
+  };
+
+  const sendEmail = async () => {
+    try {
+      const token = localStorage.getItem("company_accessToken");
+      const response = await fetch("/api/company/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          to: emailData.to,
+          subject: emailData.subject,
+          message: emailData.message,
+          applicationId: emailData.applicationId,
+        }),
+      });
+
+      if (response.ok) {
+        alert("Email sent successfully!");
+        setShowEmailModal(false);
+        setEmailData({
+          to: "",
+          subject: "",
+          message: "",
+          applicationId: "",
+          applicantName: "",
+        });
+      } else {
+        const error = await response.json();
+        alert(`Failed to send email: ${error.error || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+      alert("Error sending email. Please try again.");
+    }
+  };
+
+  const updateApplicationStatus = async (applicationId: string, newStatus: string, statusType: string) => {
+    const confirmMessage = statusType === 'interview' 
+      ? "Mark this candidate as 'Interview Called'?" 
+      : "Mark this candidate as 'Selected'?";
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    setUpdatingStatus(applicationId);
+
+    try {
+      const token = localStorage.getItem("company_accessToken");
+      const response = await fetch(`/api/application/${applicationId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ 
+          status: newStatus
+        }),
+      });
+
+      if (response.ok) {
+        // Update the local state
+        setShortlisted((prev) =>
+          prev.map((item) =>
+            item.applicationId._id === applicationId
+              ? {
+                  ...item,
+                  applicationId: {
+                    ...item.applicationId,
+                    status: newStatus,
+                  },
+                }
+              : item
+          )
+        );
+        alert(`Candidate marked as ${statusType === 'interview' ? 'Interview Called' : 'Selected'} successfully!`);
+      } else {
+        const error = await response.json();
+        alert(`Failed to update status: ${error.error || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Error updating status. Please try again.");
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
+
   const downloadCV = async (cvUrl: string, applicantName: string) => {
     try {
       const token = localStorage.getItem("company_accessToken");
@@ -152,8 +309,10 @@ export default function ShortlistTab() {
       case "under_review":
         return "bg-yellow-100 text-yellow-700";
       case "interviewed":
+      case "interview_called":
         return "bg-purple-100 text-purple-700";
       case "offered":
+      case "selected":
         return "bg-green-100 text-green-700";
       case "rejected":
         return "bg-red-100 text-red-700";
@@ -176,208 +335,112 @@ export default function ShortlistTab() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-xl font-semibold text-gray-900">
             Shortlisted Candidates
           </h2>
-          <p className="text-gray-600 mt-1">
-            Manage your top candidate selections
+          <p className="text-sm text-gray-600 mt-1">
+            {shortlisted.length} candidates
           </p>
-        </div>
-        <div className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
-          <span className="font-medium">{shortlisted.length}</span> candidates
-          shortlisted
         </div>
       </div>
 
       {/* Shortlisted Candidates */}
       {shortlisted.length > 0 ? (
-        <div className="grid gap-6">
+        <div className="space-y-4">
           {shortlisted.map((item) => (
             <div
               key={item._id}
-              className="glass-effect p-6 rounded-lg border hover:shadow-lg transition-all duration-200"
+              className="bg-white p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
             >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  {/* Applicant Info */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="font-semibold text-lg text-gray-900">
-                        {item.applicantId.firstName} {item.applicantId.lastName}
-                      </h3>
-                      <p className="text-gray-600">
-                        {item.applicantId.universityEmail}
-                      </p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        {item.applicantId.education.degreeProgramme}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <span
-                        className={`px-2 py-1 rounded border text-xs font-medium ${getPriorityColor(
-                          item.priority
-                        )}`}
-                      >
-                        {item.priority.toUpperCase()} PRIORITY
-                      </span>
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
-                          item.applicationId.status
-                        )}`}
-                      >
-                        {item.applicationId.status
-                          .replace("_", " ")
-                          .toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Job Info */}
-                  <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">
-                          Job Title:
-                        </span>
-                        <p className="text-sm text-gray-900">
-                          {item.jobId.title}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">
-                          Category:
-                        </span>
-                        <p className="text-sm text-gray-900">
-                          {item.jobId.category}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">
-                          Location:
-                        </span>
-                        <p className="text-sm text-gray-900">
-                          {item.jobId.location}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Skills */}
-                  {item.applicantId.skills &&
-                    item.applicantId.skills.length > 0 && (
-                      <div className="mb-4">
-                        <span className="text-sm font-medium text-gray-700">
-                          Skills:
-                        </span>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {item.applicantId.skills
-                            .slice(0, 5)
-                            .map((skill, index) => (
-                              <span
-                                key={index}
-                                className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs"
-                              >
-                                {skill}
-                              </span>
-                            ))}
-                          {item.applicantId.skills.length > 5 && (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                              +{item.applicantId.skills.length - 5} more
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Timeline */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                    <div>
-                      <span className="font-medium">Applied:</span>
-                      <span className="ml-1">
-                        {new Date(
-                          item.applicationId.appliedAt
-                        ).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Shortlisted:</span>
-                      <span className="ml-1">
-                        {new Date(item.shortlistedAt).toLocaleDateString()}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {" "}
-                        by {item.shortlistedBy}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Notes */}
-                  {item.notes && (
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                      <span className="text-sm font-medium text-yellow-800">
-                        Notes:
-                      </span>
-                      <p className="text-sm text-yellow-700 mt-1">
-                        {item.notes}
-                      </p>
-                    </div>
-                  )}
+              {/* Basic Info */}
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="font-medium text-gray-900">
+                    {item.applicantId.firstName} {item.applicantId.lastName}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {item.applicantId.universityEmail}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {item.jobId.title}
+                  </p>
                 </div>
+                <span
+                  className={`px-2 py-1 text-xs rounded ${getStatusColor(
+                    item.applicationId.status
+                  )}`}
+                >
+                  {item.applicationId.status.replace("_", " ").toUpperCase()}
+                </span>
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() =>
-                      downloadCV(
-                        item.applicationId.cv,
-                        `${item.applicantId.firstName}_${item.applicantId.lastName}`
-                      )
-                    }
-                    className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
-                  >
-                    📄 Download CV
-                  </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() =>
+                    downloadCV(
+                      item.applicationId.cv,
+                      `${item.applicantId.firstName}_${item.applicantId.lastName}`
+                    )
+                  }
+                  className="px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors"
+                >
+                  Download CV
+                </button>
 
-                  <button
-                    onClick={() => setSelectedApplicant(item)}
-                    className="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
-                  >
-                    👁️ View Details
-                  </button>
-                </div>
+                <button
+                  onClick={() => setSelectedApplicant(item)}
+                  className="px-3 py-1.5 text-sm bg-gray-50 text-gray-700 rounded hover:bg-gray-100 transition-colors"
+                >
+                  View Details
+                </button>
+
+                <button
+                  onClick={() => handleSendEmail(item, 'interview')}
+                  className="px-3 py-1.5 text-sm bg-purple-50 text-purple-700 rounded hover:bg-purple-100 transition-colors"
+                >
+                  Interview Email
+                </button>
+                
+                <button
+                  onClick={() => handleSendEmail(item, 'selected')}
+                  className="px-3 py-1.5 text-sm bg-green-50 text-green-700 rounded hover:bg-green-100 transition-colors"
+                >
+                  Selection Email
+                </button>
+                
+                <button
+                  onClick={() => updateApplicationStatus(item.applicationId._id, 'interview_called', 'interview')}
+                  disabled={updatingStatus === item.applicationId._id || item.applicationId.status === 'interview_called' || item.applicationId.status === 'selected'}
+                  className="px-3 py-1.5 text-sm bg-orange-50 text-orange-700 rounded hover:bg-orange-100 transition-colors disabled:opacity-50"
+                >
+                  Mark Interview
+                </button>
+                
+                <button
+                  onClick={() => updateApplicationStatus(item.applicationId._id, 'selected', 'selected')}
+                  disabled={updatingStatus === item.applicationId._id || item.applicationId.status === 'selected'}
+                  className="px-3 py-1.5 text-sm bg-emerald-50 text-emerald-700 rounded hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                >
+                  Mark Selected
+                </button>
 
                 <button
                   onClick={() =>
                     handleRemoveFromShortlist(item.applicationId._id)
                   }
                   disabled={removing === item.applicationId._id}
-                  className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium disabled:opacity-50"
+                  className="px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded hover:bg-red-100 transition-colors disabled:opacity-50"
                 >
-                  {removing === item.applicationId._id
-                    ? "Removing..."
-                    : "🗑️ Remove"}
+                  {removing === item.applicationId._id ? "Removing..." : "Remove"}
                 </button>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">🎯</div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">
-            No Shortlisted Candidates
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Start shortlisting candidates from your job applications to see them
-            here.
-          </p>
-          <div className="text-sm text-gray-500">
-            Go to <span className="font-medium">Job Posting</span> → View
-            applications → Click <span className="font-medium">Shortlist</span>
-          </div>
+        <div className="text-center py-12 text-gray-500">
+          <p>No shortlisted candidates yet.</p>
         </div>
       )}
 
@@ -385,24 +448,24 @@ export default function ShortlistTab() {
       {selectedApplicant && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-[#8243ff] to-purple-600 text-white">
-              <h3 className="text-xl font-bold">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
                 {selectedApplicant.applicantId.firstName}{" "}
                 {selectedApplicant.applicantId.lastName}
               </h3>
-              <p className="text-purple-100 text-sm">
+              <p className="text-sm text-gray-600">
                 {selectedApplicant.jobId.title}
               </p>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-4">
               {/* Cover Letter */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">
+                <h4 className="font-medium text-gray-900 mb-2">
                   Cover Letter
                 </h4>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-700 whitespace-pre-wrap">
+                <div className="bg-gray-50 p-3 rounded">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
                     {selectedApplicant.applicationId.coverLetter}
                   </p>
                 </div>
@@ -410,12 +473,12 @@ export default function ShortlistTab() {
 
               {/* Skills */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Skills</h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedApplicant.applicantId.skills?.map((skill, index) => (
+                <h4 className="font-medium text-gray-900 mb-2">Skills</h4>
+                <div className="flex flex-wrap gap-1">
+                  {selectedApplicant.applicantId.skills?.map((skill: string, index: number) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
+                      className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs"
                     >
                       {skill}
                     </span>
@@ -425,8 +488,8 @@ export default function ShortlistTab() {
 
               {/* Education */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Education</h4>
-                <p className="text-gray-700">
+                <h4 className="font-medium text-gray-900 mb-2">Education</h4>
+                <p className="text-sm text-gray-700">
                   {selectedApplicant.applicantId.education.degreeProgramme}
                 </p>
               </div>
@@ -435,9 +498,92 @@ export default function ShortlistTab() {
             <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
               <button
                 onClick={() => setSelectedApplicant(null)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Send Email</h3>
+              <p className="text-sm text-gray-600">
+                To: {emailData.applicantName}
+              </p>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* To Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  To
+                </label>
+                <input
+                  type="email"
+                  value={emailData.to}
+                  onChange={(e) => setEmailData(prev => ({ ...prev, to: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="recipient@example.com"
+                />
+              </div>
+
+              {/* Subject Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  value={emailData.subject}
+                  onChange={(e) => setEmailData(prev => ({ ...prev, subject: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Email subject"
+                />
+              </div>
+
+              {/* Message Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Message
+                </label>
+                <textarea
+                  rows={8}
+                  value={emailData.message}
+                  onChange={(e) => setEmailData(prev => ({ ...prev, message: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Email message"
+                />
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-2">
+              <button
+                onClick={() => {
+                  setShowEmailModal(false);
+                  setEmailData({
+                    to: "",
+                    subject: "",
+                    message: "",
+                    applicationId: "",
+                    applicantName: "",
+                  });
+                }}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={sendEmail}
+                disabled={!emailData.to.trim() || !emailData.subject.trim() || !emailData.message.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Send Email
               </button>
             </div>
           </div>
