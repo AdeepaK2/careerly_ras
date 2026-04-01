@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 
 export default function AuthSelectPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-100 via-[#ffffff] to-purple-100">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-6 w-full">
         <Link href="/" className="flex items-center space-x-2">
@@ -129,13 +129,7 @@ export default function AuthSelectPage() {
             </div>
           </div>
 
-          {/* Terms */}
-          <div className="text-center mt-12">
-            <p className="text-sm text-gray-500">
-              By continuing, you agree to our Terms of Service and Privacy
-              Policy
-            </p>
-          </div>
+          
         </div>
       </div>
 

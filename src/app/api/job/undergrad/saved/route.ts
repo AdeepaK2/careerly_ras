@@ -17,21 +17,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    // Get undergraduate with saved jobs
-    const undergradProfile = await UndergradModel.findById(undergrad.payload.id).select('savedJobs')
+    // Get saved jobs for specific undergrad
+    const savedJobs = await UndergradModel.findById(undergrad.payload.id).select('savedJobs').populate('savedJobs.jobId');
    
-    if (!undergradProfile) {
-      return NextResponse.json({ error: "Undergraduate not found" }, { status: 404 });
-    }
-
-    // Extract job IDs
-    const savedJobIds = undergradProfile.savedJobs?.map((savedJob: any) => 
-      savedJob.jobId.toString()
-    ) || [];
-
     return NextResponse.json({
       success: true,
-      data: savedJobIds
+      data: savedJobs
     }, { status: 200 });
 
   } catch (error: any) {

@@ -31,7 +31,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-100 via-[#ffffff] to-purple-100">
+    <div className="min-h-screen bg-white">
       <Navbar />
       <main className="flex flex-col md:flex-row items-center max-md:text-center justify-between mt-16 pb-16 px-6 sm:px-10 md:px-24 max-w-7xl mx-auto w-full">
         <div className="flex flex-col items-center md:items-start">

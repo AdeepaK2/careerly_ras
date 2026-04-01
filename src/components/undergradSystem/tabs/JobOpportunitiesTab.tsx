@@ -138,8 +138,9 @@ export default function JobOpportunitiesTab() {
         method: "GET",
       });
 
-      if (response.success && Array.isArray(response.data)) {
-        setSavedJobs(new Set(response.data));
+      if (response.success) {
+        const savedJobs = response.data.savedJobs.map((job: any) => job.jobId._id);
+        setSavedJobs(new Set(savedJobs));
       }
     } catch (error) {
       console.error("Error fetching saved jobs:", error);
@@ -152,8 +153,10 @@ export default function JobOpportunitiesTab() {
         method: "GET",
       });
 
-      if (response.success && Array.isArray(response.data)) {
-        setAppliedJobs(new Set(response.data));
+      if (response.success) {
+        const appliedJobs = response.data.map((job: any) => job.jobId._id);
+        console.log("Applied Jobs:", appliedJobs);
+        setAppliedJobs(new Set(appliedJobs));
       }
     } catch (error) {
       console.error("Error fetching applied jobs:", error);

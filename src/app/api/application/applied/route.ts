@@ -17,18 +17,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    // Get applied job IDs for this undergraduate
+    // Get applied jobs for a specific undergrad
     const applications = await ApplicationModel.find({
       applicantId: undergrad.payload.id
-    })
-    .select('jobId')
-    .lean();
+    }).populate("jobId")
 
-    const appliedJobIds = applications.map(app => app.jobId.toString());
+
 
     return NextResponse.json({
       success: true,
-      data: appliedJobIds
+      data: applications
     }, { status: 200 });
 
   } catch (error: any) {

@@ -14,7 +14,7 @@ export default function UndergradDashboard() {
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab />;
+        return <HomeTab onNavigateToTab={setActiveTab} />;
       case 'jobs':
         return <JobOpportunitiesTab />;
       case 'selected':
@@ -22,7 +22,7 @@ export default function UndergradDashboard() {
       case 'profile':
         return <ProfileTab />;
       default:
-        return <HomeTab />;
+        return <HomeTab onNavigateToTab={setActiveTab} />;
     }
   };
 
