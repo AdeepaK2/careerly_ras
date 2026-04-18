@@ -25,57 +25,47 @@ export default function UndergraduateUsersTab() {
   const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
-    // Simulate API call - replace with actual API
-    setTimeout(() => {
-      setUsers([
-        {
-          id: "1",
-          index: "ENG/2021/001",
-          name: "John Doe",
-          nameWithInitials: "J.A. Doe",
-          universityEmail: "john.doe@university.ac.lk",
-          batch: "2021",
-          faculty: "Engineering",
-          department: "Computer Science",
-          degreeProgramme: "Computer Science and Engineering",
-          isVerified: true,
-          jobSearchingStatus: "Active",
-          registrationDate: "2024-01-15",
-          lastLogin: "2024-07-30",
-        },
-        {
-          id: "2",
-          index: "ENG/2021/002",
-          name: "Jane Smith",
-          nameWithInitials: "J.S. Smith",
-          universityEmail: "jane.smith@university.ac.lk",
-          batch: "2021",
-          faculty: "Engineering",
-          department: "Electrical Engineering",
-          degreeProgramme: "Electrical and Electronic Engineering",
-          isVerified: false,
-          jobSearchingStatus: "Not Active",
-          registrationDate: "2024-01-20",
-          lastLogin: "2024-07-28",
-        },
-        {
-          id: "3",
-          index: "SCI/2020/045",
-          name: "Mike Johnson",
-          nameWithInitials: "M.R. Johnson",
-          universityEmail: "mike.johnson@university.ac.lk",
-          batch: "2020",
-          faculty: "Science",
-          department: "Mathematics",
-          degreeProgramme: "Mathematics and Statistics",
-          isVerified: true,
-          jobSearchingStatus: "Active",
-          registrationDate: "2024-01-10",
-          lastLogin: "2024-07-31",
-        },
-      ]);
-      setLoading(false);
-    }, 1000);
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+
+        const res = await fetch("/api/admin/undergraduates");
+
+        const result = await res.json();
+
+        if (!result.success) {
+          throw new Error("Failed to fetch users");
+        }
+
+        const formatted = result.data.map((user: any) => ({
+          id: user._id,
+          index: user.index,
+          name: user.name,
+          nameWithInitials: user.nameWithInitials,
+          universityEmail: user.universityEmail,
+          batch: user.batch,
+          faculty: user.education?.faculty || "N/A",
+          department: user.education?.department || "N/A",
+          degreeProgramme: user.education?.degreeProgramme || "N/A",
+          isVerified: user.isVerified,
+          jobSearchingStatus:
+            user.jobSearchingStatus === "not_searching"
+              ? "Not Active"
+              : "Active",
+          registrationDate:
+            user.createdAt?.split("T")[0] || "N/A",
+          lastLogin: user.lastLogin || null,
+        }));
+
+        setUsers(formatted);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   const filteredUsers = users.filter((user) => {
