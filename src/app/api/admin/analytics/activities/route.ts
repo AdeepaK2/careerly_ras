@@ -17,7 +17,7 @@ async function handler(request: NextRequest) {
     const recentStudents = await UndergradModel.find({})
       .sort({ createdAt: -1 })
       .limit(limit / 4)
-      .select("name email createdAt faculty");
+      .select("name universityEmail createdAt education.faculty");
 
     const recentCompanies = await CompanyModel.find({})
       .sort({ createdAt: -1 })
@@ -47,14 +47,19 @@ async function handler(request: NextRequest) {
 
     // Add student registrations
     recentStudents.forEach((student) => {
+      const faculty = (student as any)?.education?.faculty;
       activities.push({
         id: `student-${student._id}`,
         type: "user_registration",
         message: `New student registered: ${student.name} (${
-          student.faculty || "Faculty not specified"
+          faculty || "Faculty not specified"
         })`,
         timestamp: student.createdAt.toISOString(),
-        data: { userId: student._id, email: student.email },
+        data: {
+          userId: student._id,
+          email: (student as any).universityEmail,
+          faculty,
+        },
       });
     });
 

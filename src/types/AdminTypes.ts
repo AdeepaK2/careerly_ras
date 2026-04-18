@@ -40,6 +40,7 @@ export interface Activity {
     jobId?: string;
     applicationId?: string;
     email?: string;
+    faculty?: string;
     isVerified?: boolean;
     status?: string;
     category?: string;
