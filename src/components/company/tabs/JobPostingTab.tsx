@@ -752,7 +752,7 @@ export default function JobPostingTab() {
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     placeholder="e.g. Senior Software Engineer"
                     required
                   />
@@ -766,7 +766,7 @@ export default function JobPostingTab() {
                     onChange={(e) =>
                       setFormData({ ...formData, category: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     required
                   >
                     <option value="">Select Category</option>
@@ -789,7 +789,7 @@ export default function JobPostingTab() {
                     onChange={(e) =>
                       setFormData({ ...formData, jobType: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     required
                   >
                     <option value="">Select Type</option>
@@ -812,7 +812,7 @@ export default function JobPostingTab() {
                         workPlaceType: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     required
                   >
                     <option value="">Select Work Place Type</option>
@@ -833,7 +833,7 @@ export default function JobPostingTab() {
                     onChange={(e) =>
                       setFormData({ ...formData, location: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     placeholder="e.g. Colombo, Sri Lanka"
                     required
                   />
@@ -851,7 +851,7 @@ export default function JobPostingTab() {
                     onChange={(e) =>
                       setFormData({ ...formData, deadline: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     required
                   />
                 </div>
@@ -873,7 +873,7 @@ export default function JobPostingTab() {
                           },
                         })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     />
                     <input
                       type="number"
@@ -888,7 +888,7 @@ export default function JobPostingTab() {
                           },
                         })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     />
                   </div>
                 </div>
@@ -904,7 +904,7 @@ export default function JobPostingTab() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                   placeholder="Describe the role, responsibilities, and what makes this position exciting..."
                   required
                 />
@@ -947,9 +947,9 @@ export default function JobPostingTab() {
                           onChange={(e) =>
                             handleDegreeChange(degree, e.target.checked)
                           }
-                          className="mt-1 rounded border-gray-300 text-[#8243ff] focus:ring-[#8243ff]"
+                          className="mt-1 rounded border-gray-300 text-[#8243ff] focus:ring-[#8243ff] "
                         />
-                        <span className="leading-5">{degree}</span>
+                        <span className="leading-5 text-gray-900">{degree}</span>
                       </label>
                     ))}
                   </div>
@@ -992,7 +992,7 @@ export default function JobPostingTab() {
                   <input
                     type="text"
                     placeholder="Type a skill and press Enter to add (e.g., JavaScript, Leadership, etc.)"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     onKeyPress={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();

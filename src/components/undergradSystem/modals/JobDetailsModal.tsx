@@ -284,7 +284,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             <button
               onClick={() => onApply(job._id)}
               disabled={job.status !== "active" || isJobApplied}
-              className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${
+              className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-102 ${
                 isJobApplied
                   ? "bg-gray-400 text-white cursor-not-allowed"
                   : job.status !== "active"
@@ -298,7 +298,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             <button
               onClick={() => onSave(job._id)}
               disabled={isSaving}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 border ${
+              className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-102 border ${
                 isJobSaved
                   ? "bg-gradient-to-r from-[#8243ff] to-purple-600 text-white border-[#8243ff]"
                   : "bg-white text-gray-700 border-gray-300 hover:border-[#8243ff] hover:text-[#8243ff]"
