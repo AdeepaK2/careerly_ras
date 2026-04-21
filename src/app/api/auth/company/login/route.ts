@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import connect from "@/utils/db";
 import CompanyModel from "@/lib/models/company";
 import { comparePassword } from "@/lib/auth/company/password";
-import { generateCompanyTokens } from "@/lib/auth/company/jwt";
+import {
+  generateCompanyTokens,
+  generateCompanyEmailVerificationToken,
+} from "@/lib/auth/company/jwt";
+import { sendEmail, emailTemplates } from "@/lib/services/emailService";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +22,8 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
     
-    const { businessEmail, password } = body;
+    const businessEmail = String(body.businessEmail).trim().toLowerCase();
+    const { password } = body;
     
     // Find company
     const company = await CompanyModel.findOne({ businessEmail });
@@ -45,14 +50,6 @@ export async function POST(request: NextRequest) {
       }, { status: 403 });
     }
     
-    // Check if email is verified (only for accounts that have an email verification token)
-    if (!company.isEmailVerified && company.emailVerificationToken) {
-      return NextResponse.json({
-        success: false,
-        message: "Please verify your email address before logging in. Check your email for the verification link."
-      }, { status: 403 });
-    }
-    
     // Verify password
     const isPasswordValid = await comparePassword(password, company.password);
     
@@ -68,6 +65,45 @@ export async function POST(request: NextRequest) {
     
     // Reset login attempts on successful login
     await company.resetLoginAttempts();
+
+    // If email is not verified, generate and send a fresh verification link
+    if (!company.isEmailVerified) {
+      const verificationToken = generateCompanyEmailVerificationToken(
+        company._id.toString(),
+        company.businessEmail
+      );
+
+      company.emailVerificationToken = verificationToken;
+      company.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await company.save();
+
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+        const verificationLink = `${baseUrl}/auth/company/verify-email?token=${verificationToken}`;
+        const emailTemplate = emailTemplates.verification(
+          company.companyName,
+          verificationLink
+        );
+
+        await sendEmail({
+          to: company.businessEmail,
+          subject: emailTemplate.subject,
+          html: emailTemplate.html,
+        });
+      } catch (emailError) {
+        console.error("Failed to send company verification email:", emailError);
+
+        return NextResponse.json({
+          success: false,
+          message: "Please verify your email address before logging in. We could not send a new verification link right now. Please try again later.",
+        }, { status: 500 });
+      }
+
+      return NextResponse.json({
+        success: false,
+        message: "Please verify your email address before logging in. Check your email for the verification link.",
+      }, { status: 403 });
+    }
     
     // Update last login
     company.lastLogin = new Date();
