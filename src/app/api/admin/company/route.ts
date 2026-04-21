@@ -6,7 +6,12 @@ export async function GET() {
   try {
     await connect();
 
-    const companies = await CompanyModel.find({}).sort({ createdAt: -1 });
+    const companies = await CompanyModel.find({})
+      .select(
+        "_id companyName registrationNumber businessEmail phoneNumber industry companySize foundedYear isVerified isActive jobPostingLimits createdAt lastLogin"
+      )
+      .sort({ createdAt: -1 })
+      .lean();
 
     const formattedCompanies = companies.map((c) => ({
         _id: c._id,

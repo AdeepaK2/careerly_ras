@@ -5,6 +5,17 @@ import UndergradModel from "@/lib/models/undergraduate";
 import JobModel from "@/lib/models/job";
 import ApplicationModel from "@/lib/models/application";
 import { withAdminAuth } from "@/lib/auth/admin/middleware";
+import { Types } from "mongoose";
+
+interface StudentActivityDocument {
+  _id: Types.ObjectId;
+  name: string;
+  universityEmail: string;
+  createdAt: Date;
+  education?: {
+    faculty?: string;
+  };
+}
 
 async function handler(request: NextRequest) {
   try {
@@ -17,7 +28,8 @@ async function handler(request: NextRequest) {
     const recentStudents = await UndergradModel.find({})
       .sort({ createdAt: -1 })
       .limit(limit / 4)
-      .select("name universityEmail createdAt education.faculty");
+      .select("name universityEmail createdAt education.faculty")
+      .lean<StudentActivityDocument[]>();
 
     const recentCompanies = await CompanyModel.find({})
       .sort({ createdAt: -1 })
@@ -47,17 +59,17 @@ async function handler(request: NextRequest) {
 
     // Add student registrations
     recentStudents.forEach((student) => {
-      const faculty = (student as any)?.education?.faculty;
+      const faculty = student.education?.faculty;
       activities.push({
-        id: `student-${student._id}`,
+        id: `student-${student._id.toString()}`,
         type: "user_registration",
         message: `New student registered: ${student.name} (${
           faculty || "Faculty not specified"
         })`,
         timestamp: student.createdAt.toISOString(),
         data: {
-          userId: student._id,
-          email: (student as any).universityEmail,
+          userId: student._id.toString(),
+          email: student.universityEmail,
           faculty,
         },
       });
