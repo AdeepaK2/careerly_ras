@@ -99,6 +99,21 @@ const jobSchema = new mongoose.Schema(
     skillsRequired: {
       type: [String],
     },
+    customSections: {
+      type: [
+        {
+          title: {
+            type: String,
+            trim: true,
+          },
+          bulletPoints: {
+            type: [String],
+            default: [],
+          },
+        },
+      ],
+      default: [],
+    },
 
     // Company info
     companyId: {
@@ -182,6 +197,11 @@ jobSchema.methods.getCompanyInfo = async function (
   return this.companyId;
 };
 
-const JobModel = mongoose.models.Job || mongoose.model("Job", jobSchema);
+// Re-register model during hot reload so new schema fields are applied.
+if (mongoose.models.Job) {
+  delete (mongoose.models as Record<string, mongoose.Model<any>>).Job;
+}
+
+const JobModel = mongoose.model("Job", jobSchema);
 
 export default JobModel;

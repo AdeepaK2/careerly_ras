@@ -49,6 +49,27 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const customSections = Array.isArray(body.customSections)
+      ? body.customSections
+          .filter(
+            (section: any) =>
+              section &&
+              typeof section.title === "string" &&
+              section.title.trim().length > 0
+          )
+          .map((section: any) => ({
+            title: section.title.trim(),
+            bulletPoints: Array.isArray(section.bulletPoints)
+              ? section.bulletPoints
+                  .filter(
+                    (point: any) =>
+                      typeof point === "string" && point.trim().length > 0
+                  )
+                  .map((point: string) => point.trim())
+              : [],
+          }))
+      : [];
+
     let companyInfo = null;
     let companyName = "";
     let companyEmail = "";
@@ -96,6 +117,7 @@ export async function POST(req: NextRequest) {
       deadline: Date;
       qualifiedDegrees: string[];
       skillsRequired: string[];
+      customSections: Array<{ title: string; bulletPoints: string[] }>;
       companyId?: string;
       customCompanyName?: string;
       companyWebsite?: string;
@@ -114,6 +136,7 @@ export async function POST(req: NextRequest) {
       deadline: new Date(body.deadline),
       qualifiedDegrees: body.qualifiedDegrees,
       skillsRequired: body.skillsRequired || [],
+      customSections,
       postedByAdmin: true,
       adminId: admin.id,
       adminUsername: admin.username,

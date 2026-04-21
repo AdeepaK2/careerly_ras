@@ -7,6 +7,11 @@ interface CompanyProfile {
   companyName: string;
 }
 
+interface AdditionalSection {
+  title: string;
+  bulletPoints: string[];
+}
+
 interface JobOpportunity {
   _id: string;
   title: string;
@@ -32,6 +37,7 @@ interface JobOpportunity {
   urgent: boolean;
   qualifiedDegrees: string[];
   skillsRequired: string[];
+  customSections?: AdditionalSection[];
   companyId: CompanyProfile;
   status: "active" | "closed" | "pending";
   applicantsCount: number;
@@ -199,6 +205,28 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               </p>
             </div>
           </div>
+
+          {/* Additional Sections */}
+          {job.customSections && job.customSections.length > 0 && (
+            <div className="space-y-4">
+              {job.customSections.map((section, sectionIndex) => (
+                <div key={`${section.title}-${sectionIndex}`} className="bg-gray-50 p-6 rounded-xl">
+                  <h3 className="text-xl font-bold text-gray-800 mb-3">
+                    {section.title}
+                  </h3>
+                  {section.bulletPoints && section.bulletPoints.length > 0 ? (
+                    <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                      {section.bulletPoints.map((point, pointIndex) => (
+                        <li key={`${section.title}-${pointIndex}`}>{point}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No details provided for this section.</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Skills Required */}
           <div>

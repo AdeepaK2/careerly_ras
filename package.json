@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "create-superadmin": "node --loader ts-node/esm scripts/create-superadmin.ts"
+    "create-superadmin": "node --loader ts-node/esm scripts/create-superadmin.ts",
+    "migrate-custom-sections": "node --loader ts-node/esm scripts/migrate-custom-sections.ts"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",
