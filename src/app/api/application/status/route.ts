@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     })
     .populate({
       path: 'jobId',
-      select: 'title companyId jobType location deadline'
+      select: 'title companyId customCompanyName jobType location deadline'
     })
     .sort({ appliedAt: -1 })
     .lean();
@@ -38,7 +38,21 @@ export async function GET(req: NextRequest) {
     // Manually populate company details for each job
     const applicationsWithCompany = await Promise.all(
       applications.map(async (app: any) => {
-        if (app.jobId && app.jobId.companyId) {
+        if (!app.jobId) {
+          return {
+            ...app,
+            jobId: {
+              _id: 'deleted-job',
+              title: 'Job no longer available',
+              companyId: { companyName: 'Unknown Company', logo: null },
+              jobType: 'N/A',
+              location: 'N/A',
+              deadline: null,
+            },
+          };
+        }
+
+        if (app.jobId.companyId) {
           const company = await CompanyModel.findById(app.jobId.companyId)
             .select('companyName logo')
             .lean();
@@ -51,7 +65,17 @@ export async function GET(req: NextRequest) {
             }
           };
         }
-        return app;
+
+        return {
+          ...app,
+          jobId: {
+            ...app.jobId,
+            companyId: {
+              companyName: app.jobId.customCompanyName || 'Unknown Company',
+              logo: null,
+            },
+          },
+        };
       })
     );
 
