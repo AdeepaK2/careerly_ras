@@ -18,6 +18,11 @@ interface Company {
   verified: boolean;
 }
 
+interface CustomSection {
+  title: string;
+  bulletPoints: string[];
+}
+
 export default function AdminJobPostTab() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -29,6 +34,8 @@ export default function AdminJobPostTab() {
   const [degreeSearchTerm, setDegreeSearchTerm] = useState("");
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [categorySearchTerm, setCategorySearchTerm] = useState("");
+  const [newSectionTitle, setNewSectionTitle] = useState("");
+  const [showNewSectionInput, setShowNewSectionInput] = useState(false);
 
   // Form data structure matching job model + admin-specific fields
   const [formData, setFormData] = useState({
@@ -41,6 +48,7 @@ export default function AdminJobPostTab() {
     deadline: "",
     qualifiedDegrees: [] as string[],
     skillsRequired: [] as string[],
+    customSections: [] as CustomSection[],
     salaryRange: {
       min: 0,
       max: 0,
@@ -246,6 +254,76 @@ export default function AdminJobPostTab() {
     }
   };
 
+  const addCustomSection = () => {
+    const trimmedTitle = newSectionTitle.trim();
+    if (!trimmedTitle) return;
+
+    if (formData.customSections.some((section) => section.title === trimmedTitle)) {
+      setMessage("A section with this title already exists");
+      setMessageType("error");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      customSections: [...prev.customSections, { title: trimmedTitle, bulletPoints: [] }],
+    }));
+    setNewSectionTitle("");
+    setShowNewSectionInput(false);
+  };
+
+  const cancelNewSection = () => {
+    setNewSectionTitle("");
+    setShowNewSectionInput(false);
+  };
+
+  const removeCustomSection = (sectionIndex: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      customSections: prev.customSections.filter((_, index) => index !== sectionIndex),
+    }));
+  };
+
+  const updateSectionTitle = (sectionIndex: number, newTitle: string) => {
+    const trimmedTitle = newTitle.trim();
+    if (!trimmedTitle) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      customSections: prev.customSections.map((section, index) =>
+        index === sectionIndex ? { ...section, title: trimmedTitle } : section
+      ),
+    }));
+  };
+
+  const addBulletPoint = (sectionIndex: number, bulletPoint: string) => {
+    const trimmedPoint = bulletPoint.trim();
+    if (!trimmedPoint) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      customSections: prev.customSections.map((section, index) =>
+        index === sectionIndex
+          ? { ...section, bulletPoints: [...section.bulletPoints, trimmedPoint] }
+          : section
+      ),
+    }));
+  };
+
+  const removeBulletPoint = (sectionIndex: number, bulletIndex: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      customSections: prev.customSections.map((section, index) =>
+        index === sectionIndex
+          ? {
+              ...section,
+              bulletPoints: section.bulletPoints.filter((_, idx) => idx !== bulletIndex),
+            }
+          : section
+      ),
+    }));
+  };
+
   const removeSkill = (skillToRemove: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -311,6 +389,7 @@ export default function AdminJobPostTab() {
           deadline: "",
           qualifiedDegrees: [],
           skillsRequired: [],
+          customSections: [],
           salaryRange: { min: 0, max: 0 },
           companyId: "",
           customCompanyName: "",
@@ -376,6 +455,7 @@ export default function AdminJobPostTab() {
                     name="companyId"
                     value={isOtherCompany ? "other" : formData.companyId}
                     onChange={handleInputChange}
+                    title="Select company"
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-500"
                     required
                   >
@@ -470,6 +550,7 @@ export default function AdminJobPostTab() {
                     name="jobType"
                     value={formData.jobType}
                     onChange={handleInputChange}
+                    title="Select job type"
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
                     required
                   >
@@ -512,6 +593,7 @@ export default function AdminJobPostTab() {
                               e.stopPropagation();
                               setIsCategoryDropdownOpen(true);
                             }}
+                            title="Search and select category"
                             className="flex-1 border-0 outline-none bg-transparent text-gray-900 placeholder-gray-500"
                           />
                         </div>
@@ -575,6 +657,7 @@ export default function AdminJobPostTab() {
                     name="workPlaceType"
                     value={formData.workPlaceType}
                     onChange={handleInputChange}
+                    title="Select work place type"
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
                     required
                   >
@@ -611,6 +694,7 @@ export default function AdminJobPostTab() {
                     name="deadline"
                     value={formData.deadline}
                     onChange={handleInputChange}
+                    title="Application deadline"
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
                     required
                   />
@@ -666,6 +750,131 @@ export default function AdminJobPostTab() {
               </p>
             </div>
 
+            {/* Additional Sections */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-gray-700">
+                  Additional Sections (Optional)
+                </label>
+                {!showNewSectionInput ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowNewSectionInput(true)}
+                    className="inline-flex items-center px-3 py-1.5 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      title="Add additional section"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add Section
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={newSectionTitle}
+                      onChange={(e) => setNewSectionTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addCustomSection();
+                        }
+                      }}
+                      placeholder="Section title e.g. Responsibilities"
+                      title="Section title"
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomSection}
+                      className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      title="Confirm section title"
+                    >
+                      Add
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelNewSection}
+                      className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                      title="Cancel section entry"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {formData.customSections.length === 0 && !showNewSectionInput && (
+                <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                  <p className="text-sm text-gray-500">
+                    No additional sections added yet.
+                  </p>
+                </div>
+              )}
+
+              {formData.customSections.map((section, sectionIndex) => (
+                <div key={`${section.title}-${sectionIndex}`} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <input
+                      type="text"
+                      value={section.title}
+                      onChange={(e) => updateSectionTitle(sectionIndex, e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900 font-medium"
+                      placeholder="Section title"
+                      title="Edit section title"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeCustomSection(sectionIndex)}
+                      className="px-3 py-2 text-red-600 hover:text-red-800 transition-colors"
+                      title="Remove section"
+                      aria-label={`Remove section ${section.title}`}
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {section.bulletPoints.length > 0 && (
+                      <div className="space-y-2">
+                        {section.bulletPoints.map((point, bulletIndex) => (
+                          <div key={`${section.title}-${bulletIndex}`} className="flex items-center justify-between gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2">
+                            <span className="text-sm text-gray-700">• {point}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeBulletPoint(sectionIndex, bulletIndex)}
+                              className="text-red-600 hover:text-red-800"
+                              title="Remove bullet point"
+                              aria-label={`Remove bullet point ${point}`}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <input
+                      type="text"
+                      placeholder={`Add a bullet point for ${section.title} and press Enter`}
+                      title={`Add bullet point for ${section.title}`}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const input = e.currentTarget;
+                          const value = input.value.trim();
+                          if (value) {
+                            addBulletPoint(sectionIndex, value);
+                            input.value = "";
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
             {/* Qualified Degrees */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -685,6 +894,8 @@ export default function AdminJobPostTab() {
                         type="button"
                         onClick={() => removeDegree(degree)}
                         className="ml-2 text-purple-600 hover:text-purple-800"
+                        title={`Remove ${degree}`}
+                        aria-label={`Remove ${degree}`}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -711,6 +922,7 @@ export default function AdminJobPostTab() {
                           e.stopPropagation();
                           setIsDegreeDropdownOpen(true);
                         }}
+                        title="Search and select degrees"
                         className="flex-1 border-0 outline-none bg-transparent text-gray-900 placeholder-gray-500"
                       />
                     </div>
@@ -785,6 +997,7 @@ export default function AdminJobPostTab() {
                 <input
                   type="text"
                   placeholder="Type a skill and press Enter"
+                  title="Add skill and press Enter"
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-500"
                   onKeyPress={(e) => {
                     if (e.key === "Enter") {
@@ -805,6 +1018,8 @@ export default function AdminJobPostTab() {
                         type="button"
                         onClick={() => removeSkill(skill)}
                         className="ml-2 text-purple-600 hover:text-purple-800"
+                        title={`Remove ${skill}`}
+                        aria-label={`Remove ${skill}`}
                       >
                         <X className="w-4 h-4" />
                       </button>

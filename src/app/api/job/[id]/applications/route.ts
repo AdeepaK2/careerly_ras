@@ -60,12 +60,49 @@ export async function GET(
     const applications = await ApplicationModel.find(filter)
       .populate({
         path: "applicantId",
-        select: "firstName lastName universityEmail education skills",
+        select: "firstName lastName name nameWithInitials universityEmail education skills",
       })
       .select("cv coverLetter appliedAt status specialRequirements")
       .sort({ appliedAt: -1 })
       .skip(skip)
       .limit(limit);
+
+    const normalizedApplications = applications.map((application: any) => {
+      if (application.applicantId) {
+        const applicant = application.applicantId;
+        const fullName = String(applicant.name || applicant.nameWithInitials || "").trim();
+        const fullNameParts = fullName ? fullName.split(/\s+/) : [];
+
+        const firstName = String(applicant.firstName || fullNameParts[0] || "Unknown").trim();
+        const lastName = String(
+          applicant.lastName || fullNameParts.slice(1).join(" ") || "Applicant"
+        ).trim();
+
+        return {
+          ...application.toObject(),
+          applicantId: {
+            ...applicant,
+            firstName: firstName || "Unknown",
+            lastName: lastName || "Applicant",
+            universityEmail: applicant.universityEmail || "N/A",
+            education: applicant.education || { degreeProgramme: "N/A" },
+          },
+        };
+      }
+
+      return {
+        ...application.toObject(),
+        applicantId: {
+          _id: "deleted-applicant",
+          firstName: "Unknown",
+          lastName: "Applicant",
+          universityEmail: "N/A",
+          education: {
+            degreeProgramme: "N/A",
+          },
+        },
+      };
+    });
 
     // Get total count for pagination
     const totalCount = await ApplicationModel.countDocuments(filter);
@@ -74,7 +111,7 @@ export async function GET(
     return NextResponse.json(
       {
         success: true,
-        data: applications,
+        data: normalizedApplications,
         pagination: {
           currentPage: page,
           totalPages,

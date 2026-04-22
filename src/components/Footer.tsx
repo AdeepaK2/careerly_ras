@@ -15,7 +15,7 @@ export default function Footer() {
       </div>
       <div className="border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-6 py-6 text-center text-gray-400 text-sm font-normal">
-          <a href="/">Careerly</a> ©2025. All rights reserved.
+          <a href="/">Careerly</a> ©{new Date().getFullYear()}. All rights reserved.
         </div>
       </div>
     </footer>

@@ -7,6 +7,11 @@ interface CompanyProfile {
   companyName: string;
 }
 
+interface AdditionalSection {
+  title: string;
+  bulletPoints: string[];
+}
+
 interface JobOpportunity {
   _id: string;
   title: string;
@@ -32,6 +37,7 @@ interface JobOpportunity {
   urgent: boolean;
   qualifiedDegrees: string[];
   skillsRequired: string[];
+  customSections?: AdditionalSection[];
   companyId: CompanyProfile;
   status: "active" | "closed" | "pending";
   applicantsCount: number;
@@ -200,6 +206,28 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             </div>
           </div>
 
+          {/* Additional Sections */}
+          {job.customSections && job.customSections.length > 0 && (
+            <div className="space-y-4">
+              {job.customSections.map((section, sectionIndex) => (
+                <div key={`${section.title}-${sectionIndex}`} className="bg-gray-50 p-6 rounded-xl">
+                  <h3 className="text-xl font-bold text-gray-800 mb-3">
+                    {section.title}
+                  </h3>
+                  {section.bulletPoints && section.bulletPoints.length > 0 ? (
+                    <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                      {section.bulletPoints.map((point, pointIndex) => (
+                        <li key={`${section.title}-${pointIndex}`}>{point}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No details provided for this section.</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Skills Required */}
           <div>
             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
@@ -284,7 +312,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             <button
               onClick={() => onApply(job._id)}
               disabled={job.status !== "active" || isJobApplied}
-              className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${
+              className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-102 ${
                 isJobApplied
                   ? "bg-gray-400 text-white cursor-not-allowed"
                   : job.status !== "active"
@@ -298,7 +326,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             <button
               onClick={() => onSave(job._id)}
               disabled={isSaving}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 border ${
+              className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-102 border ${
                 isJobSaved
                   ? "bg-gradient-to-r from-[#8243ff] to-purple-600 text-white border-[#8243ff]"
                   : "bg-white text-gray-700 border-gray-300 hover:border-[#8243ff] hover:text-[#8243ff]"

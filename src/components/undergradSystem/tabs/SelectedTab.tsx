@@ -6,16 +6,16 @@ import { useAuthenticatedRequest } from '@/hooks/useAuthenticatedRequest';
 interface ApplicationStatus {
   _id: string;
   applicationId: string;
-  jobId: {
+  jobId?: {
     _id: string;
     title: string;
-    companyId: {
+    companyId?: {
       companyName: string;
       logo?: string;
     };
     jobType: string;
     location: string;
-    deadline: string;
+    deadline: string | null;
   };
   status: string;
   appliedAt: string;
@@ -203,14 +203,14 @@ export default function SelectedTab() {
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                        {application.jobId.title}
+                        {application.jobId?.title || 'Job no longer available'}
                       </h3>
                       <p className="text-purple-600 font-medium">
-                        {application.jobId.companyId.companyName}
+                        {application.jobId?.companyId?.companyName || 'Unknown Company'}
                       </p>
                       <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                        <span>{application.jobId.jobType}</span>
-                        <span>{application.jobId.location}</span>
+                        <span>{application.jobId?.jobType || 'N/A'}</span>
+                        <span>{application.jobId?.location || 'N/A'}</span>
                         <span>Applied {application.appliedTimeAgo}</span>
                       </div>
                     </div>
@@ -245,7 +245,7 @@ export default function SelectedTab() {
                     
                     {application.cv && (
                       <button
-                        onClick={() => downloadCV(application.cv!, application.jobId.title)}
+                        onClick={() => downloadCV(application.cv!, application.jobId?.title || 'Job')}
                         className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors text-sm"
                       >
                         Download CV
@@ -294,7 +294,7 @@ export default function SelectedTab() {
                 Application Details
               </h3>
               <p className="text-sm text-gray-600">
-                {selectedApplication.jobId.title} at {selectedApplication.jobId.companyId.companyName}
+                {selectedApplication.jobId?.title || 'Job no longer available'} at {selectedApplication.jobId?.companyId?.companyName || 'Unknown Company'}
               </p>
             </div>
 
@@ -355,7 +355,7 @@ export default function SelectedTab() {
             <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-2">
               {selectedApplication.cv && (
                 <button
-                  onClick={() => downloadCV(selectedApplication.cv!, selectedApplication.jobId.title)}
+                  onClick={() => downloadCV(selectedApplication.cv!, selectedApplication.jobId?.title || 'Job')}
                   className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
                 >
                   Download CV

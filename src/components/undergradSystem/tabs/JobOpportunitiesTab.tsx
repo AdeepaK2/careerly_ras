@@ -10,6 +10,11 @@ interface CompanyProfile {
   companyName: string;
 }
 
+interface AdditionalSection {
+  title: string;
+  bulletPoints: string[];
+}
+
 interface JobOpportunity {
   _id: string;
   title: string;
@@ -35,6 +40,7 @@ interface JobOpportunity {
   urgent: boolean;
   qualifiedDegrees: string[];
   skillsRequired: string[];
+  customSections?: AdditionalSection[];
   companyId: CompanyProfile;
   status: "active" | "closed" | "pending";
   applicantsCount: number;

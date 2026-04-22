@@ -28,6 +28,27 @@ export async function POST(req: NextRequest){
 
   //create the job
   try{
+    const customSections = Array.isArray(body.customSections)
+      ? body.customSections
+          .filter(
+            (section: any) =>
+              section &&
+              typeof section.title === "string" &&
+              section.title.trim().length > 0
+          )
+          .map((section: any) => ({
+            title: section.title.trim(),
+            bulletPoints: Array.isArray(section.bulletPoints)
+              ? section.bulletPoints
+                  .filter(
+                    (point: any) =>
+                      typeof point === "string" && point.trim().length > 0
+                  )
+                  .map((point: string) => point.trim())
+              : [],
+          }))
+      : [];
+
     const jobData: {
       title: any;
       description: any;
@@ -38,6 +59,7 @@ export async function POST(req: NextRequest){
       deadline: Date;
       qualifiedDegrees: any;
       skillsRequired: any;
+      customSections: Array<{ title: string; bulletPoints: string[] }>;
       companyId: string;
       salaryRange?: { min: number; max: number };
     } = {
@@ -50,6 +72,7 @@ export async function POST(req: NextRequest){
       deadline: new Date(body.deadline),
       qualifiedDegrees: body.qualifiedDegrees,
       skillsRequired: body.skillsRequired || [],
+      customSections,
       companyId: company.id,
     };
 

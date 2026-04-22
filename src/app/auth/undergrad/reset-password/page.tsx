@@ -11,13 +11,12 @@ function ResetPasswordForm() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [token, setToken] = useState('');
-  
+
   const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const tokenFromUrl = searchParams.get('token');
-    console.log('Token from URL:', tokenFromUrl); // Debug log
     if (!tokenFromUrl) {
       setError('Invalid reset link. Please request a new password reset.');
       return;
@@ -25,17 +24,17 @@ function ResetPasswordForm() {
     setToken(tokenFromUrl);
   }, [searchParams]);
 
-  const validatePassword = (password: string) => {
-    if (password.length < 8) {
+  const validatePassword = (input: string) => {
+    if (input.length < 8) {
       return 'Password must be at least 8 characters long';
     }
-    if (!/(?=.*[a-z])/.test(password)) {
+    if (!/(?=.*[a-z])/.test(input)) {
       return 'Password must contain at least one lowercase letter';
     }
-    if (!/(?=.*[A-Z])/.test(password)) {
+    if (!/(?=.*[A-Z])/.test(input)) {
       return 'Password must contain at least one uppercase letter';
     }
-    if (!/(?=.*\d)/.test(password)) {
+    if (!/(?=.*\d)/.test(input)) {
       return 'Password must contain at least one number';
     }
     return null;
@@ -47,7 +46,6 @@ function ResetPasswordForm() {
     setError('');
     setMessage('');
 
-    // Validate passwords
     const passwordError = validatePassword(password);
     if (passwordError) {
       setError(passwordError);
@@ -62,7 +60,7 @@ function ResetPasswordForm() {
     }
 
     try {
-      const response = await fetch('/api/auth/company/reset-password', {
+      const response = await fetch('/api/auth/undergraduate/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,12 +73,12 @@ function ResetPasswordForm() {
       if (data.success) {
         setMessage('Password has been reset successfully! Redirecting to login...');
         setTimeout(() => {
-          router.push('/auth/company/login');
+          router.push('/auth/undergrad/login');
         }, 2000);
       } else {
         setError(data.message || 'Failed to reset password. Please try again.');
       }
-    } catch (error) {
+    } catch (err) {
       setError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);
@@ -103,9 +101,7 @@ function ResetPasswordForm() {
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Set New Password</h1>
-          <p className="text-gray-600">
-            Please enter your new password below.
-          </p>
+          <p className="text-gray-600">Please enter your new password below.</p>
         </div>
 
         {message && (
@@ -183,7 +179,7 @@ function ResetPasswordForm() {
 
         <div className="mt-8 text-center">
           <Link
-            href="/auth/company/login"
+            href="/auth/undergrad/login"
             className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
           >
             ← Back to Login
@@ -205,7 +201,7 @@ function ResetPasswordLoading() {
   );
 }
 
-export default function CompanyResetPassword() {
+export default function UndergradResetPasswordPage() {
   return (
     <Suspense fallback={<ResetPasswordLoading />}>
       <ResetPasswordForm />

@@ -24,6 +24,27 @@ export async function PUT(
     const { id: jobId } = await params;
     const body = await request.json();
 
+    const customSections = Array.isArray(body.customSections)
+      ? body.customSections
+          .filter(
+            (section: any) =>
+              section &&
+              typeof section.title === "string" &&
+              section.title.trim().length > 0
+          )
+          .map((section: any) => ({
+            title: section.title.trim(),
+            bulletPoints: Array.isArray(section.bulletPoints)
+              ? section.bulletPoints
+                  .filter(
+                    (point: any) =>
+                      typeof point === "string" && point.trim().length > 0
+                  )
+                  .map((point: string) => point.trim())
+              : [],
+          }))
+      : undefined;
+
     // Find the job
     const existingJob = await Job.findById(jobId);
     if (!existingJob) {
@@ -39,27 +60,32 @@ export async function PUT(
     }
 
     // Update the job with new data
-    const updatedJob = await Job.findByIdAndUpdate(
-      jobId,
-      {
-        title: body.title,
-        customCompanyName: body.customCompanyName,
-        description: body.description,
-        jobType: body.jobType,
-        category: body.category,
-        workPlaceType: body.workPlaceType,
-        location: body.location,
-        deadline: body.deadline,
-        salaryRange: body.salaryRange,
-        qualifiedDegrees: body.qualifiedDegrees,
-        skillsRequired: body.skillsRequired,
-        companyWebsite: body.companyWebsite,
-        originalAdLink: body.originalAdLink,
-        status: body.status,
-        updatedAt: new Date(),
-      },
-      { new: true, runValidators: true }
-    );
+    const updateData: Record<string, unknown> = {
+      title: body.title,
+      customCompanyName: body.customCompanyName,
+      description: body.description,
+      jobType: body.jobType,
+      category: body.category,
+      workPlaceType: body.workPlaceType,
+      location: body.location,
+      deadline: body.deadline,
+      salaryRange: body.salaryRange,
+      qualifiedDegrees: body.qualifiedDegrees,
+      skillsRequired: body.skillsRequired,
+      companyWebsite: body.companyWebsite,
+      originalAdLink: body.originalAdLink,
+      status: body.status,
+      updatedAt: new Date(),
+    };
+
+    if (customSections) {
+      updateData.customSections = customSections;
+    }
+
+    const updatedJob = await Job.findByIdAndUpdate(jobId, updateData, {
+      new: true,
+      runValidators: true,
+    });
 
     return NextResponse.json(
       {

@@ -28,73 +28,59 @@ export default function CompanyUsersTab() {
   const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
-    // Simulate API call - replace with actual API
-    setTimeout(() => {
-      setCompanies([
-        {
-          id: "1",
-          companyName: "Tech Solutions Ltd",
-          registrationNumber: "PV 12345",
-          businessEmail: "hr@techsolutions.lk",
-          phoneNumber: "+94 11 234 5678",
-          industry: "Technology",
-          companySize: "50-100",
-          foundedYear: 2015,
-          isVerified: true,
-          isActive: true,
-          jobPostingLimits: {
-            maxActiveJobs: 10,
-            currentActiveJobs: 3,
-          },
-          registrationDate: "2024-01-10",
-          lastLogin: "2024-07-31",
-        },
-        {
-          id: "2",
-          companyName: "InnovaTech Pvt Ltd",
-          registrationNumber: "PV 67890",
-          businessEmail: "careers@innovatech.lk",
-          phoneNumber: "+94 11 987 6543",
-          industry: "Software Development",
-          companySize: "10-50",
-          foundedYear: 2020,
-          isVerified: false,
-          isActive: true,
-          jobPostingLimits: {
-            maxActiveJobs: 5,
-            currentActiveJobs: 1,
-          },
-          registrationDate: "2024-02-15",
-          lastLogin: "2024-07-29",
-        },
-        {
-          id: "3",
-          companyName: "Global Manufacturing Co",
-          registrationNumber: "PV 11111",
-          businessEmail: "jobs@globalmanufacturing.lk",
-          phoneNumber: "+94 11 555 1234",
-          industry: "Manufacturing",
-          companySize: "100+",
-          foundedYear: 2010,
-          isVerified: true,
-          isActive: false,
-          jobPostingLimits: {
-            maxActiveJobs: 15,
+    const fetchCompanies = async () => {
+      try {
+        setLoading(true);
+
+        const res = await fetch("/api/admin/company");
+        const result = await res.json();
+
+        if (!result.success) {
+          throw new Error("Failed to fetch companies");
+        }
+
+        const formatted = result.data.map((company: any) => ({
+          id: company._id || company.id,
+          companyName: company.name || company.companyName || "N/A",
+          registrationNumber: company.registrationNumber || "N/A",
+          businessEmail: company.email || company.businessEmail || "N/A",
+          phoneNumber: company.phoneNumber || "N/A",
+          industry: company.industry || "N/A",
+          companySize: company.companySize || "N/A",
+          foundedYear: company.foundedYear || 0,
+          isVerified: company.isVerified,
+          isActive: company.isActive ?? true,
+          jobPostingLimits: company.jobPostingLimits || {
+            maxActiveJobs: 0,
             currentActiveJobs: 0,
           },
-          registrationDate: "2024-01-05",
-          lastLogin: "2024-07-20",
-        },
-      ]);
-      setLoading(false);
-    }, 1000);
+          registrationDate:
+            company.createdAt?.split("T")[0] || "N/A",
+          lastLogin: company.lastLogin || null,
+        }));
+
+        setCompanies(formatted);
+      } catch (error) {
+        console.error("Error fetching companies:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCompanies();
   }, []);
 
   const filteredCompanies = companies.filter((company) => {
     const matchesSearch =
-      company.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.businessEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.industry.toLowerCase().includes(searchTerm.toLowerCase());
+      (company.companyName ?? "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (company.businessEmail ?? "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (company.industry ?? "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
 
     const matchesFilter =
       filterStatus === "all" ||
@@ -310,11 +296,15 @@ export default function CompanyUsersTab() {
                         <div
                           className="bg-blue-600 h-2 rounded-full"
                           style={{
-                            width: `${
-                              (company.jobPostingLimits.currentActiveJobs /
-                                company.jobPostingLimits.maxActiveJobs) *
-                              100
-                            }%`,
+                            width:
+                              company.jobPostingLimits.maxActiveJobs > 0
+                                ? `${Math.min(
+                                    100,
+                                    (company.jobPostingLimits.currentActiveJobs /
+                                      company.jobPostingLimits.maxActiveJobs) *
+                                      100
+                                  )}%`
+                                : "0%",
                           }}
                         ></div>
                       </div>

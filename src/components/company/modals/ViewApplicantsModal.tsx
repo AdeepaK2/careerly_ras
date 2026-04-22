@@ -238,6 +238,19 @@ export default function ViewApplicantsModal({
     setSelectedApplication(null);
   };
 
+  const getApplicantName = (application: Application) => {
+    const applicant: any = application.applicantId || {};
+    const rawFullName = String(applicant.name || applicant.nameWithInitials || "").trim();
+    const fullNameParts = rawFullName ? rawFullName.split(/\s+/) : [];
+
+    const firstName = String(applicant.firstName || fullNameParts[0] || "").trim();
+    const lastName = String(
+      applicant.lastName || fullNameParts.slice(1).join(" ") || ""
+    ).trim();
+    const displayName = [firstName, lastName].filter(Boolean).join(" ");
+    return displayName || "Unknown Applicant";
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -353,19 +366,18 @@ export default function ViewApplicantsModal({
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
-                              {application.applicantId.firstName}{" "}
-                              {application.applicantId.lastName}
+                              {getApplicantName(application)}
                             </div>
                             <div className="text-sm text-gray-500 flex items-center">
                               <Mail className="h-3 w-3 mr-1" />
-                              {application.applicantId.universityEmail}
+                              {application.applicantId?.universityEmail || "N/A"}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {application.applicantId.education.degreeProgramme}
+                          {application.applicantId?.education?.degreeProgramme || "N/A"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -402,7 +414,7 @@ export default function ViewApplicantsModal({
                             onClick={() =>
                               downloadCV(
                                 application.cv,
-                                `${application.applicantId.firstName}_${application.applicantId.lastName}`
+                                getApplicantName(application).replace(/\s+/g, "_")
                               )
                             }
                             className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"

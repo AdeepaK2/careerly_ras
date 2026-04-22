@@ -16,18 +16,18 @@ export default function CompanyForgotPassword() {
     setMessage('');
 
     try {
-      const response = await fetch('/api/auth/company/forgot-password', {
+      const response = await fetch('/api/auth/undergraduate/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ businessEmail: email }),
+        body: JSON.stringify({ universityEmail: email }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        setMessage('If an account with that business email exists, a password reset link has been sent.');
+        setMessage('If an account with that university email exists, a password reset link has been sent.');
         setEmail('');
       } else {
         setError(data.message || 'Something went wrong. Please try again.');
@@ -45,7 +45,7 @@ export default function CompanyForgotPassword() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Reset Password</h1>
           <p className="text-gray-600">
-            Enter your business email address and we'll send you a link to reset your password.
+            Enter your university email address and we'll send you a link to reset your password.
           </p>
         </div>
 
@@ -64,7 +64,7 @@ export default function CompanyForgotPassword() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Business Email Address
+              University Email Address
             </label>
             <input
               type="email"
@@ -73,7 +73,7 @@ export default function CompanyForgotPassword() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900"
-              placeholder="company@example.com"
+              placeholder="your.email@university.edu"
               disabled={loading}
             />
           </div>
@@ -99,7 +99,7 @@ export default function CompanyForgotPassword() {
 
         <div className="mt-8 text-center space-y-4">
           <Link
-            href="/auth/company/login"
+            href="/auth/undergrad/login"
             className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
           >
             ← Back to Login
@@ -108,7 +108,7 @@ export default function CompanyForgotPassword() {
           <div className="text-gray-500 text-sm">
             Don't have an account?{' '}
             <Link
-              href="/auth/company/register"
+              href="/auth/undergrad/register"
               className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
             >
               Register here

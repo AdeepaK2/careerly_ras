@@ -2,6 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import ViewApplicantsModal from "@/components/company/modals/ViewApplicantsModal";
+import {
+  Plus,
+  X,
+} from "lucide-react";
 
 interface JobPosting {
   _id: string;
@@ -14,6 +18,7 @@ interface JobPosting {
   deadline: string;
   qualifiedDegrees: string[];
   skillsRequired: string[];
+  customSections: CustomSection[];
   companyId: string;
   status: "active" | "closed" | "pending";
   applicantsCount: number;
@@ -24,12 +29,19 @@ interface JobPosting {
   };
 }
 
+interface CustomSection {
+  title: string;
+  bulletPoints: string[];
+}
+
 export default function JobPostingTab() {
   const [activeJobForm, setActiveJobForm] = useState(false);
   const [editingJob, setEditingJob] = useState<JobPosting | null>(null);
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [newSectionTitle, setNewSectionTitle] = useState("");
+  const [showNewSectionInput, setShowNewSectionInput] = useState(false);
 
   // Modal state for viewing applicants
   const [viewApplicantsModal, setViewApplicantsModal] = useState<{
@@ -53,6 +65,7 @@ export default function JobPostingTab() {
     deadline: "",
     qualifiedDegrees: [] as string[],
     skillsRequired: [] as string[],
+    customSections: [] as CustomSection[],
     salaryRange: {
       min: 0,
       max: 0,
@@ -162,6 +175,7 @@ export default function JobPostingTab() {
           deadline: "",
           qualifiedDegrees: [],
           skillsRequired: [],
+          customSections: [],
           salaryRange: { min: 0, max: 0 },
         });
         // Refresh jobs list
@@ -177,11 +191,9 @@ export default function JobPostingTab() {
   };
 
   const deleteJob = async (id: string) => {
-    // Find the job to get its title for confirmation
     const job = jobs.find((j) => j._id === id);
     const jobTitle = job ? job.title : "this job";
 
-    // Confirm deletion
     if (
       !confirm(
         `Are you sure you want to permanently delete "${jobTitle}"? This action cannot be undone.`
@@ -202,7 +214,6 @@ export default function JobPostingTab() {
       if (response.ok) {
         setJobs(jobs.filter((job) => job._id !== id));
         setMessage(`✅ Job "${jobTitle}" deleted successfully`);
-        // Clear message after 5 seconds
         setTimeout(() => setMessage(""), 5000);
       } else {
         const errorData = await response.json();
@@ -226,7 +237,6 @@ export default function JobPostingTab() {
       const newStatus = job.status === "active" ? "closed" : "active";
       const action = newStatus === "active" ? "activate" : "close";
 
-      // Confirm status change
       if (
         !confirm(`Are you sure you want to ${action} the job "${job.title}"?`)
       ) {
@@ -297,6 +307,82 @@ export default function JobPostingTab() {
         (skill) => skill !== skillToRemove
       ),
     }));
+  };
+
+  // Custom Sections Handlers
+  const addCustomSection = () => {
+    if (newSectionTitle.trim()) {
+      const trimmedTitle = newSectionTitle.trim();
+      // Check if section already exists
+      if (formData.customSections.some(section => section.title === trimmedTitle)) {
+        setMessage("❌ A section with this title already exists!");
+        setTimeout(() => setMessage(""), 3000);
+        return;
+      }
+      setFormData(prev => ({
+        ...prev,
+        customSections: [...prev.customSections, { title: trimmedTitle, bulletPoints: [] }]
+      }));
+      setNewSectionTitle("");
+      setShowNewSectionInput(false);
+    }
+  };
+
+  // Cancel adding new section
+  const cancelNewSection = () => {
+    setNewSectionTitle("");
+    setShowNewSectionInput(false);
+  };
+
+  const removeCustomSection = (sectionIndex: number) => {
+    const section = formData.customSections[sectionIndex];
+    if (confirm(`Are you sure you want to remove the "${section.title}" section?`)) {
+      setFormData(prev => ({
+        ...prev,
+        customSections: prev.customSections.filter((_, index) => index !== sectionIndex)
+      }));
+    }
+  };
+
+  const addBulletPoint = (sectionIndex: number, bulletPoint: string) => {
+    const trimmedPoint = bulletPoint.trim();
+    if (trimmedPoint) {
+      setFormData(prev => ({
+        ...prev,
+        customSections: prev.customSections.map((section, index) => 
+          index === sectionIndex
+            ? { ...section, bulletPoints: [...section.bulletPoints, trimmedPoint] }
+            : section
+        )
+      }));
+    }
+  };
+
+  const removeBulletPoint = (sectionIndex: number, bulletIndex: number) => {
+    setFormData(prev => ({
+      ...prev,
+      customSections: prev.customSections.map((section, index) =>
+        index === sectionIndex
+          ? {
+              ...section,
+              bulletPoints: section.bulletPoints.filter((_, idx) => idx !== bulletIndex)
+            }
+          : section
+      )
+    }));
+  };
+
+  const updateSectionTitle = (sectionIndex: number, newTitle: string) => {
+    if (newTitle.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        customSections: prev.customSections.map((section, index) =>
+          index === sectionIndex
+            ? { ...section, title: newTitle.trim() }
+            : section
+        )
+      }));
+    }
   };
 
   return (
@@ -741,6 +827,7 @@ export default function JobPostingTab() {
                   </div>
                 </div>
               </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -752,7 +839,7 @@ export default function JobPostingTab() {
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     placeholder="e.g. Senior Software Engineer"
                     required
                   />
@@ -766,7 +853,7 @@ export default function JobPostingTab() {
                     onChange={(e) =>
                       setFormData({ ...formData, category: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     required
                   >
                     <option value="">Select Category</option>
@@ -789,7 +876,7 @@ export default function JobPostingTab() {
                     onChange={(e) =>
                       setFormData({ ...formData, jobType: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     required
                   >
                     <option value="">Select Type</option>
@@ -812,7 +899,7 @@ export default function JobPostingTab() {
                         workPlaceType: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     required
                   >
                     <option value="">Select Work Place Type</option>
@@ -833,7 +920,7 @@ export default function JobPostingTab() {
                     onChange={(e) =>
                       setFormData({ ...formData, location: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     placeholder="e.g. Colombo, Sri Lanka"
                     required
                   />
@@ -851,7 +938,7 @@ export default function JobPostingTab() {
                     onChange={(e) =>
                       setFormData({ ...formData, deadline: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     required
                   />
                 </div>
@@ -862,33 +949,37 @@ export default function JobPostingTab() {
                   <div className="flex space-x-2">
                     <input
                       type="number"
+                      min="0"
                       placeholder="Min"
                       value={formData.salaryRange.min || ""}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = Math.max(0, Number(e.target.value));
                         setFormData({
                           ...formData,
                           salaryRange: {
                             ...formData.salaryRange,
-                            min: parseInt(e.target.value) || 0,
+                            min: value || 0,
                           },
-                        })
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                        });
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     />
                     <input
                       type="number"
+                      min="0"
                       placeholder="Max"
                       value={formData.salaryRange.max || ""}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = Math.max(0, Number(e.target.value));
                         setFormData({
                           ...formData,
                           salaryRange: {
                             ...formData.salaryRange,
-                            max: parseInt(e.target.value) || 0,
+                            max: value || 0,
                           },
-                        })
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                        });
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     />
                   </div>
                 </div>
@@ -904,12 +995,138 @@ export default function JobPostingTab() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                   placeholder="Describe the role, responsibilities, and what makes this position exciting..."
                   required
                 />
               </div>
 
+              {/* Additional Sections */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Additional Sections (Optional)
+                  </label>
+                  {!showNewSectionInput ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowNewSectionInput(true)}
+                      className="inline-flex items-center px-3 py-1.5 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                        title="Add additional section"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Section
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newSectionTitle}
+                        onChange={(e) => setNewSectionTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addCustomSection();
+                          }
+                        }}
+                        placeholder="Section title e.g. Responsibilities"
+                        title="Section title"
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={addCustomSection}
+                        className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        title="Confirm section title"
+                      >
+                        Add
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelNewSection}
+                        className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                        title="Cancel section entry"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {formData.customSections.length === 0 && !showNewSectionInput && (
+                  <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                    <p className="text-sm text-gray-500">
+                      No additional sections added yet.
+                    </p>
+                  </div>
+                )}
+
+                {formData.customSections.map((section, sectionIndex) => (
+                  <div key={`${section.title}-${sectionIndex}`} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                      <input
+                        type="text"
+                        value={section.title}
+                        onChange={(e) => updateSectionTitle(sectionIndex, e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900 font-medium"
+                        placeholder="Section title"
+                        title="Edit section title"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeCustomSection(sectionIndex)}
+                        className="px-3 py-2 text-red-600 hover:text-red-800 transition-colors"
+                        title="Remove section"
+                        aria-label={`Remove section ${section.title}`}
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {section.bulletPoints.length > 0 && (
+                        <div className="space-y-2">
+                          {section.bulletPoints.map((point, bulletIndex) => (
+                            <div key={`${section.title}-${bulletIndex}`} className="flex items-center justify-between gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2">
+                              <span className="text-sm text-gray-700">• {point}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeBulletPoint(sectionIndex, bulletIndex)}
+                                className="text-red-600 hover:text-red-800"
+                                title="Remove bullet point"
+                                aria-label={`Remove bullet point ${point}`}
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <input
+                        type="text"
+                        placeholder={`Add a bullet point for ${section.title} and press Enter`}
+                        title={`Add bullet point for ${section.title}`}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const input = e.currentTarget;
+                            const value = input.value.trim();
+                            if (value) {
+                              addBulletPoint(sectionIndex, value);
+                              input.value = "";
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Qualified Degrees Section */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Qualified Degrees *
@@ -947,9 +1164,9 @@ export default function JobPostingTab() {
                           onChange={(e) =>
                             handleDegreeChange(degree, e.target.checked)
                           }
-                          className="mt-1 rounded border-gray-300 text-[#8243ff] focus:ring-[#8243ff]"
+                          className="mt-1 rounded border-gray-300 text-[#8243ff] focus:ring-[#8243ff] "
                         />
-                        <span className="leading-5">{degree}</span>
+                        <span className="leading-5 text-gray-900">{degree}</span>
                       </label>
                     ))}
                   </div>
@@ -961,6 +1178,7 @@ export default function JobPostingTab() {
                 </div>
               </div>
 
+              {/* Skills Required Section */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Skills Required (Optional)
@@ -992,7 +1210,7 @@ export default function JobPostingTab() {
                   <input
                     type="text"
                     placeholder="Type a skill and press Enter to add (e.g., JavaScript, Leadership, etc.)"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-900"
                     onKeyPress={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -1005,8 +1223,7 @@ export default function JobPostingTab() {
                     }}
                   />
                   <p className="text-xs text-gray-500 mt-2">
-                    Tip: Press Enter after typing each skill to add it to the
-                    list
+                    Tip: Press Enter after typing each skill to add it to the list
                   </p>
                 </div>
               </div>
