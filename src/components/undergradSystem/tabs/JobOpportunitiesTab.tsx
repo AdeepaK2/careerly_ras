@@ -4,6 +4,28 @@ import { useState, useEffect } from "react";
 import { useAuthenticatedRequest } from "@/hooks/useAuthenticatedRequest";
 import JobDetailsModal from "../modals/JobDetailsModal";
 import ApplyJobModal from "../modals/ApplyJobModal";
+import {
+  MdWork,
+  MdSearch,
+  MdLocationOn,
+  MdBusiness,
+  MdAccessTime,
+  MdWarning,
+  MdSchool,
+  MdExpandMore,
+  MdExpandLess,
+  MdRocket 
+} from 'react-icons/md';
+import {
+  FaFire,
+  FaHeart,
+  FaRegHeart,
+  FaExclamationTriangle,
+  FaArrowRight,
+  FaTimes,
+  FaMoneyBillWave
+} from 'react-icons/fa';
+import { HiSparkles } from 'react-icons/hi';
 
 interface CompanyProfile {
   _id: string;
@@ -429,22 +451,20 @@ export default function JobOpportunitiesTab() {
             <div className="transform hover:scale-105 transition-transform duration-300">
               <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent flex items-center">
                 Job Opportunities
-                <span className="ml-3 text-3xl animate-bounce">🎯</span>
+                <span className="ml-3 text-3xl animate-bounce">
+                  <MdWork className="w-8 h-8" />
+                </span>
               </h1>
               <p className="text-purple-100 text-lg font-medium hover:text-white transition-colors duration-300">
                 Discover your next career opportunity
               </p>
               <div className="mt-3 flex items-center space-x-4 text-sm text-purple-200">
                 <span className="flex items-center space-x-1 group hover:text-white transition-colors duration-300 cursor-pointer">
-                  <span className="group-hover:scale-125 transition-transform duration-300 animate-pulse">
-                    ✨
-                  </span>
+                  <HiSparkles className="w-4 h-4 group-hover:scale-125 transition-transform duration-300 animate-pulse" />
                   <span>Curated for you</span>
                 </span>
                 <span className="flex items-center space-x-1 group hover:text-white transition-colors duration-300 cursor-pointer">
-                  <span className="group-hover:scale-125 transition-transform duration-300 animate-pulse">
-                    🚀
-                  </span>
+                  <MdRocket className="w-4 h-4 group-hover:scale-125 transition-transform duration-300 animate-pulse" />
                   <span>Updated daily</span>
                 </span>
               </div>
@@ -476,9 +496,7 @@ export default function JobOpportunitiesTab() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-[#8243ff] outline-none transition-all duration-300 group-hover:border-[#8243ff]/50 bg-gradient-to-r from-white to-gray-50/30 text-black placeholder:text-gray-500"
               />
-              <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl group-hover:scale-110 transition-transform duration-300">
-                🔍
-              </span>
+              <MdSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl group-hover:scale-110 transition-transform duration-300" />
               <div className="absolute inset-0 bg-gradient-to-r from-[#8243ff]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg pointer-events-none"></div>
             </div>
           </div>
@@ -488,7 +506,7 @@ export default function JobOpportunitiesTab() {
               <button
                 key={filter.id}
                 onClick={() => setSelectedFilter(filter.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${
+                className={`px-4 py-2 rounded-lg font-medium ${
                   selectedFilter === filter.id
                     ? "bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] text-white shadow-md"
                     : "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-[#8243ff]/10 hover:to-[#8243ff]/5 hover:text-[#8243ff] hover:shadow-md"
@@ -509,15 +527,16 @@ export default function JobOpportunitiesTab() {
           </span>{" "}
           job opportunities
           {showAllJobs && (
-            <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-              ⚠️ All Jobs (Including Non-Matching Degrees)
+            <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full flex items-center space-x-1">
+              <MdWarning className="w-3 h-3" />
+              <span>All Jobs (Including Non-Matching Degrees)</span>
             </span>
           )}
         </p>
         <div className="flex items-center space-x-4">
           <button
             onClick={handleViewAllJobs}
-            className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${
+            className={`px-4 py-2 rounded-lg font-medium ${
               showAllJobs
                 ? "bg-gradient-to-r from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700"
                 : "bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600"
@@ -527,11 +546,11 @@ export default function JobOpportunitiesTab() {
           </button>
           <button
           onClick={handleSortClick}
-          className="text-[#8243ff] hover:text-[#6c2bd9] font-medium flex items-center space-x-1 group transition-all duration-300 hover:scale-105"
+          className="bg-gradient-to-r from-gray-100 to-gray-200 px-4 py-2 rounded-lg text-[#8243ff] hover:text-[#6c2bd9] font-medium flex items-center space-x-1 group transition-all"
         >
-          <span>Sort by: {sortOrder === "desc" ? "Newest" : "Oldest"}</span>
+          <span>{sortOrder === "desc" ? "Newest" : "Oldest"}</span>
           <span className="group-hover:translate-y-1 transition-transform duration-300">
-            {sortOrder === "desc" ? "⬇️" : "⬆️"}
+            {sortOrder === "desc" ? <MdExpandMore className="w-4 h-4" /> : <MdExpandLess className="w-4 h-4" />}
           </span>
         </button>
         </div>
@@ -543,7 +562,7 @@ export default function JobOpportunitiesTab() {
           filteredJobs.map((job, index) => (
             <div
               key={job._id}
-              className="bg-gradient-to-br from-white via-gray-50/30 to-white rounded-xl shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:scale-102 group"
+              className="bg-gradient-to-br from-white via-gray-50/30 to-white rounded-xl shadow-md border border-gray-100 hover:shadow-xl"
             >
               <div className="p-6 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#8243ff]/2 via-transparent to-[#8243ff]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -551,7 +570,7 @@ export default function JobOpportunitiesTab() {
                 <div className="flex items-start justify-between relative z-10">
                   <div className="flex items-start space-x-4 flex-1">
                     <div className="w-16 h-16 bg-gradient-to-br from-[#8243ff] to-[#6c2bd9] rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                      {job.logo || "🏢"}
+                      {job.logo || <MdBusiness className="w-8 h-8 text-white" />}
                     </div>
 
                     <div className="flex-1">
@@ -565,23 +584,23 @@ export default function JobOpportunitiesTab() {
                           </p>
                           <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3 flex-wrap">
                             <span className="flex items-center space-x-1 group-hover:scale-105 transition-transform duration-300">
-                              <span>📍</span>
+                              <MdLocationOn className="w-4 h-4" />
                               <span>{job.location}</span>
                             </span>
                             <span className="flex items-center space-x-1 group-hover:scale-105 transition-transform duration-300">
-                              <span>💼</span>
+                              <MdWork className="w-4 h-4" />
                               <span>{job.jobType}</span>
                             </span>
                             <span className="flex items-center space-x-1 group-hover:scale-105 transition-transform duration-300">
-                              <span>🏢</span>
+                              <MdBusiness className="w-4 h-4" />
                               <span>{job.workPlaceType}</span>
                             </span>
                             <span className="flex items-center space-x-1 group-hover:scale-105 transition-transform duration-300">
-                              <span>💰</span>
+                              <FaMoneyBillWave className="w-4 h-4" />
                               <span>{formatSalary(job.salaryRange)}</span>
                             </span>
                             <span className="flex items-center space-x-1 group-hover:scale-105 transition-transform duration-300">
-                              <span>🕒</span>
+                              <MdAccessTime className="w-4 h-4" />
                               <span>{formatDate(job.posted_date)}</span>
                             </span>
                           </div>
@@ -602,8 +621,9 @@ export default function JobOpportunitiesTab() {
                         </div>
 
                         {job.urgent && (
-                          <span className="bg-gradient-to-r from-red-100 to-orange-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium animate-pulse ml-4 shrink-0">
-                            🔥 Urgent
+                          <span className="bg-gradient-to-r from-red-100 to-orange-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium animate-pulse ml-4 shrink-0 flex items-center space-x-1">
+                            <FaFire className="w-3 h-3" />
+                            <span>Urgent</span>
                           </span>
                         )}
                       </div>
@@ -614,7 +634,7 @@ export default function JobOpportunitiesTab() {
                           disabled={
                             job.status !== "active" || appliedJobs.has(job._id)
                           }
-                          className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
+                          className={`px-6 py-2 rounded-lg font-medium hover:shadow-lg cursor-pointer ${
                             appliedJobs.has(job._id)
                               ? "bg-gray-400 text-white cursor-not-allowed"
                               : job.status !== "active"
@@ -627,7 +647,7 @@ export default function JobOpportunitiesTab() {
                         <button
                           onClick={() => handleSaveJob(job._id)}
                           disabled={savingJob === job._id}
-                          className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 border ${
+                          className={`px-4 py-2 rounded-lg font-medium border cursor-pointer ${
                             savedJobs.has(job._id)
                               ? "bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] text-white border-[#8243ff] hover:from-[#6c2bd9] hover:to-[#5a1fc7]"
                               : "bg-gradient-to-r from-gray-100 to-gray-200 hover:from-[#8243ff]/10 hover:to-[#8243ff]/5 text-gray-700 hover:text-[#8243ff] border-gray-200 hover:border-[#8243ff]/20"
@@ -638,17 +658,23 @@ export default function JobOpportunitiesTab() {
                               <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-400 border-t-transparent"></div>
                             </span>
                           ) : savedJobs.has(job._id) ? (
-                            "Saved ❤️"
+                            <span className="flex items-center space-x-1">
+                              <FaHeart className="w-4 h-4" />
+                              <span>Saved</span>
+                            </span>
                           ) : (
-                            "Save Job"
+                            <span className="flex items-center space-x-1">
+                              <FaRegHeart className="w-4 h-4" />
+                              <span>Save Job</span>
+                            </span>
                           )}
                         </button>
                         <button
                           onClick={() => handleViewDetailsClick(job)}
-                          className="text-[#8243ff] hover:text-[#6c2bd9] font-medium group-hover:translate-x-1 transition-all duration-300 flex items-center space-x-1"
+                          className="text-[#8243ff] hover:text-[#6c2bd9] font-medium group-hover:translate-x-1 flex items-center space-x-1 cursor-pointer"
                         >
                           <span>View Details</span>
-                          <span>→</span>
+                          <FaArrowRight className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -659,7 +685,9 @@ export default function JobOpportunitiesTab() {
           ))
         ) : (
           <div className="bg-white rounded-xl shadow-md border border-gray-100 p-8 text-center">
-            <div className="text-6xl mb-4">🔍</div>
+            <div className="text-6xl mb-4 flex justify-center">
+              <MdSearch className="w-20 h-20 text-gray-400" />
+            </div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
               No jobs found
             </h3>
@@ -718,7 +746,9 @@ export default function JobOpportunitiesTab() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md mx-4 transform transition-all duration-300 scale-100 animate-bounce-in">
             <div className="text-center">
-              <div className="text-6xl mb-4">⚠️</div>
+              <div className="text-6xl mb-4 flex justify-center">
+                <FaExclamationTriangle className="w-16 h-16 text-yellow-500" />
+              </div>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">
                 View All Jobs Warning
               </h3>
@@ -727,22 +757,25 @@ export default function JobOpportunitiesTab() {
                 These jobs might have different qualification requirements that don't align with your academic background.
               </p>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
-                <p className="text-sm text-yellow-800">
-                  <strong>Recommendation:</strong> Focus on jobs matching your degree for better application success rates.
+                <p className="text-sm text-yellow-800 flex items-start space-x-2">
+                  <MdSchool className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span><strong>Recommendation:</strong> Focus on jobs matching your degree for better application success rates.</span>
                 </p>
               </div>
               <div className="flex space-x-3">
                 <button
                   onClick={() => setShowWarningModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors duration-300"
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors duration-300 flex items-center justify-center space-x-2"
                 >
-                  Cancel
+                  <FaTimes className="w-4 h-4" />
+                  <span>Cancel</span>
                 </button>
                 <button
                   onClick={confirmViewAllJobs}
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-lg font-medium transition-all duration-300"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-lg font-medium transition-all duration-300 flex items-center justify-center space-x-2"
                 >
-                  Continue Anyway
+                  <FaArrowRight className="w-4 h-4" />
+                  <span>Continue Anyway</span>
                 </button>
               </div>
             </div>

@@ -1,6 +1,31 @@
 "use client";
 
 import React from "react";
+import {
+  MdBusiness,
+  MdLocationOn,
+  MdWork,
+  MdAttachMoney,
+  MdCalendarToday,
+  MdPeople,
+  MdDescription,
+  MdBuild,
+  MdSchool,
+  MdCategory,
+  MdAnalytics,
+  MdAccessTime,
+  MdClose,
+  MdFavorite,
+  MdSave
+} from 'react-icons/md';
+import {
+  FaFire,
+  FaHeart,
+  FaRegHeart,
+  FaMoneyBillWave
+} from 'react-icons/fa';
+import { HiAcademicCap } from 'react-icons/hi';
+import { GiSkills } from 'react-icons/gi';
 
 interface CompanyProfile {
   _id: string;
@@ -116,7 +141,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           <div className="flex justify-between items-start">
             <div className="flex items-start space-x-4">
               <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center text-2xl">
-                {job.logo || "🏢"}
+                {job.logo || <MdBusiness className="w-8 h-8 text-white" />}
               </div>
               <div>
                 <h2 className="text-2xl font-bold">{job.title}</h2>
@@ -125,15 +150,15 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                 </p>
                 <div className="flex items-center space-x-4 mt-2 text-sm text-purple-200">
                   <span className="flex items-center space-x-1">
-                    <span>📍</span>
+                    <MdLocationOn className="w-4 h-4" />
                     <span>{job.location}</span>
                   </span>
                   <span className="flex items-center space-x-1">
-                    <span>💼</span>
+                    <MdWork className="w-4 h-4" />
                     <span>{job.jobType}</span>
                   </span>
                   <span className="flex items-center space-x-1">
-                    <span>🏢</span>
+                    <MdBusiness className="w-4 h-4" />
                     <span>{job.workPlaceType}</span>
                   </span>
                 </div>
@@ -143,15 +168,16 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               onClick={onClose}
               className="text-white hover:text-purple-200 text-2xl font-bold"
             >
-              ×
+              <MdClose className="w-6 h-6" />
             </button>
           </div>
 
           {/* Urgent Badge */}
           {job.urgent && (
             <div className="mt-3">
-              <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium animate-pulse">
-                🔥 Urgent Hiring
+              <span className="inline-flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium animate-pulse">
+                <FaFire className="w-4 h-4" />
+                Urgent Hiring
               </span>
             </div>
           )}
@@ -163,7 +189,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
               <div className="flex items-center space-x-2 mb-2">
-                <span className="text-xl">💰</span>
+                <FaMoneyBillWave className="w-5 h-5 text-purple-800" />
                 <h4 className="font-semibold text-purple-800">Salary Range</h4>
               </div>
               <p className="text-purple-700">{formatSalary(job.salaryRange)}</p>
@@ -171,7 +197,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
               <div className="flex items-center space-x-2 mb-2">
-                <span className="text-xl">📅</span>
+                <MdCalendarToday className="w-5 h-5 text-purple-800" />
                 <h4 className="font-semibold text-purple-800">
                   Application Deadline
                 </h4>
@@ -184,7 +210,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
               <div className="flex items-center space-x-2 mb-2">
-                <span className="text-xl">👥</span>
+                <MdPeople className="w-5 h-5 text-purple-800" />
                 <h4 className="font-semibold text-purple-800">Applicants</h4>
               </div>
               <p className="text-purple-700">
@@ -196,7 +222,6 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           {/* Job Description */}
           <div className="bg-gray-50 p-6 rounded-xl">
             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-              <span className="mr-2">📋</span>
               Job Description
             </h3>
             <div className="prose prose-gray max-w-none">
@@ -231,7 +256,6 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           {/* Skills Required */}
           <div>
             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-              <span className="mr-2">🛠️</span>
               Skills Required
             </h3>
             <div className="flex flex-wrap gap-3">
@@ -249,7 +273,6 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           {/* Qualified Degrees */}
           <div>
             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-              <span className="mr-2">🎓</span>
               Qualified Degrees
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -270,7 +293,6 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-                <span className="mr-2">🏷️</span>
                 Category
               </h3>
               <span className="px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 rounded-lg font-medium">
@@ -280,7 +302,6 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 
             <div>
               <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-                <span className="mr-2">📊</span>
                 Status
               </h3>
               <span
@@ -299,7 +320,8 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 
           {/* Posted Date */}
           <div className="bg-gray-50 p-4 rounded-xl">
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 text-sm flex items-center">
+              <MdAccessTime className="w-4 h-4 mr-2" />
               <span className="font-semibold">Posted on:</span>{" "}
               {formatDate(job.posted_date)}
             </p>
@@ -312,7 +334,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             <button
               onClick={() => onApply(job._id)}
               disabled={job.status !== "active" || isJobApplied}
-              className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-102 ${
+              className={`flex-1 px-6 py-3 rounded-lg font-medium cursor-pointer ${
                 isJobApplied
                   ? "bg-gray-400 text-white cursor-not-allowed"
                   : job.status !== "active"
@@ -326,7 +348,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             <button
               onClick={() => onSave(job._id)}
               disabled={isSaving}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-102 border ${
+              className={`px-6 py-3 rounded-lg font-medium border cursor-pointer ${
                 isJobSaved
                   ? "bg-gradient-to-r from-[#8243ff] to-purple-600 text-white border-[#8243ff]"
                   : "bg-white text-gray-700 border-gray-300 hover:border-[#8243ff] hover:text-[#8243ff]"
@@ -338,15 +360,21 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                   <span>Saving...</span>
                 </span>
               ) : isJobSaved ? (
-                "Saved ❤️"
+                <span className="flex items-center space-x-1">
+                  <FaHeart className="w-4 h-4" />
+                  <span>Saved</span>
+                </span>
               ) : (
-                "Save Job"
+                <span className="flex items-center space-x-1">
+                  <FaRegHeart className="w-4 h-4" />
+                  <span>Save Job</span>
+                </span>
               )}
             </button>
 
             <button
               onClick={onClose}
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors cursor-pointer"
             >
               Close
             </button>

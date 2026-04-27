@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { CheckCircle, Mail } from "lucide-react";
 
 interface NavbarProps {
   activeTab: string;
@@ -29,7 +30,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
-          <div className="flex items-center">
+          <div className="flex items-center cursor-default">
             <h1 className="text-xl font-bold text-blue-600">
               Careerly
             </h1>
@@ -42,7 +43,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 cursor-pointer ${
                   activeTab === tab.id
                     ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
@@ -55,24 +56,36 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
           {/* User Info & Logout */}
           <div className="flex items-center space-x-4">
-            <div className="hidden sm:block text-sm text-gray-700">
+            <div className="hidden sm:block text-sm text-gray-700 cursor-default">
               Welcome, <span className="font-medium">{user?.nameWithInitials}</span>
             </div>
             
             {/* Email Verification Status */}
             <div className="flex items-center">
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                user?.isVerified 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                {user?.isVerified ? '✅ Email Verified' : '📧 Email Pending'}
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium cursor-default ${
+                  user?.isVerified
+                    ? "bg-green-100 text-green-800"
+                    : "bg-yellow-100 text-yellow-800"
+                }`}
+              >
+                {user?.isVerified ? (
+                  <>
+                    <CheckCircle className="w-3 h-3" />
+                    Email Verified
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-3 h-3" />
+                    Email Pending
+                  </>
+                )}
               </span>
             </div>
 
             <button
               onClick={handleLogout}
-              className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition duration-200"
+              className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition duration-200 cursor-pointer"
             >
               Logout
             </button>
