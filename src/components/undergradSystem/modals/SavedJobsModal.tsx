@@ -1,10 +1,30 @@
 'use client';
 
 import React from 'react';
+import {
+  MdSave,
+  MdRefresh,
+  MdClose,
+  MdFolder,
+  MdCheckCircle,
+  MdAccessTime,
+  MdLocationOn,
+  MdWork,
+  MdBusiness,
+  MdWarning,
+  MdSchedule,
+  MdArchive
+} from 'react-icons/md';
+import {
+  FaFire,
+  FaCheck,
+  FaMoneyBillWave
+} from 'react-icons/fa';
 
 interface Company {
   _id: string;
   companyName: string;
+  logo?: string | null;
 }
 
 interface SavedJob {
@@ -12,7 +32,8 @@ interface SavedJob {
   jobId: {
     _id: string;
     title: string;
-    companyId: Company;
+    companyId?: Company | string | null;
+    customCompanyName?: string;
     location: string;
     jobType: string;
     workPlaceType?: string;
@@ -28,6 +49,7 @@ interface SavedJob {
     posted_date: string;
   };
   savedAt: string;
+  companyName: string;
 }
 
 interface SavedJobsModalProps {
@@ -50,6 +72,18 @@ export default function SavedJobsModal({
   appliedJobs 
 }: SavedJobsModalProps) {
   if (!isOpen) return null;
+
+  const getCompanyName = (savedJob: SavedJob) => {
+    if (savedJob.companyName?.trim()) {
+      return savedJob.companyName;
+    }
+
+    if (typeof savedJob.jobId.companyId === 'object' && savedJob.jobId.companyId?.companyName) {
+      return savedJob.jobId.companyId.companyName;
+    }
+
+    return savedJob.jobId.customCompanyName || 'Company Name';
+  };
 
   const formatDate = (dateString: string) => {
     try {
@@ -112,11 +146,11 @@ export default function SavedJobsModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-[#8243ff] to-purple-600 text-white">
+        <div className="px-6 py-4 border-b border-gray-200 bg-linear-to-r from-[#8243ff] to-purple-600 text-white">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold flex items-center">
-                <span className="mr-3">💾</span>
+                <MdSave className="w-7 h-7 mr-3" />
                 Saved Jobs
               </h2>
               <p className="text-purple-100 text-sm mt-1">
@@ -128,14 +162,15 @@ export default function SavedJobsModal({
                 onClick={onRefresh}
                 className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2"
               >
-                <span>🔄</span>
+                <MdRefresh className="w-5 h-5" />
                 <span>Refresh</span>
               </button>
               <button
                 onClick={onClose}
+                aria-label="Close saved jobs modal"
                 className="text-white hover:text-purple-200 text-2xl font-bold"
               >
-                ×
+                <MdClose className="w-6 h-6" />
               </button>
             </div>
           </div>
@@ -145,7 +180,9 @@ export default function SavedJobsModal({
         <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
           {savedJobs.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="text-6xl mb-4">📂</div>
+              <div className="text-6xl mb-4 flex justify-center">
+                <MdFolder className="w-20 h-20 text-gray-400" />
+              </div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
                 No Saved Jobs Yet
               </h3>
@@ -156,29 +193,26 @@ export default function SavedJobsModal({
           ) : (
             <div className="p-6">
               {/* Summary Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-xl">✅</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 items-center">
+                <div className="bg-linear-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200 flex flex-col items-center justify-center text-center">
+                  <p className="text-2xl font-bold text-green-700">{activeJobs.length}</p>
+                  <div className="flex items-center space-x-2 mb-2 justify-center">
                     <h4 className="font-semibold text-green-800">Active Jobs</h4>
                   </div>
-                  <p className="text-2xl font-bold text-green-700">{activeJobs.length}</p>
                 </div>
-                
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-xl">⏰</span>
-                    <h4 className="font-semibold text-gray-800">Expired Jobs</h4>
+
+                <div className="bg-linear-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200 flex flex-col items-center justify-center text-center">
+                  <p className="text-2xl font-bold text-green-700">{expiredJobs.length}</p>
+                  <div className="flex items-center space-x-2 mb-2 justify-center">
+                    <h4 className="font-semibold text-green-800">Expired Jobs</h4>
                   </div>
-                  <p className="text-2xl font-bold text-gray-700">{expiredJobs.length}</p>
                 </div>
                 
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-xl">💾</span>
+                <div className="bg-linear-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200 flex flex-col items-center justify-center text-center">
+                  <p className="text-2xl font-bold text-blue-700">{savedJobs.length}</p>
+                  <div className="flex items-center space-x-2 mb-2 justify-center">
                     <h4 className="font-semibold text-blue-800">Total Saved</h4>
                   </div>
-                  <p className="text-2xl font-bold text-blue-700">{savedJobs.length}</p>
                 </div>
               </div>
 
@@ -186,7 +220,7 @@ export default function SavedJobsModal({
               {activeJobs.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <span className="mr-2 text-xl">✅</span>
+                    <MdCheckCircle className="w-5 h-5 mr-2 text-green-600" />
                     Active Jobs ({activeJobs.length})
                   </h3>
                   
@@ -194,7 +228,7 @@ export default function SavedJobsModal({
                     {activeJobs.map((savedJob) => (
                       <div
                         key={savedJob._id}
-                        className="bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all duration-300"
+                        className="bg-linear-to-r from-white to-gray-50 rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all duration-300"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -204,36 +238,38 @@ export default function SavedJobsModal({
                                   {savedJob.jobId.title}
                                 </h4>
                                 <p className="text-[#8243ff] font-medium mb-2">
-                                  {savedJob.jobId.companyId?.companyName || "Company Name"}
+                                  {getCompanyName(savedJob)}
                                 </p>
                               </div>
                               <div className="flex items-center space-x-2">
                                 {savedJob.jobId.urgent && (
-                                  <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-medium">
-                                    🔥 Urgent
+                                  <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
+                                    <FaFire className="w-3 h-3" />
+                                    <span>Urgent</span>
                                   </span>
                                 )}
-                                <span className="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-medium">
-                                  Active
+                                <span className="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
+                                  <FaCheck className="w-3 h-3" />
+                                  <span>Active</span>
                                 </span>
                               </div>
                             </div>
                             
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                               <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                <span>📍</span>
+                                <MdLocationOn className="w-4 h-4" />
                                 <span>{savedJob.jobId.location}</span>
                               </div>
                               <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                <span>💼</span>
+                                <MdWork className="w-4 h-4" />
                                 <span>{savedJob.jobId.jobType}</span>
                               </div>
                               <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                <span>🏢</span>
+                                <MdBusiness className="w-4 h-4" />
                                 <span>{savedJob.jobId.workPlaceType || 'On-site'}</span>
                               </div>
                               <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                <span>💰</span>
+                                <FaMoneyBillWave className="w-4 h-4" />
                                 <span>{formatSalary(savedJob.jobId.salaryRange)}</span>
                               </div>
                             </div>
@@ -266,6 +302,7 @@ export default function SavedJobsModal({
                               <div>
                                 <span className="font-medium text-gray-700">Deadline: </span>
                                 <span className={getTimeRemaining(savedJob.jobId.deadline).color}>
+                                  <MdSchedule className="w-3 h-3 inline mr-1" />
                                   {getTimeRemaining(savedJob.jobId.deadline).text}
                                 </span>
                               </div>
@@ -275,10 +312,10 @@ export default function SavedJobsModal({
                               <button
                                 onClick={() => onApplyToJob(savedJob.jobId._id)}
                                 disabled={appliedJobs.has(savedJob.jobId._id)}
-                                className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${
+                                className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 transform cursor-pointer ${
                                   appliedJobs.has(savedJob.jobId._id)
                                     ? "bg-gray-400 text-white cursor-not-allowed"
-                                    : "bg-gradient-to-r from-[#8243ff] to-[#6c2bd9] hover:from-[#6c2bd9] hover:to-[#5a1fc7] text-white"
+                                    : "bg-linear-to-r from-[#8243ff] to-[#6c2bd9] hover:from-[#6c2bd9] hover:to-[#5a1fc7] text-white"
                                 }`}
                               >
                                 {appliedJobs.has(savedJob.jobId._id) ? "Applied ✓" : "Apply Now"}
@@ -286,9 +323,9 @@ export default function SavedJobsModal({
                               
                               <button
                                 onClick={() => onUnsaveJob(savedJob.jobId._id)}
-                                className="px-4 py-2 bg-red-100 text-red-600 rounded-lg font-medium hover:bg-red-200 transition-colors"
+                                className="px-4 py-2 bg-red-100 text-red-600 rounded-lg font-medium hover:bg-red-200 transition-colors flex items-center space-x-1 cursor-pointer"
                               >
-                                Remove ❌
+                                <span>Remove</span>
                               </button>
                             </div>
                           </div>
@@ -303,7 +340,7 @@ export default function SavedJobsModal({
               {expiredJobs.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <span className="mr-2 text-xl">⏰</span>
+                    <MdAccessTime className="w-5 h-5 mr-2 text-gray-600" />
                     Expired Jobs ({expiredJobs.length})
                   </h3>
                   
@@ -311,7 +348,7 @@ export default function SavedJobsModal({
                     {expiredJobs.map((savedJob) => (
                       <div
                         key={savedJob._id}
-                        className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-300 p-6 opacity-75"
+                        className="bg-linear-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-300 p-6 opacity-75"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -321,11 +358,12 @@ export default function SavedJobsModal({
                                   {savedJob.jobId.title}
                                 </h4>
                                 <p className="text-gray-500 font-medium mb-2">
-                                  {savedJob.jobId.companyId?.companyName || "Company Name"}
+                                  {getCompanyName(savedJob)}
                                 </p>
                               </div>
-                              <span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">
-                                Expired
+                              <span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
+                                <MdWarning className="w-3 h-3" />
+                                <span>Expired</span>
                               </span>
                             </div>
                             
@@ -336,7 +374,10 @@ export default function SavedJobsModal({
                               </div>
                               <div>
                                 <span className="font-medium text-gray-600">Deadline was: </span>
-                                <span className="text-red-500">{formatDate(savedJob.jobId.deadline)}</span>
+                                <span className="text-red-500 flex items-center space-x-1">
+                                  <MdArchive className="w-3 h-3" />
+                                  <span>{formatDate(savedJob.jobId.deadline)}</span>
+                                </span>
                               </div>
                             </div>
 
@@ -350,9 +391,9 @@ export default function SavedJobsModal({
                               
                               <button
                                 onClick={() => onUnsaveJob(savedJob.jobId._id)}
-                                className="px-4 py-2 bg-red-100 text-red-600 rounded-lg font-medium hover:bg-red-200 transition-colors"
+                                className="px-4 py-2 bg-red-100 text-red-600 rounded-lg font-medium hover:bg-red-200 transition-colors flex items-center space-x-1"
                               >
-                                Remove ❌
+                                <span>Remove</span>
                               </button>
                             </div>
                           </div>
@@ -365,8 +406,6 @@ export default function SavedJobsModal({
             </div>
           )}
         </div>
-
-
       </div>
     </div>
   );

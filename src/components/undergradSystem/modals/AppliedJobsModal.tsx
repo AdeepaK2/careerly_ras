@@ -1,16 +1,35 @@
 'use client';
 
 import React from 'react';
+import { 
+  MdDescription, 
+  MdRefresh, 
+  MdClose, 
+  MdMailOutline, 
+  MdLocationOn,
+  MdWork,
+  MdAssignment
+} from 'react-icons/md';
+import { 
+  FaClipboardList, 
+  FaBullseye, 
+  FaCheck, 
+  FaTimes,
+  FaMoneyBillWave
+} from 'react-icons/fa';
+import { IoMdTime } from 'react-icons/io';
 
 interface Company {
   _id: string;
   companyName: string;
+  logo?: string | null;
 }
 
 interface Job {
   _id: string;
   title: string;
-  companyId: Company;
+  companyId?: Company | string | null;
+  customCompanyName?: string;
   location: string;
   jobType: string;
   salaryRange?: {
@@ -27,6 +46,7 @@ interface Application {
   interviewCall: boolean;
   expectingSalary?: number;
   coverLetter?: string;
+  companyName?: string;
 }
 
 interface AppliedJobsModalProps {
@@ -38,6 +58,18 @@ interface AppliedJobsModalProps {
 
 export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefresh }: AppliedJobsModalProps) {
   if (!isOpen) return null;
+
+  const getCompanyName = (job: Job) => {
+    if (typeof job.companyId === 'object' && job.companyId?.companyName) {
+      return job.companyId.companyName;
+    }
+
+    if (typeof job.companyId === 'string' && job.companyId.trim()) {
+      return job.companyId;
+    }
+
+    return job.customCompanyName || 'Company Name';
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -59,17 +91,17 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "interviewed":
-        return "⏳";
+        return <IoMdTime className="w-5 h-5" />;
       case "applied":
-        return "📋";
+        return <FaClipboardList className="w-5 h-5" />;
       case "interview_called":
-        return "🎯";
+        return <FaBullseye className="w-5 h-5" />;
       case "selected":
-        return "✅";
+        return <FaCheck className="w-5 h-5" />;
       case "rejected":
-        return "❌";
+        return <FaTimes className="w-5 h-5" />;
       default:
-        return "📄";
+        return <MdAssignment className="w-5 h-5" />;
     }
   };
 
@@ -110,11 +142,11 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-[#8243ff] to-purple-600 text-white">
+        <div className="px-6 py-4 border-b border-gray-200 bg-linear-to-r from-[#8243ff] to-purple-600 text-white">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold flex items-center">
-                <span className="mr-3">📄</span>
+                <MdDescription className="w-7 h-7 mr-3" />
                 My Applications
               </h2>
               <p className="text-purple-100 text-sm mt-1">
@@ -126,14 +158,15 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
                 onClick={onRefresh}
                 className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2"
               >
-                <span>🔄</span>
+                <MdRefresh className="w-5 h-5" />
                 <span>Refresh</span>
               </button>
               <button
                 onClick={onClose}
+                aria-label="Close applications modal"
                 className="text-white hover:text-purple-200 text-2xl font-bold"
               >
-                ×
+                <MdClose className="w-6 h-6" />
               </button>
             </div>
           </div>
@@ -143,7 +176,9 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
         <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
           {appliedJobs.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="text-6xl mb-4">📭</div>
+              <div className="text-6xl mb-4 flex justify-center">
+                <MdMailOutline className="w-20 h-20 text-gray-400" />
+              </div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
                 No Applications Yet
               </h3>
@@ -160,9 +195,6 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
                   const statusDisplay = status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
                   return (
                     <div key={status} className={`p-4 rounded-lg border ${getStatusColor(status)}`}>
-                      <div className="flex items-center justify-center mb-2">
-                        <span className="text-2xl">{getStatusIcon(status)}</span>
-                      </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold">{count}</div>
                         <div className="text-xs font-medium">{statusDisplay}</div>
@@ -190,7 +222,7 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
                       {applications.map((application) => (
                         <div
                           key={application._id}
-                          className="bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all duration-300"
+                          className="bg-linear-to-r from-white to-gray-50 rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all duration-300"
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -200,25 +232,26 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
                                     {application.jobId.title}
                                   </h4>
                                   <p className="text-[#8243ff] font-medium mb-2">
-                                    {application.jobId.companyId?.companyName || "Company Name"}
+                                    {getCompanyName(application.jobId)}
                                   </p>
                                 </div>
-                                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(application.status)}`}>
-                                  {getStatusIcon(application.status)} {application.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                <span className={`px-3 py-1 rounded-full text-sm font-medium border flex items-center space-x-1 ${getStatusColor(application.status)}`}>
+                                  {getStatusIcon(application.status)}
+                                  <span>{application.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
                                 </span>
                               </div>
                               
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                 <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                  <span>📍</span>
+                                  <MdLocationOn className="w-4 h-4" />
                                   <span>{application.jobId.location}</span>
                                 </div>
                                 <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                  <span>💼</span>
+                                  <MdWork className="w-4 h-4" />
                                   <span>{application.jobId.jobType}</span>
                                 </div>
                                 <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                  <span>💰</span>
+                                  <FaMoneyBillWave className="w-4 h-4" />
                                   <span>{formatSalary(application.jobId.salaryRange)}</span>
                                 </div>
                               </div>
@@ -237,9 +270,9 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
                               </div>
 
                               {application.coverLetter && (
-                                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                                <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                                   <h5 className="font-medium text-gray-700 mb-2">Cover Letter:</h5>
-                                  <p className="text-sm text-gray-600 line-clamp-3">
+                                  <p className="text-sm text-gray-600 whitespace-pre-wrap wrap-break-word leading-relaxed">
                                     {application.coverLetter}
                                   </p>
                                 </div>
@@ -248,7 +281,7 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
                               {application.interviewCall && (
                                 <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                                   <div className="flex items-center space-x-2 text-purple-800">
-                                    <span>📞</span>
+                                    <MdPhone className="w-4 h-4" />
                                     <span className="font-medium">Interview Scheduled!</span>
                                   </div>
                                 </div>
@@ -264,8 +297,6 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
             </div>
           )}
         </div>
-
-
       </div>
     </div>
   );

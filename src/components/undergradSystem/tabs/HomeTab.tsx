@@ -2,8 +2,27 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthenticatedRequest } from "@/hooks/useAuthenticatedRequest";
+import { useAuth } from '@/contexts/AuthContext';
 import AppliedJobsModal from '@/components/undergradSystem/modals/AppliedJobsModal';
 import SavedJobsModal from '@/components/undergradSystem/modals/SavedJobsModal';
+import { 
+  MdWavingHand, 
+  MdRocket, 
+  MdStars, 
+  MdDescription, 
+  MdSave, 
+  MdFlashOn, 
+  MdSearch, 
+  MdPerson, 
+  MdLightbulb,
+  MdArrowForward
+} from 'react-icons/md';
+import { 
+  FaBullseye, 
+  FaHandshake, 
+  FaChartLine 
+} from 'react-icons/fa';
+import { IoMdTrendingUp } from 'react-icons/io';
 
 interface Company {
   _id: string;
@@ -60,7 +79,6 @@ interface HomeTabProps {
 }
 
 export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
-  const [userName] = useState('Student');
   const [savedJobs, setSavedJobs] = useState<SavedJob[]>([]);
   const [appliedJobs, setAppliedJobs] = useState<Application[]>([]);
   const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
@@ -71,6 +89,8 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
   const [loading, setLoading] = useState(false);
 
   const { makeAuthenticatedRequest } = useAuthenticatedRequest();
+  const { user } = useAuth();
+  const userName = user?.nameWithInitials || user?.name || 'Student';
   
   const makeRequest = async (url: string, options: RequestInit = {}) => {
     const response = await makeAuthenticatedRequest(url, options);
@@ -99,7 +119,7 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
     { 
       label: 'Applications Sent', 
       value: appliedJobs.length.toString(),
-      icon: '📄',
+      icon: <MdDescription className="w-6 h-6" />,
       bgGradient: 'bg-gradient-to-br from-[#8243ff]/10 to-[#8243ff]/5',
       iconBg: 'bg-gradient-to-br from-[#8243ff] to-[#6c2bd9]',
       trend: '+12%',
@@ -108,7 +128,7 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
     { 
       label: 'Saved Jobs', 
       value: savedJobs.length.toString(),
-      icon: '💾',
+      icon: <MdSave className="w-6 h-6" />,
       bgGradient: 'bg-gradient-to-br from-amber-50 to-amber-25',
       iconBg: 'bg-gradient-to-br from-amber-500 to-amber-600',
       trend: '+15%',
@@ -207,16 +227,18 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
             <span className="ml-3 text-3xl animate-pulse origin-bottom-right" style={{
               animation: 'wave 1s ease-in-out infinite',
               transformOrigin: '70% 70%'
-            }}>👋</span>
+            }}>
+              <MdWavingHand className="w-8 h-8" />
+            </span>
           </h1>
           <p className="text-white/90 text-lg font-medium mb-3">Ready to find your dream job?</p>
           <div className="flex items-center space-x-4 text-sm text-white/80">
             <span className="flex items-center space-x-1">
-              <span>🚀</span>
+              <MdRocket className="w-4 h-4" />
               <span>Your journey starts here</span>
             </span>
             <span className="flex items-center space-x-1">
-              <span>✨</span>
+              <MdStars className="w-4 h-4" />
               <span>Personalized dashboard</span>
             </span>
           </div>
@@ -229,11 +251,17 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
           <div 
             key={index} 
             onClick={stat.onClick}
-            className={`${stat.bgGradient} rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transform hover:scale-105 transition-all duration-300  cursor-pointer  group`}>
+            className={`${stat.bgGradient} rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transform hover:scale-102 transition-all duration-300 cursor-pointer group`}>
             <div className="flex items-center justify-between mb-4">
-              <div className={`w-12 h-12 ${stat.iconBg} rounded-lg flex items-center justify-center text-white text-xl shadow-md group-hover:scale-110 transition-transform duration-300`}>
+              <div className={`w-12 h-12 ${stat.iconBg} rounded-lg flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300`}>
                 {stat.icon}
               </div>
+              {stat.trend && (
+                <div className="flex items-center text-green-600 text-sm font-semibold">
+                  <IoMdTrendingUp className="w-4 h-4 mr-1" />
+                  {stat.trend}
+                </div>
+              )}
             </div>
             <p className="text-gray-600 text-sm font-medium mb-1">{stat.label}</p>
             <div className="flex items-center justify-between">
@@ -248,58 +276,56 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
         <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
           <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
             <span className="w-8 h-8 bg-gradient-to-br from-[#8243ff] to-[#6c2bd9] rounded-lg flex items-center justify-center text-white mr-3">
-              ⚡
+              <MdFlashOn className="w-5 h-5" />
             </span>
             Quick Actions
           </h3>
           <div className="space-y-3">
             <button 
               onClick={handleBrowseJobs}
-              className="w-full bg-gradient-to-r from-gray-100 to-gray-200 hover:from-[#8243ff]/10 hover:to-[#8243ff]/5 text-gray-700 hover:text-[#8243ff] py-3 px-4 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 flex items-center justify-center group border border-gray-200 hover:border-[#8243ff]/20 cursor-pointer"
+              className="w-full bg-gradient-to-r from-gray-100 to-gray-200 hover:from-[#8243ff]/10 hover:to-[#8243ff]/5 text-gray-700 hover:text-[#8243ff] py-3 px-4 rounded-lg font-medium transition-all duration-300 transform hover:scale-102 flex items-center justify-center group border border-gray-200 hover:border-[#8243ff]/20 cursor-pointer"
             >
-              <span className="mr-2 group-hover:scale-110 transition-transform duration-300">🔍</span>
+              <MdSearch className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
               Browse Jobs
-              <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">→</span>
+              <MdArrowForward className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
        
             <button 
               onClick={handleUpdateProfile}
-              className="w-full bg-gradient-to-r from-gray-100 to-gray-200 hover:from-[#8243ff]/10 hover:to-[#8243ff]/5 text-gray-700 hover:text-[#8243ff] py-3 px-4 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 flex items-center justify-center group border border-gray-200 hover:border-[#8243ff]/20 cursor-pointer"
+              className="w-full bg-gradient-to-r from-gray-100 to-gray-200 hover:from-[#8243ff]/10 hover:to-[#8243ff]/5 text-gray-700 hover:text-[#8243ff] py-3 px-4 rounded-lg font-medium transition-all duration-300 transform hover:scale-102 flex items-center justify-center group border border-gray-200 hover:border-[#8243ff]/20 cursor-pointer"
             >
-              <span className="mr-2 group-hover:scale-110 transition-transform duration-300">👤</span>
+              <MdPerson className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
               Update Profile
-              <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">→</span>
+              <MdArrowForward className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
           </div>
         </div>
-
- 
       </div>
 
       {/* Tips Section */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200 hover:shadow-lg transition-all duration-300">
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200 hover:shadow-lg transition-all duration-300 cursor-default">
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
           <span className="w-8 h-8 bg-gradient-to-br from-[#8243ff] to-[#6c2bd9] rounded-lg flex items-center justify-center text-white mr-3">
-            💡
+            <MdLightbulb className="w-5 h-5" />
           </span>
           Job Search Tips
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center group cursor-pointer">
-            <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-2xl mb-3 mx-auto shadow-md group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-              🎯
+          <div className="text-center group">
+            <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-2xl mb-3 mx-auto shadow-md group-hover:scale-105 group-hover:rotate-3 transition-all duration-300">
+              <FaBullseye className="w-8 h-8 text-white" />
             </div>
             <p className="text-sm text-gray-700 font-medium group-hover:text-[#8243ff] transition-colors duration-300">Tailor your resume for each application</p>
           </div>
-          <div className="text-center group cursor-pointer">
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-2xl mb-3 mx-auto shadow-md group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-              🤝
+          <div className="text-center group">
+            <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-2xl mb-3 mx-auto shadow-md group-hover:scale-105 group-hover:rotate-3 transition-all duration-300">
+              <FaHandshake className="w-8 h-8 text-white" />
             </div>
             <p className="text-sm text-gray-700 font-medium group-hover:text-[#8243ff] transition-colors duration-300">Network with professionals in your field</p>
           </div>
-          <div className="text-center group cursor-pointer">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center text-2xl mb-3 mx-auto shadow-md group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-              📈
+          <div className="text-center group">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center text-2xl mb-3 mx-auto shadow-md group-hover:scale-105 group-hover:rotate-3 transition-all duration-300">
+              <FaChartLine className="w-8 h-8 text-white" />
             </div>
             <p className="text-sm text-gray-700 font-medium group-hover:text-[#8243ff] transition-colors duration-300">Keep learning and upgrading your skills</p>
           </div>
