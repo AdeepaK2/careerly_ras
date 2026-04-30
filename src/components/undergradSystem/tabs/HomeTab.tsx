@@ -5,24 +5,21 @@ import { useAuthenticatedRequest } from "@/hooks/useAuthenticatedRequest";
 import { useAuth } from '@/contexts/AuthContext';
 import AppliedJobsModal from '@/components/undergradSystem/modals/AppliedJobsModal';
 import SavedJobsModal from '@/components/undergradSystem/modals/SavedJobsModal';
-import { 
-  MdWavingHand, 
-  MdRocket, 
-  MdStars, 
-  MdDescription, 
-  MdSave, 
-  MdFlashOn, 
-  MdSearch, 
-  MdPerson, 
-  MdLightbulb,
-  MdArrowForward
-} from 'react-icons/md';
-import { 
-  FaBullseye, 
-  FaHandshake, 
-  FaChartLine 
-} from 'react-icons/fa';
-import { IoMdTrendingUp } from 'react-icons/io';
+import {
+  Hand,
+  Rocket,
+  Sparkles,
+  FileText,
+  Bookmark,
+  Zap,
+  Search,
+  User,
+  Lightbulb,
+  ArrowRight,
+  Target,
+  Handshake,
+  TrendingUp
+} from 'lucide-react';
 
 interface Company {
   _id: string;
@@ -119,7 +116,7 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
     { 
       label: 'Applications Sent', 
       value: appliedJobs.length.toString(),
-      icon: <MdDescription className="w-6 h-6" />,
+      icon: <FileText className="w-6 h-6" />,
       bgGradient: 'bg-gradient-to-br from-[#8243ff]/10 to-[#8243ff]/5',
       iconBg: 'bg-gradient-to-br from-[#8243ff] to-[#6c2bd9]',
       trend: '+12%',
@@ -128,7 +125,7 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
     { 
       label: 'Saved Jobs', 
       value: savedJobs.length.toString(),
-      icon: <MdSave className="w-6 h-6" />,
+      icon: <Bookmark className="w-6 h-6" />,
       bgGradient: 'bg-gradient-to-br from-amber-50 to-amber-25',
       iconBg: 'bg-gradient-to-br from-amber-500 to-amber-600',
       trend: '+15%',
@@ -228,17 +225,17 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
               animation: 'wave 1s ease-in-out infinite',
               transformOrigin: '70% 70%'
             }}>
-              <MdWavingHand className="w-8 h-8" />
+              <Hand className="w-8 h-8" />
             </span>
           </h1>
           <p className="text-white/90 text-lg font-medium mb-3">Ready to find your dream job?</p>
           <div className="flex items-center space-x-4 text-sm text-white/80">
             <span className="flex items-center space-x-1">
-              <MdRocket className="w-4 h-4" />
+              <Rocket className="w-4 h-4" />
               <span>Your journey starts here</span>
             </span>
             <span className="flex items-center space-x-1">
-              <MdStars className="w-4 h-4" />
+              <Sparkles className="w-4 h-4" />
               <span>Personalized dashboard</span>
             </span>
           </div>
@@ -258,7 +255,7 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
               </div>
               {stat.trend && (
                 <div className="flex items-center text-green-600 text-sm font-semibold">
-                  <IoMdTrendingUp className="w-4 h-4 mr-1" />
+                  <TrendingUp className="w-4 h-4 mr-1" />
                   {stat.trend}
                 </div>
               )}
@@ -276,7 +273,7 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
         <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
           <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
             <span className="w-8 h-8 bg-gradient-to-br from-[#8243ff] to-[#6c2bd9] rounded-lg flex items-center justify-center text-white mr-3">
-              <MdFlashOn className="w-5 h-5" />
+              <Zap className="w-5 h-5" />
             </span>
             Quick Actions
           </h3>
@@ -285,18 +282,18 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
               onClick={handleBrowseJobs}
               className="w-full bg-gradient-to-r from-gray-100 to-gray-200 hover:from-[#8243ff]/10 hover:to-[#8243ff]/5 text-gray-700 hover:text-[#8243ff] py-3 px-4 rounded-lg font-medium transition-all duration-300 transform hover:scale-102 flex items-center justify-center group border border-gray-200 hover:border-[#8243ff]/20 cursor-pointer"
             >
-              <MdSearch className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
+              <Search className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
               Browse Jobs
-              <MdArrowForward className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <ArrowRight className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
        
             <button 
               onClick={handleUpdateProfile}
               className="w-full bg-gradient-to-r from-gray-100 to-gray-200 hover:from-[#8243ff]/10 hover:to-[#8243ff]/5 text-gray-700 hover:text-[#8243ff] py-3 px-4 rounded-lg font-medium transition-all duration-300 transform hover:scale-102 flex items-center justify-center group border border-gray-200 hover:border-[#8243ff]/20 cursor-pointer"
             >
-              <MdPerson className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
+              <User className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
               Update Profile
-              <MdArrowForward className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <ArrowRight className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
           </div>
         </div>
@@ -306,26 +303,26 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
       <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200 hover:shadow-lg transition-all duration-300 cursor-default">
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
           <span className="w-8 h-8 bg-gradient-to-br from-[#8243ff] to-[#6c2bd9] rounded-lg flex items-center justify-center text-white mr-3">
-            <MdLightbulb className="w-5 h-5" />
+            <Lightbulb className="w-5 h-5" />
           </span>
           Job Search Tips
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center group">
             <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-2xl mb-3 mx-auto shadow-md group-hover:scale-105 group-hover:rotate-3 transition-all duration-300">
-              <FaBullseye className="w-8 h-8 text-white" />
+              <Target className="w-8 h-8 text-white" />
             </div>
             <p className="text-sm text-gray-700 font-medium group-hover:text-[#8243ff] transition-colors duration-300">Tailor your resume for each application</p>
           </div>
           <div className="text-center group">
             <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-2xl mb-3 mx-auto shadow-md group-hover:scale-105 group-hover:rotate-3 transition-all duration-300">
-              <FaHandshake className="w-8 h-8 text-white" />
+              <Handshake className="w-8 h-8 text-white" />
             </div>
             <p className="text-sm text-gray-700 font-medium group-hover:text-[#8243ff] transition-colors duration-300">Network with professionals in your field</p>
           </div>
           <div className="text-center group">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center text-2xl mb-3 mx-auto shadow-md group-hover:scale-105 group-hover:rotate-3 transition-all duration-300">
-              <FaChartLine className="w-8 h-8 text-white" />
+              <TrendingUp className="w-8 h-8 text-white" />
             </div>
             <p className="text-sm text-gray-700 font-medium group-hover:text-[#8243ff] transition-colors duration-300">Keep learning and upgrading your skills</p>
           </div>

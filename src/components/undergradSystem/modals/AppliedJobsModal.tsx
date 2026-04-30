@@ -1,23 +1,21 @@
 'use client';
 
 import React from 'react';
-import { 
-  MdDescription, 
-  MdRefresh, 
-  MdClose, 
-  MdMailOutline, 
-  MdLocationOn,
-  MdWork,
-  MdAssignment
-} from 'react-icons/md';
-import { 
-  FaClipboardList, 
-  FaBullseye, 
-  FaCheck, 
-  FaTimes,
-  FaMoneyBillWave
-} from 'react-icons/fa';
-import { IoMdTime } from 'react-icons/io';
+import {
+  FileText,
+  RefreshCw,
+  X,
+  Mail,
+  MapPin,
+  Briefcase,
+  Clipboard,
+  ClipboardList,
+  Target,
+  Check,
+  Banknote,
+  Clock,
+  Phone
+} from 'lucide-react';
 
 interface Company {
   _id: string;
@@ -91,17 +89,17 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "interviewed":
-        return <IoMdTime className="w-5 h-5" />;
+        return <Clock className="w-5 h-5" />;
       case "applied":
-        return <FaClipboardList className="w-5 h-5" />;
+        return <ClipboardList className="w-5 h-5" />;
       case "interview_called":
-        return <FaBullseye className="w-5 h-5" />;
+        return <Target className="w-5 h-5" />;
       case "selected":
-        return <FaCheck className="w-5 h-5" />;
+        return <Check className="w-5 h-5" />;
       case "rejected":
-        return <FaTimes className="w-5 h-5" />;
+        return <X className="w-5 h-5" />;
       default:
-        return <MdAssignment className="w-5 h-5" />;
+        return <Clipboard className="w-5 h-5" />;
     }
   };
 
@@ -146,7 +144,7 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold flex items-center">
-                <MdDescription className="w-7 h-7 mr-3" />
+                <FileText className="w-7 h-7 mr-3" />
                 My Applications
               </h2>
               <p className="text-purple-100 text-sm mt-1">
@@ -158,7 +156,7 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
                 onClick={onRefresh}
                 className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2"
               >
-                <MdRefresh className="w-5 h-5" />
+                <RefreshCw className="w-5 h-5" />
                 <span>Refresh</span>
               </button>
               <button
@@ -166,7 +164,7 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
                 aria-label="Close applications modal"
                 className="text-white hover:text-purple-200 text-2xl font-bold"
               >
-                <MdClose className="w-6 h-6" />
+                <X className="w-6 h-6" />
               </button>
             </div>
           </div>
@@ -177,7 +175,7 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
           {appliedJobs.length === 0 ? (
             <div className="p-12 text-center">
               <div className="text-6xl mb-4 flex justify-center">
-                <MdMailOutline className="w-20 h-20 text-gray-400" />
+                <Mail className="w-20 h-20 text-gray-400" />
               </div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
                 No Applications Yet
@@ -243,15 +241,15 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
                               
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                 <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                  <MdLocationOn className="w-4 h-4" />
+                                  <MapPin className="w-4 h-4" />
                                   <span>{application.jobId.location}</span>
                                 </div>
                                 <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                  <MdWork className="w-4 h-4" />
+                                  <Briefcase className="w-4 h-4" />
                                   <span>{application.jobId.jobType}</span>
                                 </div>
                                 <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                  <FaMoneyBillWave className="w-4 h-4" />
+                                  <Banknote className="w-4 h-4" />
                                   <span>{formatSalary(application.jobId.salaryRange)}</span>
                                 </div>
                               </div>
@@ -281,7 +279,7 @@ export default function AppliedJobsModal({ isOpen, onClose, appliedJobs, onRefre
                               {application.interviewCall && (
                                 <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                                   <div className="flex items-center space-x-2 text-purple-800">
-                                    <MdPhone className="w-4 h-4" />
+                                    <Phone className="w-4 h-4" />
                                     <span className="font-medium">Interview Scheduled!</span>
                                   </div>
                                 </div>

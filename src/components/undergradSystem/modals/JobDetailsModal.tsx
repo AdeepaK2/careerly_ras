@@ -2,30 +2,17 @@
 
 import React from "react";
 import {
-  MdBusiness,
-  MdLocationOn,
-  MdWork,
-  MdAttachMoney,
-  MdCalendarToday,
-  MdPeople,
-  MdDescription,
-  MdBuild,
-  MdSchool,
-  MdCategory,
-  MdAnalytics,
-  MdAccessTime,
-  MdClose,
-  MdFavorite,
-  MdSave
-} from 'react-icons/md';
-import {
-  FaFire,
-  FaHeart,
-  FaRegHeart,
-  FaMoneyBillWave
-} from 'react-icons/fa';
-import { HiAcademicCap } from 'react-icons/hi';
-import { GiSkills } from 'react-icons/gi';
+  Briefcase,
+  MapPin,
+  Clock,
+  Calendar,
+  X,
+  Building2,
+  Users,
+  Flame,
+  Heart,
+  Banknote,
+} from "lucide-react";
 
 interface CompanyProfile {
   _id: string;
@@ -141,7 +128,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           <div className="flex justify-between items-start">
             <div className="flex items-start space-x-4">
               <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center text-2xl">
-                {job.logo || <MdBusiness className="w-8 h-8 text-white" />}
+                {job.logo || <Building2 className="w-8 h-8 text-white" />}
               </div>
               <div>
                 <h2 className="text-2xl font-bold">{job.title}</h2>
@@ -150,15 +137,15 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                 </p>
                 <div className="flex items-center space-x-4 mt-2 text-sm text-purple-200">
                   <span className="flex items-center space-x-1">
-                    <MdLocationOn className="w-4 h-4" />
+                    <MapPin className="w-4 h-4" />
                     <span>{job.location}</span>
                   </span>
                   <span className="flex items-center space-x-1">
-                    <MdWork className="w-4 h-4" />
+                    <Briefcase className="w-4 h-4" />
                     <span>{job.jobType}</span>
                   </span>
                   <span className="flex items-center space-x-1">
-                    <MdBusiness className="w-4 h-4" />
+                    <Building2 className="w-4 h-4" />
                     <span>{job.workPlaceType}</span>
                   </span>
                 </div>
@@ -168,7 +155,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               onClick={onClose}
               className="text-white hover:text-purple-200 text-2xl font-bold"
             >
-              <MdClose className="w-6 h-6" />
+              <X className="w-6 h-6" />
             </button>
           </div>
 
@@ -176,7 +163,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           {job.urgent && (
             <div className="mt-3">
               <span className="inline-flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium animate-pulse">
-                <FaFire className="w-4 h-4" />
+                <Flame className="w-4 h-4" />
                 Urgent Hiring
               </span>
             </div>
@@ -189,7 +176,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
               <div className="flex items-center space-x-2 mb-2">
-                <FaMoneyBillWave className="w-5 h-5 text-purple-800" />
+                <Banknote className="w-5 h-5 text-purple-800" />
                 <h4 className="font-semibold text-purple-800">Salary Range</h4>
               </div>
               <p className="text-purple-700">{formatSalary(job.salaryRange)}</p>
@@ -197,7 +184,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
               <div className="flex items-center space-x-2 mb-2">
-                <MdCalendarToday className="w-5 h-5 text-purple-800" />
+                <Calendar className="w-5 h-5 text-purple-800" />
                 <h4 className="font-semibold text-purple-800">
                   Application Deadline
                 </h4>
@@ -210,7 +197,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
               <div className="flex items-center space-x-2 mb-2">
-                <MdPeople className="w-5 h-5 text-purple-800" />
+                <Users className="w-5 h-5 text-purple-800" />
                 <h4 className="font-semibold text-purple-800">Applicants</h4>
               </div>
               <p className="text-purple-700">
@@ -321,7 +308,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           {/* Posted Date */}
           <div className="bg-gray-50 p-4 rounded-xl">
             <p className="text-gray-600 text-sm flex items-center">
-              <MdAccessTime className="w-4 h-4 mr-2" />
+              <Clock className="w-4 h-4 mr-2" />
               <span className="font-semibold">Posted on:</span>{" "}
               {formatDate(job.posted_date)}
             </p>
@@ -361,12 +348,12 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                 </span>
               ) : isJobSaved ? (
                 <span className="flex items-center space-x-1">
-                  <FaHeart className="w-4 h-4" />
+                  <Heart className="w-4 h-4" />
                   <span>Saved</span>
                 </span>
               ) : (
                 <span className="flex items-center space-x-1">
-                  <FaRegHeart className="w-4 h-4" />
+                  <Heart className="w-4 h-4 fill-current" />
                   <span>Save Job</span>
                 </span>
               )}

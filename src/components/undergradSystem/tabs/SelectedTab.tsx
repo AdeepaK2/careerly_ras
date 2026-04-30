@@ -3,25 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useAuthenticatedRequest } from '@/hooks/useAuthenticatedRequest';
 import {
-  MdWork,
-  MdRefresh,
-  MdDescription,
-  MdDownload,
-  MdClose,
-  MdInfo,
-  MdCalendarToday,
-  MdAccessTime,
-  MdLocationOn,
-  MdNotifications,
-  MdEmail
-} from 'react-icons/md';
-import {
-  FaRegFileAlt,
-  FaExclamationTriangle,
-  FaArrowRight
-} from 'react-icons/fa';
-import { HiClipboardList } from 'react-icons/hi';
-import { IoMdTime } from 'react-icons/io';
+  Briefcase,
+  RefreshCw,
+  FileText,
+  Download,
+  X,
+  Calendar,
+  Clock,
+  MapPin,
+  Bell,
+  Mail,
+  ArrowRight,
+  ClipboardList
+} from 'lucide-react';
 
 interface ApplicationStatus {
   _id: string;
@@ -153,7 +147,7 @@ export default function SelectedTab() {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold mb-2 flex items-center">
-              <HiClipboardList className="w-8 h-8 mr-3" />
+              <ClipboardList className="w-8 h-8 mr-3" />
               My Applications
             </h1>
             <p className="text-purple-100">Track the status of all your job applications</p>
@@ -167,7 +161,7 @@ export default function SelectedTab() {
             disabled={loading}
             className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 flex items-center space-x-2"
           >
-            <MdRefresh className="w-5 h-5" />
+            <RefreshCw className="w-5 h-5" />
             <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
           </button>
         </div>
@@ -249,15 +243,15 @@ export default function SelectedTab() {
                       </p>
                       <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
                         <span className="flex items-center space-x-1">
-                          <MdWork className="w-4 h-4" />
+                          <Briefcase className="w-4 h-4" />
                           <span>{application.jobId?.jobType || 'N/A'}</span>
                         </span>
                         <span className="flex items-center space-x-1">
-                          <MdLocationOn className="w-4 h-4" />
+                          <MapPin className="w-4 h-4" />
                           <span>{application.jobId?.location || 'N/A'}</span>
                         </span>
                         <span className="flex items-center space-x-1">
-                          <IoMdTime className="w-4 h-4" />
+                          <Clock className="w-4 h-4" />
                           <span>Applied {application.appliedTimeAgo}</span>
                         </span>
                       </div>
@@ -270,7 +264,7 @@ export default function SelectedTab() {
                       {(application.status === 'selected' || application.status === 'interview_called' || application.status === 'shortlisted') && (
                         <div className="mt-1">
                           <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs animate-pulse flex items-center space-x-1">
-                            <MdNotifications className="w-3 h-3" />
+                            <Bell className="w-3 h-3" />
                             <span>New Update</span>
                           </span>
                         </div>
@@ -290,7 +284,7 @@ export default function SelectedTab() {
                         className="text-[#8243ff] hover:text-[#6c2bd9] font-medium group-hover:translate-x-1 flex items-center space-x-1 cursor-pointer"
                         >
                           <span>View Details</span>
-                          <FaArrowRight className="w-4 h-4" />
+                          <ArrowRight className="w-4 h-4" />
                     </button>
                     
                     {application.cv && (
@@ -298,14 +292,14 @@ export default function SelectedTab() {
                         onClick={() => downloadCV(application.cv!, application.jobId?.title || 'Job')}
                         className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors text-sm flex items-center space-x-1 cursor-pointer"
                       >
-                        <MdDownload className="w-4 h-4" />
+                        <Download className="w-4 h-4" />
                         <span>Download CV</span>
                       </button>
                     )}
                     
                     {(application.status === 'selected' || application.status === 'interview_called') && (
                       <span className="px-3 py-1 bg-green-100 text-green-800 rounded text-sm font-medium flex items-center space-x-1">
-                        <MdEmail className="w-4 h-4" />
+                        <Mail className="w-4 h-4" />
                         <span>Action Required - Check Email</span>
                       </span>
                     )}
@@ -317,7 +311,7 @@ export default function SelectedTab() {
         ) : (
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
             <div className="text-6xl mb-4 flex justify-center">
-              <FaRegFileAlt className="w-20 h-20 text-gray-400" />
+              <FileText className="w-20 h-20 text-gray-400" />
             </div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
               {filter === 'all' ? 'No Applications Yet' : `No ${filter.replace('_', ' ')} Applications`}
@@ -358,7 +352,7 @@ export default function SelectedTab() {
                   aria-label="Close application details"
                   className="text-gray-400 hover:text-gray-600"
                 >
-                  <MdClose className="w-5 h-5" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -414,12 +408,12 @@ export default function SelectedTab() {
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="flex items-center">
-                    <MdCalendarToday className="w-4 h-4 mr-2 text-gray-500" />
+                    <Calendar className="w-4 h-4 mr-2 text-gray-500" />
                     <span className="font-medium text-gray-700">Applied Date:</span>
                     <span className="ml-2 text-gray-600">{selectedApplication.appliedDate}</span>
                   </div>
                   <div className="flex items-center">
-                    <MdAccessTime className="w-4 h-4 mr-2 text-gray-500" />
+                    <Clock className="w-4 h-4 mr-2 text-gray-500" />
                     <span className="font-medium text-gray-700">Time Ago:</span>
                     <span className="ml-2 text-gray-600">{selectedApplication.appliedTimeAgo}</span>
                   </div>
@@ -433,7 +427,7 @@ export default function SelectedTab() {
                   onClick={() => downloadCV(selectedApplication.cv!, selectedApplication.jobId?.title || 'Job')}
                   className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors flex items-center space-x-1 cursor-pointer"
                 >
-                  <MdDownload className="w-4 h-4" />
+                  <Download className="w-4 h-4" />
                   <span>Download CV</span>
                 </button>
               )}
