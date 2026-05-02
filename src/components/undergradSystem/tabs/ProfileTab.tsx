@@ -288,7 +288,7 @@ export default function ProfileTab() {
               {process.env.NODE_ENV === 'development' && (
                 <button
                   onClick={fetchProfile}
-                  className="bg-gray-500 text-white px-3 py-2 rounded-md hover:bg-gray-600 transition-colors text-sm"
+                  className="bg-gray-500 text-white px-3 py-2 rounded-md hover:bg-gray-600 transition-colors text-sm cursor-pointer"
                 >
                   Refresh
                 </button>
@@ -302,7 +302,7 @@ export default function ProfileTab() {
                     console.log('Current editedProfile:', editedProfile);
                     console.log('Current editedProfile skills:', editedProfile.skills);
                   }}
-                  className="bg-purple-500 text-white px-3 py-2 rounded-md hover:bg-purple-600 transition-colors text-sm"
+                  className="bg-purple-500 text-white px-3 py-2 rounded-md hover:bg-purple-600 transition-colors text-sm cursor-pointer"
                 >
                   Debug
                 </button>
@@ -310,7 +310,7 @@ export default function ProfileTab() {
               {!isEditing ? (
                 <button
                   onClick={startEditing}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
                 >
                   Edit Profile
                 </button>
@@ -318,14 +318,14 @@ export default function ProfileTab() {
                 <div className="space-x-2">
                   <button
                     onClick={cancelEditing}
-                    className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+                    className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={saveProfile}
                     disabled={saving}
-                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
+                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 cursor-pointer"
                   >
                     {saving ? 'Saving...' : 'Save Changes'}
                   </button>
@@ -400,7 +400,7 @@ export default function ProfileTab() {
                   type="text"
                   value={editedProfile.name || ''}
                   onChange={(e) => setEditedProfile(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="text-gray-900 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               ) : (
                 <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-md">{profile.name}</p>
@@ -414,7 +414,7 @@ export default function ProfileTab() {
                   type="text"
                   value={editedProfile.nameWithInitials || ''}
                   onChange={(e) => setEditedProfile(prev => ({ ...prev, nameWithInitials: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="text-gray-900 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               ) : (
                 <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-md">{profile.nameWithInitials}</p>
@@ -443,7 +443,7 @@ export default function ProfileTab() {
                   type="tel"
                   value={editedProfile.phoneNumber || ''}
                   onChange={(e) => setEditedProfile(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="text-gray-900 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               ) : (
                 <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-md">{profile.phoneNumber}</p>
@@ -457,7 +457,7 @@ export default function ProfileTab() {
                   type="date"
                   value={editedProfile.birthdate ? new Date(editedProfile.birthdate).toISOString().split('T')[0] : ''}
                   onChange={(e) => setEditedProfile(prev => ({ ...prev, birthdate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="text-gray-900 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               ) : (
                 <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-md">
@@ -472,7 +472,7 @@ export default function ProfileTab() {
                 <select
                   value={editedProfile.jobSearchingStatus || ''}
                   onChange={(e) => setEditedProfile(prev => ({ ...prev, jobSearchingStatus: e.target.value as any }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="text-gray-900 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="not_searching">Not Searching</option>
                   <option value="passive">Passive</option>
@@ -495,7 +495,7 @@ export default function ProfileTab() {
                 value={editedProfile.address || ''}
                 onChange={(e) => setEditedProfile(prev => ({ ...prev, address: e.target.value }))}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-gray-900 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             ) : (
               <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-md">{profile.address}</p>
@@ -524,7 +524,7 @@ export default function ProfileTab() {
               {!isEditing && profile.skills && profile.skills.length > 0 && (
                 <button
                   onClick={startEditing}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer"
                 >
                   + Add More Skills
                 </button>
@@ -538,7 +538,7 @@ export default function ProfileTab() {
                     value={newSkill}
                     onChange={(e) => setNewSkill(e.target.value)}
                     placeholder="Add a skill (e.g., JavaScript, Communication, Leadership)"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="text-gray-900 flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -599,7 +599,7 @@ export default function ProfileTab() {
                 {(!profile.skills || profile.skills.length === 0) && (
                   <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                     <p className="text-blue-700 text-sm mb-2">
-                      💡 <strong>Add your skills to stand out!</strong> Skills help employers find you for relevant opportunities.
+                      <strong>Add your skills to stand out!</strong> Skills help employers find you for relevant opportunities.
                     </p>
                     <button
                       onClick={startEditing}
@@ -623,10 +623,10 @@ export default function ProfileTab() {
               <div className="flex items-center gap-4">
                 {profile.cvUrl ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-green-600">✓ CV uploaded</span>
+                    <span className="text-green-600 cursor-default">✓ CV uploaded</span>
                     <button
                       onClick={() => handleDownload(profile.cvUrl!, 'CV.pdf')}
-                      className="text-blue-600 hover:text-blue-800 underline"
+                      className="text-blue-600 hover:text-blue-800 cursor-pointer"
                     >
                       Download
                     </button>
@@ -660,10 +660,10 @@ export default function ProfileTab() {
               <div className="flex items-center gap-4">
                 {profile.resumeUrl ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-green-600">✓ Resume uploaded</span>
+                    <span className="text-green-600 cursor-default">✓ Resume uploaded</span>
                     <button
                       onClick={() => handleDownload(profile.resumeUrl!, 'Resume.pdf')}
-                      className="text-blue-600 hover:text-blue-800 underline"
+                      className="text-blue-600 hover:text-blue-800 cursor-pointer"
                     >
                       Download
                     </button>
