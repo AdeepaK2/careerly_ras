@@ -145,7 +145,7 @@ export default function CompanyNavbar({ activeTab, onTabChange }: NavbarProps) {
               <li key={key}>
                 <button
                   onClick={() => onTabChange(key)}
-                  className={`px-3 py-2 text-sm font-medium transition-colors flex items-center gap-2 ${
+                  className={`px-3 py-2 text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer ${
                     activeTab === key
                       ? "text-[var(--primary)] border-b-2 border-[var(--primary)] font-semibold"
                       : "text-gray-700 hover:text-[var(--primary)]"
