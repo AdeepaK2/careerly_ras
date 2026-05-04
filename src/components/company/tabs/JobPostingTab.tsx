@@ -5,6 +5,10 @@ import ViewApplicantsModal from "@/components/company/modals/ViewApplicantsModal
 import {
   Plus,
   X,
+  Briefcase,
+  TrendingUp,
+  Clock,
+  Users
 } from "lucide-react";
 
 interface JobPosting {
@@ -511,17 +515,7 @@ export default function JobPostingTab() {
         <div className="glass-effect p-6 rounded-lg border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-blue-100">
-              <svg
-                className="w-6 h-6 text-blue-600"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <Briefcase className="w-6 h-6 text-blue-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Active Jobs</p>
@@ -535,13 +529,7 @@ export default function JobPostingTab() {
         <div className="glass-effect p-6 rounded-lg border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-green-100">
-              <svg
-                className="w-6 h-6 text-green-600"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <Users className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">
@@ -557,17 +545,7 @@ export default function JobPostingTab() {
         <div className="glass-effect p-6 rounded-lg border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-yellow-100">
-              <svg
-                className="w-6 h-6 text-yellow-600"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <Clock className="w-6 h-6 text-yellow-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Pending</p>
@@ -581,14 +559,7 @@ export default function JobPostingTab() {
         <div className="glass-effect p-6 rounded-lg border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-purple-100">
-              <svg
-                className="w-6 h-6 text-purple-600"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
-                <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
-              </svg>
+              <TrendingUp className="w-6 h-6 text-purple-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">
@@ -1029,7 +1000,7 @@ export default function JobPostingTab() {
                             addCustomSection();
                           }
                         }}
-                        placeholder="Section title e.g. Responsibilities"
+                        placeholder="Section title"
                         title="Section title"
                         className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
                         autoFocus
