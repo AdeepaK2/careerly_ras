@@ -2,6 +2,33 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import {
+  CheckCircle,
+  AlertTriangle,
+  Briefcase,
+  Users,
+  Calendar,
+  Award,
+  Plus,
+  FileText,
+  UserCheck,
+  Clock,
+  Building,
+  Mail,
+  Phone,
+  Activity,
+  ArrowRight,
+  Hash,
+  AtSign
+} from "lucide-react";
+
+type TabKey =
+  | "home"
+  | "jobPosting"
+  | "selected"
+  | "shortlist"
+  | "profile"
+  | "verification";
 
 interface CompanyUser {
   id: string;
@@ -20,58 +47,36 @@ interface CompanyUser {
   };
 }
 
-export default function HomeTab() {
+interface HomeTabProps {
+  onTabChange?: (tab: TabKey) => void;
+}
+
+export default function HomeTab({ onTabChange }: HomeTabProps) {
   const router = useRouter();
   const [user, setUser] = useState<CompanyUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
+    activeJobs: 0,
     totalApplications: 0,
     newApplicationsToday: 0,
     interviewsScheduled: 0,
     offersExtended: 0,
   });
-  const [recentActivity, setRecentActivity] = useState([
-    {
-      id: 1,
-      type: "application",
-      message: "New application received for Software Engineer position",
-      time: "2 hours ago",
-      icon: "📄",
-    },
-    {
-      id: 2,
-      type: "interview",
-      message: "Interview scheduled with Sarah Johnson",
-      time: "3 hours ago",
-      icon: "📅",
-    },
-    {
-      id: 3,
-      type: "offer",
-      message: "Offer extended to Michael Chen",
-      time: "1 day ago",
-      icon: "🎉",
-    },
-  ]);
+  const [recentActivity, setRecentActivity] = useState<
+    Array<{
+      id: string;
+      type: string;
+      message: string;
+      time: string;
+      icon: string;
+    }>
+  >([]);
 
   useEffect(() => {
-    checkAuth();
-    loadDashboardStats();
+    loadDashboard();
   }, []);
 
-  const loadDashboardStats = async () => {
-    // Simulate API call for dashboard statistics
-    setTimeout(() => {
-      setStats({
-        totalApplications: 147,
-        newApplicationsToday: 8,
-        interviewsScheduled: 12,
-        offersExtended: 5,
-      });
-    }, 1000);
-  };
-
-  const checkAuth = async () => {
+  const loadDashboard = async () => {
     try {
       const token =
         typeof window !== "undefined"
@@ -83,21 +88,36 @@ export default function HomeTab() {
         return;
       }
 
-      const response = await fetch("/api/auth/company/me", {
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const [profileResponse, dashboardResponse] = await Promise.all([
+        fetch("/api/auth/company/me", {
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch("/api/company/dashboard", {
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+      ]);
 
-      if (response.ok) {
-        const data = await response.json();
+      if (profileResponse.ok) {
+        const data = await profileResponse.json();
         setUser(data.data.user);
       } else {
         router.push("/auth/company/login");
+        return;
+      }
+
+      if (dashboardResponse.ok) {
+        const dashboardData = await dashboardResponse.json();
+        setStats(dashboardData.data.stats);
+        setRecentActivity(dashboardData.data.recentActivity || []);
       }
     } catch (error) {
-      console.error("Auth check failed:", error);
+      console.error("Dashboard load failed:", error);
       router.push("/auth/company/login");
     } finally {
       setLoading(false);
@@ -132,11 +152,13 @@ export default function HomeTab() {
               <span className="text-sm text-gray-500">
                 {user.isVerified ? (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 shadow-sm">
-                    ✓ Verified
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Verified
                   </span>
                 ) : (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 shadow-sm">
-                    ⚠ Not Verified
+                    <AlertTriangle className="w-3 h-3 mr-1" />
+                    Not Verified
                   </span>
                 )}
               </span>
@@ -150,18 +172,8 @@ export default function HomeTab() {
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-yellow-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+              <div className="shrink-0">
+                <AlertTriangle className="h-5 w-5 text-yellow-400" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-yellow-700">
@@ -179,27 +191,15 @@ export default function HomeTab() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="glass-effect rounded-lg shadow-lg p-6 card-hover">
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6"
-                  />
-                </svg>
+              <div className="shrink-0">
+              <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+                <Briefcase className="w-6 h-6 text-white" />
               </div>
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Active Jobs</p>
               <p className="text-2xl font-bold text-gray-900">
-                {user.jobPostingLimits.currentActiveJobs}
+                {stats.activeJobs}
               </p>
               <p className="text-xs text-gray-500">
                 of {user.jobPostingLimits.maxActiveJobs} max
@@ -210,21 +210,9 @@ export default function HomeTab() {
 
         <div className="glass-effect rounded-lg shadow-lg p-6 card-hover">
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
+            <div className="shrink-0">
+              <div className="w-10 h-10 bg-linear-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
+                <Users className="w-6 h-6 text-white" />
               </div>
             </div>
             <div className="ml-4">
@@ -243,21 +231,9 @@ export default function HomeTab() {
 
         <div className="glass-effect rounded-lg shadow-lg p-6 card-hover">
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
+            <div className="shrink-0">
+              <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+                <Calendar className="w-6 h-6 text-white" />
               </div>
             </div>
             <div className="ml-4">
@@ -274,21 +250,9 @@ export default function HomeTab() {
 
         <div className="glass-effect rounded-lg shadow-lg p-6 card-hover">
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+            <div className="shrink-0">
+              <div className="w-10 h-10 bg-linear-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
+                <Award className="w-6 h-6 text-white" />
               </div>
             </div>
             <div className="ml-4">
@@ -316,73 +280,32 @@ export default function HomeTab() {
             <div className="grid grid-cols-1 gap-4">
               <button
                 disabled={!user.isVerified}
-                className="bg-gradient-to-r from-[#8243ff] to-purple-600 text-white px-6 py-4 rounded-lg hover:from-purple-700 hover:to-purple-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 shadow-lg"
-                onClick={() => {
-                  /* Navigate to job posting */
-                }}
+                className="bg-linear-to-r from-[#8243ff] to-purple-600 text-white px-6 py-4 rounded-lg hover:from-purple-700 hover:to-purple-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 shadow-lg cursor-pointer"
+                onClick={() => onTabChange?.("jobPosting")}
+                title={!user.isVerified ? "Verify your company to post jobs" : ""}
               >
                 <div className="flex items-center justify-center">
-                  <svg
-                    className="w-5 h-5 mr-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
+                  <Plus className="w-5 h-5 mr-3" />
                   Post New Job
                 </div>
               </button>
 
               <button
-                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
-                onClick={() => {
-                  /* Navigate to applications */
-                }}
+                className="bg-linear-to-r from-blue-500 to-blue-600 text-white px-6 py-4 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 transform hover:scale-105 shadow-lg cursor-pointer"
+                onClick={() => onTabChange?.("shortlist")}
               >
                 <div className="flex items-center justify-center">
-                  <svg
-                    className="w-5 h-5 mr-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                    />
-                  </svg>
+                  <FileText className="w-5 h-5 mr-3" />
                   View Applications ({stats.totalApplications})
                 </div>
               </button>
 
               <button
-                className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
-                onClick={() => {
-                  /* Navigate to selected candidates */
-                }}
+                className="bg-linear-to-r from-green-500 to-green-600 text-white px-6 py-4 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 transform hover:scale-105 shadow-lg cursor-pointer"
+                onClick={() => onTabChange?.("selected")}
               >
                 <div className="flex items-center justify-center">
-                  <svg
-                    className="w-5 h-5 mr-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
+                  <UserCheck className="w-5 h-5 mr-3" />
                   Manage Selected Candidates
                 </div>
               </button>
@@ -398,23 +321,32 @@ export default function HomeTab() {
             </h2>
           </div>
           <div className="p-6">
-            <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-start space-x-3 p-3 rounded-lg hover:bg-white/50 transition-colors"
-                >
-                  <span className="text-2xl">{activity.icon}</span>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-900">{activity.message}</p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
+            {recentActivity.length > 0 ? (
+              <div className="space-y-4">
+                {recentActivity.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-start space-x-3 p-3 rounded-lg hover:bg-white/50 transition-colors"
+                  >
+                    <Activity className="w-5 h-5 text-purple-500" />
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-900">
+                        {activity.message}
+                      </p>
+                      <p className="text-xs text-gray-500">{activity.time}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-              <button className="w-full text-[#8243ff] hover:text-purple-700 text-sm font-medium py-2">
-                View All Activity →
-              </button>
-            </div>
+                ))}
+                <button className="w-full text-[#8243ff] hover:text-purple-700 text-sm font-medium py-2 flex items-center justify-center">
+                  View All Activity
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </button>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-gray-200 bg-white/40 p-6 text-center text-sm text-gray-500">
+                No recent activity yet.
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -429,8 +361,8 @@ export default function HomeTab() {
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-3 shadow-lg">
-                {user.registrationNumber.slice(-3)}
+              <div className="w-16 h-16 bg-linear-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-3 shadow-lg">
+                <Hash className="w-8 h-8" />
               </div>
               <p className="text-sm font-medium text-gray-600">
                 Registration Number
@@ -440,8 +372,8 @@ export default function HomeTab() {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-3 shadow-lg">
-                @
+              <div className="w-16 h-16 bg-linear-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-3 shadow-lg">
+                <AtSign className="w-8 h-8" />
               </div>
               <p className="text-sm font-medium text-gray-600">
                 Business Email
@@ -451,8 +383,8 @@ export default function HomeTab() {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-3 shadow-lg">
-                📞
+              <div className="w-16 h-16 bg-linear-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-3 shadow-lg">
+                <Phone className="w-8 h-8" />
               </div>
               <p className="text-sm font-medium text-gray-600">Phone Number</p>
               <p className="text-sm text-gray-900 font-semibold">
@@ -460,8 +392,8 @@ export default function HomeTab() {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-3 shadow-lg">
-                🏢
+              <div className="w-16 h-16 bg-linear-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto mb-3 shadow-lg">
+                <Building className="w-8 h-8" />
               </div>
               <p className="text-sm font-medium text-gray-600">Industry</p>
               <p className="text-sm text-gray-900 font-semibold">

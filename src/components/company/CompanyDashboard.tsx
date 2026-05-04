@@ -119,7 +119,7 @@ export default function CompanyDashboard() {
           user={{ companyName: user.companyName, isVerified: user.isVerified }}
         />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {activeTab === "home" && <HomeTab />}
+          {activeTab === "home" && <HomeTab onTabChange={setActiveTab} />}
           {activeTab === "jobPosting" && <JobPostingTab />}
           {activeTab === "selected" && <SelectedTab />}
           {activeTab === "shortlist" && <ShortlistTab />}

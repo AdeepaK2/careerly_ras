@@ -55,3 +55,26 @@ const connect = async () => {
 };
 
 export default connect;
+
+// Ensure models are loaded and registered with Mongoose when this module is imported.
+// This prevents MissingSchemaError when using `populate()` in API routes
+// where specific model files may not have been imported yet.
+try {
+  // Import model files for side-effects (they register themselves with mongoose)
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('../lib/models/job');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('../lib/models/application');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('../lib/models/undergraduate');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('../lib/models/company');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('../lib/models/shortlist');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('../lib/models/admin');
+} catch (err) {
+  // Non-fatal: if model files can't be required here (e.g., during tooling), don't crash.
+  // The routes can still import models directly as a fallback.
+  // console.warn('Model preloading skipped:', err);
+}
