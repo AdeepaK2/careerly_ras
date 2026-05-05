@@ -68,6 +68,7 @@ export const PUT = withCompanyAuth(async (request: NextRequest, user) => {
       description,
       website,
       contactPerson,
+      logoUrl,
     } = body;
 
     // Validation
@@ -86,7 +87,14 @@ export const PUT = withCompanyAuth(async (request: NextRequest, user) => {
       }, { status: 400 });
     }
 
-    if (!address.street || !address.city || !address.province || !address.postalCode) {
+    const normalizedAddress = {
+      street: address?.street?.trim() || "",
+      city: address?.city?.trim() || "",
+      province: (address?.province || address?.state || "").trim(),
+      postalCode: address?.postalCode?.trim() || "",
+    };
+
+    if (!normalizedAddress.street || !normalizedAddress.city || !normalizedAddress.province || !normalizedAddress.postalCode) {
       return NextResponse.json({
         success: false,
         message: "Missing address information"
@@ -107,10 +115,11 @@ export const PUT = withCompanyAuth(async (request: NextRequest, user) => {
       industry,
       companySize,
       foundedYear,
-      address,
+      address: normalizedAddress,
       description,
       website,
       contactPerson,
+      ...(logoUrl ? { logoUrl } : {}),
     };
 
     // Update company

@@ -33,6 +33,7 @@ interface CompanyUser {
   id: string;
   companyName: string;
   isVerified: boolean;
+  logoUrl?: string | null;
   verificationStatus: "pending" | "under_review" | "approved" | "rejected";
 }
 
@@ -41,6 +42,18 @@ export default function CompanyNavbar({ activeTab, onTabChange }: NavbarProps) {
   const [companyUser, setCompanyUser] = useState<CompanyUser | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const getLogoSrc = (logoUrl?: string | null) => {
+    if (!logoUrl) {
+      return null;
+    }
+
+    if (logoUrl.startsWith("blob:") || logoUrl.startsWith("/api/file/image")) {
+      return logoUrl;
+    }
+
+    return `/api/file/image?url=${encodeURIComponent(logoUrl)}`;
+  };
 
   useEffect(() => {
     fetchUserData();
@@ -123,6 +136,9 @@ export default function CompanyNavbar({ activeTab, onTabChange }: NavbarProps) {
     }
   };
 
+  const logoSrc = getLogoSrc(companyUser?.logoUrl);
+  const companyInitial = companyUser?.companyName?.charAt(0) || "C";
+
   return (
     <nav className="bg-white shadow-md mb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -180,8 +196,12 @@ export default function CompanyNavbar({ activeTab, onTabChange }: NavbarProps) {
                 onClick={() => setIsProfileOpen((prev) => !prev)}
                 className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <div className="w-8 h-8 bg-[var(--primary)] rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 bg-[var(--primary)] rounded-full flex items-center justify-center overflow-hidden">
+                  {logoSrc ? (
+                    <img src={logoSrc} alt="Company logo" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-semibold text-white">{companyInitial}</span>
+                  )}
                 </div>
                 {companyUser && (
                   <div className="hidden md:block text-left">
@@ -201,8 +221,12 @@ export default function CompanyNavbar({ activeTab, onTabChange }: NavbarProps) {
                 <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                   <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[var(--primary)] rounded-full flex items-center justify-center">
-                        <User className="w-5 h-5 text-white" />
+                      <div className="w-10 h-10 bg-[var(--primary)] rounded-full flex items-center justify-center overflow-hidden">
+                        {logoSrc ? (
+                          <img src={logoSrc} alt="Company logo" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-sm font-semibold text-white">{companyInitial}</span>
+                        )}
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">

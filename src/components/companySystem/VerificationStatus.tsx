@@ -495,7 +495,7 @@ export default function CompanyVerificationStatus({ onVerificationUpdate }: Comp
                 <select
                   value={selectedDocType}
                   onChange={(e) => setSelectedDocType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select document type</option>
                   {verification.requiredDocuments.filter(doc => !doc.submitted).map(doc => (
@@ -510,7 +510,7 @@ export default function CompanyVerificationStatus({ onVerificationUpdate }: Comp
                   type="file"
                   onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Supported formats: PDF, JPG, PNG, DOC, DOCX (Max 10MB)
@@ -558,7 +558,7 @@ export default function CompanyVerificationStatus({ onVerificationUpdate }: Comp
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter your message to the verification team..."
                 />
               </div>
