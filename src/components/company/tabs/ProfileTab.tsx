@@ -1,12 +1,45 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from 'next/navigation';
+import {
+  Mail,
+  Smartphone,
+  BarChart3,
+  AlertCircle,
+  Trash2,
+  Pencil,
+  X,
+  Loader2,
+  Upload,
+  Building2,
+  Calendar,
+  Users,
+  Briefcase,
+  MapPin,
+  Globe,
+  Phone,
+  AtSign,
+  Hash,
+  FileText,
+  User,
+  CheckCircle,
+  Eye,
+  Bell
+} from "lucide-react";
 
 export default function ProfileTab() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [companyData, setCompanyData] = useState({
     companyName: "",
     registrationNumber: "",
@@ -37,6 +70,18 @@ export default function ProfileTab() {
     logo: null,
   });
 
+  const getLogoSrc = (logoUrl: string | null) => {
+    if (!logoUrl) {
+      return null;
+    }
+
+    if (logoUrl.startsWith("blob:") || logoUrl.startsWith("/api/file/image")) {
+      return logoUrl;
+    }
+
+    return `/api/file/image?url=${encodeURIComponent(logoUrl)}`;
+  };
+
   // Fetch company data on component mount
   useEffect(() => {
     const fetchCompanyData = async () => {
@@ -66,6 +111,7 @@ export default function ProfileTab() {
 
         if (result.success && result.data?.user) {
           const userData = result.data.user;
+          const savedLogoUrl = userData.logoUrl || null;
           setCompanyData({
             companyName: userData.companyName || "",
             registrationNumber: userData.registrationNumber || "",
@@ -93,8 +139,9 @@ export default function ProfileTab() {
             isVerified: userData.isVerified || false,
             verificationStatus: userData.verificationStatus || "pending",
             isActive: userData.isActive || true,
-            logo: userData.logoUrl || null,
+            logo: savedLogoUrl,
           });
+          setLogoPreview(savedLogoUrl);
         } else {
           setError(result.message || 'Failed to fetch company data');
         }
@@ -152,7 +199,6 @@ export default function ProfileTab() {
 
       if (result.success) {
         setIsEditing(false);
-        // Optionally refetch data to ensure consistency
         console.log('Profile updated successfully');
       } else {
         setError(result.message || 'Failed to update profile');
@@ -165,12 +211,152 @@ export default function ProfileTab() {
     }
   };
 
+  const handleLogoUpload = async (file: File) => {
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload a valid image file');
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File size must be less than 5MB');
+      return;
+    }
+
+    try {
+      setIsUploadingLogo(true);
+      setError(null);
+      const previewUrl = URL.createObjectURL(file);
+      setLogoPreview(previewUrl);
+
+      const token = typeof window !== "undefined" 
+        ? localStorage.getItem("company_accessToken") 
+        : null;
+        
+      if (!token) {
+        setError('Authentication token not found');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folderPath', 'companies/logos');
+
+      const response = await fetch('/api/file/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const logoUrl = result.data?.url || null;
+        
+        // Update profile with new logo
+        const updateData = {
+          companyName: companyData.companyName,
+          registrationNumber: companyData.registrationNumber,
+          businessEmail: companyData.businessEmail,
+          phoneNumber: companyData.phoneNumber,
+          industry: companyData.industry,
+          companySize: companyData.companySize,
+          foundedYear: parseInt(companyData.foundedYear) || 2020,
+          website: companyData.website,
+          address: companyData.address,
+          description: companyData.description,
+          contactPerson: companyData.contactPerson,
+          logoUrl,
+        };
+
+        const updateResponse = await fetch('/api/auth/company/profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          credentials: 'include',
+          body: JSON.stringify(updateData),
+        });
+
+        if (updateResponse.ok) {
+          setCompanyData((prev) => ({
+            ...prev,
+            logo: logoUrl,
+          }));
+          console.log('Logo uploaded successfully');
+        } else {
+          const updateResult = await updateResponse.json().catch(() => null);
+          setError(updateResult?.message || 'Logo uploaded, but failed to save the profile');
+        }
+      } else {
+        setError(result.message || 'Failed to upload logo');
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      setError('Failed to upload logo');
+    } finally {
+      setIsUploadingLogo(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleLogoUpload(file);
+    }
+  };
+
+  // Extracted delete logic
+  const handleDelete = async () => {
+    setError(null);
+    setIsDeleting(true);
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('company_accessToken') : null;
+      if (!token) {
+        setError('Authentication token not found');
+        return;
+      }
+
+      const res = await fetch('/api/auth/company/delete', {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include'
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setError(body?.message || 'Failed to delete account');
+        return;
+      }
+
+      // successful deletion: clean client and redirect
+      if (typeof window !== 'undefined') localStorage.removeItem('company_accessToken');
+      router.push('/auth/company/login');
+    } catch (err) {
+      console.error('Delete request error:', err);
+      setError('Failed to delete account');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+      setDeleteConfirmText('');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Loading State */}
       {isLoading && (
         <div className="flex items-center justify-center p-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8243ff]"></div>
+          <Loader2 className="animate-spin rounded-full h-12 w-12 text-[#8243ff]" />
           <span className="ml-3 text-gray-600">Loading company profile...</span>
         </div>
       )}
@@ -180,13 +366,14 @@ export default function ProfileTab() {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
+              <AlertCircle className="h-5 w-5 text-red-400" />
             </div>
             <div className="ml-3">
               <p className="text-sm text-red-600">{error}</p>
             </div>
+            <button onClick={() => setError(null)} className="ml-auto">
+              <X className="h-4 w-4 text-red-500" />
+            </button>
           </div>
         </div>
       )}
@@ -209,615 +396,656 @@ export default function ProfileTab() {
                   disabled={isSaving}
                   className="bg-gradient-to-r from-[#8243ff] to-purple-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 transform hover:scale-105 flex items-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <svg
-                    className="w-5 h-5 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
-              Edit Profile
-            </button>
-          ) : (
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setIsEditing(false)}
-                disabled={isSaving}
-                className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-              >
-                {isSaving && (
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                )}
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Enhanced Profile Form */}
-      <div className="glass-effect rounded-lg shadow-lg">
-        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-[#8243ff]/10 to-purple-600/10">
-          <h3 className="text-lg font-bold text-gray-900">
-            Company Information
-          </h3>
-        </div>
-        <div className="p-6">
-          {/* Logo Upload */}
-          <div className="mb-8 text-center">
-            <div className="relative inline-block">
-              <div className="w-32 h-32 mx-auto bg-gradient-to-br from-[#8243ff] to-purple-600 rounded-full flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-lg">
-                {companyData.companyName.charAt(0)}
-              </div>
-              {isEditing && (
-                <button className="absolute bottom-2 right-2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center text-[#8243ff] hover:bg-gray-50 transition-colors">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
+                  <Pencil className="w-5 h-5 mr-2" />
+                  Edit Profile
                 </button>
-              )}
-            </div>
-            {isEditing && (
-              <button className="text-[#8243ff] hover:text-purple-700 text-sm font-medium">
-                Upload Company Logo
-              </button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Company Name
-              </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={companyData.companyName}
-                  onChange={(e) =>
-                    setCompanyData({
-                      ...companyData,
-                      companyName: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                />
               ) : (
-                <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                  {companyData.companyName}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Registration Number
-              </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={companyData.registrationNumber}
-                  onChange={(e) =>
-                    setCompanyData({
-                      ...companyData,
-                      registrationNumber: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                />
-              ) : (
-                <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                  {companyData.registrationNumber}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Business Email
-              </label>
-              {isEditing ? (
-                <input
-                  type="email"
-                  value={companyData.businessEmail}
-                  onChange={(e) =>
-                    setCompanyData({
-                      ...companyData,
-                      businessEmail: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                />
-              ) : (
-                <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                  {companyData.businessEmail}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Phone Number
-              </label>
-              {isEditing ? (
-                <input
-                  type="tel"
-                  value={companyData.phoneNumber}
-                  onChange={(e) =>
-                    setCompanyData({
-                      ...companyData,
-                      phoneNumber: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                />
-              ) : (
-                <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                  {companyData.phoneNumber}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Industry
-              </label>
-              {isEditing ? (
-                <select
-                  value={companyData.industry}
-                  onChange={(e) =>
-                    setCompanyData({ ...companyData, industry: e.target.value })
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                >
-                  <option>Software Development</option>
-                  <option>Financial Services</option>
-                  <option>Healthcare</option>
-                  <option>E-commerce</option>
-                  <option>Education</option>
-                  <option>Manufacturing</option>
-                  <option>Other</option>
-                </select>
-              ) : (
-                <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                  {companyData.industry}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Company Size
-              </label>
-              {isEditing ? (
-                <select
-                  value={companyData.companySize}
-                  onChange={(e) =>
-                    setCompanyData({
-                      ...companyData,
-                      companySize: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                >
-                  <option>1-10 employees</option>
-                  <option>11-50 employees</option>
-                  <option>51-100 employees</option>
-                  <option>101-500 employees</option>
-                  <option>500+ employees</option>
-                </select>
-              ) : (
-                <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                  {companyData.companySize}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Founded Year
-              </label>
-              {isEditing ? (
-                <input
-                  type="number"
-                  value={companyData.foundedYear}
-                  onChange={(e) =>
-                    setCompanyData({
-                      ...companyData,
-                      foundedYear: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                />
-              ) : (
-                <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                  {companyData.foundedYear}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Website
-              </label>
-              {isEditing ? (
-                <input
-                  type="url"
-                  value={companyData.website}
-                  onChange={(e) =>
-                    setCompanyData({ ...companyData, website: e.target.value })
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                />
-              ) : (
-                <a
-                  href={companyData.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block py-3 text-[#8243ff] hover:text-purple-700 font-medium bg-gray-50 px-4 rounded-lg transition-colors"
-                >
-                  {companyData.website}
-                </a>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    disabled={isSaving}
+                    className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  >
+                    {isSaving && (
+                      <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />
+                    )}
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
               )}
             </div>
           </div>
 
-          <div className="mt-8 space-y-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Company Address
-              </label>
-              {isEditing ? (
-                <div className="space-y-3">
-                  <input
-                    type="text"
-                    placeholder="Street Address"
-                    value={companyData.address.street}
-                    onChange={(e) =>
-                      setCompanyData({ 
-                        ...companyData, 
-                        address: { ...companyData.address, street: e.target.value }
-                      })
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <input
-                      type="text"
-                      placeholder="City"
-                      value={companyData.address.city}
-                      onChange={(e) =>
-                        setCompanyData({ 
-                          ...companyData, 
-                          address: { ...companyData.address, city: e.target.value }
-                        })
-                      }
-                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                    />
-                    <input
-                      type="text"
-                      placeholder="State"
-                      value={companyData.address.state}
-                      onChange={(e) =>
-                        setCompanyData({ 
-                          ...companyData, 
-                          address: { ...companyData.address, state: e.target.value }
-                        })
-                      }
-                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <input
-                      type="text"
-                      placeholder="Country"
-                      value={companyData.address.country}
-                      onChange={(e) =>
-                        setCompanyData({ 
-                          ...companyData, 
-                          address: { ...companyData.address, country: e.target.value }
-                        })
-                      }
-                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Postal Code"
-                      value={companyData.address.postalCode}
-                      onChange={(e) =>
-                        setCompanyData({ 
-                          ...companyData, 
-                          address: { ...companyData.address, postalCode: e.target.value }
-                        })
-                      }
-                      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                  {[
-                    companyData.address.street,
-                    companyData.address.city,
-                    companyData.address.state,
-                    companyData.address.country,
-                    companyData.address.postalCode
-                  ].filter(Boolean).join(', ') || 'No address provided'}
-                </p>
-              )}
+          {/* Enhanced Profile Form */}
+          <div className="glass-effect rounded-lg shadow-lg">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-[#8243ff]/10 to-purple-600/10">
+              <h3 className="text-lg font-bold text-gray-900">
+                Company Information
+              </h3>
             </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Company Description
-              </label>
-              {isEditing ? (
-                <textarea
-                  rows={4}
-                  value={companyData.description}
-                  onChange={(e) =>
-                    setCompanyData({
-                      ...companyData,
-                      description: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                />
-              ) : (
-                <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                  {companyData.description}
-                </p>
-              )}
-            </div>
-
-            {/* Contact Person Section */}
-            <div className="space-y-4 pt-6 border-t border-gray-200">
-              <h4 className="text-lg font-semibold text-gray-900">Contact Person Information</h4>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Contact Person Name
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={companyData.contactPerson.name}
-                      onChange={(e) =>
-                        setCompanyData({
-                          ...companyData,
-                          contactPerson: { ...companyData.contactPerson, name: e.target.value }
-                        })
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
-                    />
-                  ) : (
-                    <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                      {companyData.contactPerson.name || 'Not specified'}
-                    </p>
+            <div className="p-6">
+              {/* Logo Upload */}
+              <div className="mb-8 text-center">
+                <div className="relative inline-block">
+                  <div className="w-32 h-32 mx-auto bg-gradient-to-br from-[#8243ff] to-purple-600 rounded-full flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-lg overflow-hidden">
+                    {getLogoSrc(logoPreview || companyData.logo) ? (
+                      <img src={getLogoSrc(logoPreview || companyData.logo) || undefined} alt="Company Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <Building2 className="w-16 h-16" />
+                    )}
+                  </div>
+                  {isEditing && (
+                    <button 
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingLogo}
+                      className="absolute bottom-2 right-2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center text-[#8243ff] hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    >
+                      <Upload className="w-4 h-4" />
+                    </button>
                   )}
                 </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Designation
-                  </label>
-                  {isEditing ? (
+                {isEditing && (
+                  <>
                     <input
-                      type="text"
-                      value={companyData.contactPerson.designation}
-                      onChange={(e) =>
-                        setCompanyData({
-                          ...companyData,
-                          contactPerson: { ...companyData.contactPerson, designation: e.target.value }
-                        })
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      disabled={isUploadingLogo}
                     />
-                  ) : (
-                    <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                      {companyData.contactPerson.designation || 'Not specified'}
-                    </p>
-                  )}
-                </div>
+                    <button 
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingLogo}
+                      className="text-[#8243ff] hover:text-purple-700 text-sm font-medium disabled:opacity-50"
+                    >
+                      {isUploadingLogo ? 'Uploading...' : 'Upload Company Logo'}
+                    </button>
+                  </>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    Contact Email
+                    Company Name
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={companyData.companyName}
+                      onChange={(e) =>
+                        setCompanyData({
+                          ...companyData,
+                          companyName: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    />
+                  ) : (
+                    <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                      {companyData.companyName}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Registration Number
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={companyData.registrationNumber}
+                      onChange={(e) =>
+                        setCompanyData({
+                          ...companyData,
+                          registrationNumber: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    />
+                  ) : (
+                    <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                      {companyData.registrationNumber}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Business Email
                   </label>
                   {isEditing ? (
                     <input
                       type="email"
-                      value={companyData.contactPerson.email}
+                      value={companyData.businessEmail}
                       onChange={(e) =>
                         setCompanyData({
                           ...companyData,
-                          contactPerson: { ...companyData.contactPerson, email: e.target.value }
+                          businessEmail: e.target.value,
                         })
                       }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                     />
                   ) : (
                     <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                      {companyData.contactPerson.email || 'Not specified'}
+                      {companyData.businessEmail}
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    Contact Phone
+                    Phone Number
                   </label>
                   {isEditing ? (
                     <input
                       type="tel"
-                      value={companyData.contactPerson.phone}
+                      value={companyData.phoneNumber}
                       onChange={(e) =>
                         setCompanyData({
                           ...companyData,
-                          contactPerson: { ...companyData.contactPerson, phone: e.target.value }
+                          phoneNumber: e.target.value,
                         })
                       }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
                     />
                   ) : (
                     <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
-                      {companyData.contactPerson.phone || 'Not specified'}
+                      {companyData.phoneNumber}
                     </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Industry
+                  </label>
+                  {isEditing ? (
+                    <select
+                      value={companyData.industry}
+                      onChange={(e) =>
+                        setCompanyData({ ...companyData, industry: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    >
+                      <option>Software Development</option>
+                      <option>Financial Services</option>
+                      <option>Healthcare</option>
+                      <option>E-commerce</option>
+                      <option>Education</option>
+                      <option>Manufacturing</option>
+                      <option>Other</option>
+                    </select>
+                  ) : (
+                    <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                      {companyData.industry}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Company Size
+                  </label>
+                  {isEditing ? (
+                    <select
+                      value={companyData.companySize}
+                      onChange={(e) =>
+                        setCompanyData({
+                          ...companyData,
+                          companySize: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    >
+                      <option>1-10 employees</option>
+                      <option>11-50 employees</option>
+                      <option>51-100 employees</option>
+                      <option>101-500 employees</option>
+                      <option>500+ employees</option>
+                    </select>
+                  ) : (
+                    <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                      {companyData.companySize}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Founded Year
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      value={companyData.foundedYear}
+                      onChange={(e) =>
+                        setCompanyData({
+                          ...companyData,
+                          foundedYear: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    />
+                  ) : (
+                    <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                      {companyData.foundedYear}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Website
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="url"
+                      value={companyData.website}
+                      onChange={(e) =>
+                        setCompanyData({ ...companyData, website: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    />
+                  ) : (
+                    <a
+                      href={companyData.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block py-3 text-[#8243ff] hover:text-purple-700 font-medium bg-gray-50 px-4 rounded-lg transition-colors"
+                    >
+                      {companyData.website}
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Company Address
+                  </label>
+                  {isEditing ? (
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        placeholder="Street Address"
+                        value={companyData.address.street}
+                        onChange={(e) =>
+                          setCompanyData({ 
+                            ...companyData, 
+                            address: { ...companyData.address, street: e.target.value }
+                          })
+                        }
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input
+                          type="text"
+                          placeholder="City"
+                          value={companyData.address.city}
+                          onChange={(e) =>
+                            setCompanyData({ 
+                              ...companyData, 
+                              address: { ...companyData.address, city: e.target.value }
+                            })
+                          }
+                          className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                        />
+                        <input
+                          type="text"
+                          placeholder="State"
+                          value={companyData.address.state}
+                          onChange={(e) =>
+                            setCompanyData({ 
+                              ...companyData, 
+                              address: { ...companyData.address, state: e.target.value }
+                            })
+                          }
+                          className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input
+                          type="text"
+                          placeholder="Country"
+                          value={companyData.address.country}
+                          onChange={(e) =>
+                            setCompanyData({ 
+                              ...companyData, 
+                              address: { ...companyData.address, country: e.target.value }
+                            })
+                          }
+                          className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Postal Code"
+                          value={companyData.address.postalCode}
+                          onChange={(e) =>
+                            setCompanyData({ 
+                              ...companyData, 
+                              address: { ...companyData.address, postalCode: e.target.value }
+                            })
+                          }
+                          className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                      {[
+                        companyData.address.street,
+                        companyData.address.city,
+                        companyData.address.state,
+                        companyData.address.country,
+                        companyData.address.postalCode
+                      ].filter(Boolean).join(', ') || 'No address provided'}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Company Description
+                  </label>
+                  {isEditing ? (
+                    <textarea
+                      rows={4}
+                      value={companyData.description}
+                      onChange={(e) =>
+                        setCompanyData({
+                          ...companyData,
+                          description: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                    />
+                  ) : (
+                    <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                      {companyData.description || 'No description provided'}
+                    </p>
+                  )}
+                </div>
+
+                {/* Contact Person Section */}
+                <div className="space-y-4 pt-6 border-t border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-900">Contact Person Information</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Contact Person Name
+                      </label>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={companyData.contactPerson.name}
+                          onChange={(e) =>
+                            setCompanyData({
+                              ...companyData,
+                              contactPerson: { ...companyData.contactPerson, name: e.target.value }
+                            })
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                        />
+                      ) : (
+                        <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                          {companyData.contactPerson.name || 'Not specified'}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Designation
+                      </label>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={companyData.contactPerson.designation}
+                          onChange={(e) =>
+                            setCompanyData({
+                              ...companyData,
+                              contactPerson: { ...companyData.contactPerson, designation: e.target.value }
+                            })
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                        />
+                      ) : (
+                        <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                          {companyData.contactPerson.designation || 'Not specified'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Contact Email
+                      </label>
+                      {isEditing ? (
+                        <input
+                          type="email"
+                          value={companyData.contactPerson.email}
+                          onChange={(e) =>
+                            setCompanyData({
+                              ...companyData,
+                              contactPerson: { ...companyData.contactPerson, email: e.target.value }
+                            })
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                        />
+                      ) : (
+                        <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                          {companyData.contactPerson.email || 'Not specified'}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Contact Phone
+                      </label>
+                      {isEditing ? (
+                        <input
+                          type="tel"
+                          value={companyData.contactPerson.phone}
+                          onChange={(e) =>
+                            setCompanyData({
+                              ...companyData,
+                              contactPerson: { ...companyData.contactPerson, phone: e.target.value }
+                            })
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8243ff] focus:border-transparent transition-all shadow-sm text-gray-800"
+                        />
+                      ) : (
+                        <p className="py-3 text-gray-900 font-medium bg-gray-50 px-4 rounded-lg">
+                          {companyData.contactPerson.phone || 'Not specified'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Enhanced Account Settings */}
+          <div className="glass-effect rounded-lg shadow-lg">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-[#8243ff]/10 to-purple-600/10">
+              <h3 className="text-lg font-bold text-gray-900">Account Settings</h3>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                    <Mail className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">
+                      Email Notifications
+                    </h4>
+                    <p className="text-sm text-gray-500">
+                      Receive notifications about new applications and updates
+                    </p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" defaultChecked className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8243ff]"></div>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                    <Smartphone className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">
+                      SMS Notifications
+                    </h4>
+                    <p className="text-sm text-gray-500">
+                      Receive SMS alerts for urgent matters and deadlines
+                    </p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8243ff]"></div>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                    <BarChart3 className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">
+                      Analytics Reports
+                    </h4>
+                    <p className="text-sm text-gray-500">
+                      Weekly reports on job performance and candidate metrics
+                    </p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" defaultChecked className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8243ff]"></div>
+                </label>
+              </div>
+
+              <div className="pt-6 border-t border-gray-200">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start mb-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 mr-2 mt-0.5" />
+                    <h4 className="text-sm font-semibold text-red-900">
+                      Danger Zone
+                    </h4>
+                  </div>
+                  <p className="text-sm text-red-700 mb-4 ml-7">
+                    Permanently delete your company account and all associated data.
+                    This action cannot be undone.
+                  </p>
+                  <button onClick={() => setShowDeleteConfirm(true)} className="ml-7 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 flex items-center gap-2 shadow-md">
+                    <Trash2 className="w-4 h-4" />
+                    Delete Account
+                  </button>
+
+                  {/* Delete Confirmation Modal */}
+                  {showDeleteConfirm && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center">
+                      <div 
+                        className="absolute inset-0 bg-black opacity-50 backdrop-blur-sm" 
+                        onClick={() => { if (!isDeleting) { setShowDeleteConfirm(false); setDeleteConfirmText(''); } }} 
+                      />
+                      <div className="bg-white rounded-xl shadow-2xl p-6 z-10 w-full max-w-md transform transition-all duration-300">
+                        {/* Header */}
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                            <Trash2 className="w-5 h-5 text-red-600" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">Confirm account deletion</h3>
+                            <p className="text-xs text-gray-500">This action is irreversible</p>
+                          </div>
+                        </div>
+                        
+                        {/* Warning Message */}
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                          <p className="text-sm text-red-800 font-medium flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <span>Warning: This will permanently delete your company account and all associated data including:</span>
+                          </p>
+                          <ul className="text-xs text-red-700 mt-2 space-y-1 ml-6 list-disc">
+                            <li>All job postings</li>
+                            <li>All applications and candidate data</li>
+                            <li>Company profile and settings</li>
+                          </ul>
+                        </div>
+                        
+                        {/* Confirmation Input */}
+                        <div className="mb-5">
+                          <label className="text-sm font-medium text-gray-700 mb-2 block">
+                            Type <span className="font-bold text-red-600">DELETE</span> to confirm
+                          </label>
+                          <input 
+                            type="text" 
+                            value={deleteConfirmText} 
+                            onChange={(e) => setDeleteConfirmText(e.target.value)} 
+                            placeholder="Type DELETE to confirm" 
+                            className="w-full px-4 py-2.5 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+                            autoFocus
+                          />
+                        </div>
+                        
+                        {/* Action Buttons */}
+                        <div className="flex space-x-3 justify-end">
+                          <button 
+                            onClick={() => { if (!isDeleting) { setShowDeleteConfirm(false); setDeleteConfirmText(''); } }} 
+                            className="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-all duration-200 cursor-pointer disabled:opacity-50"
+                            disabled={isDeleting}
+                          >
+                            Cancel
+                          </button>
+                          <button 
+                            disabled={isDeleting || deleteConfirmText !== 'DELETE'} 
+                            onClick={handleDelete} 
+                            className="px-5 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
+                          >
+                            {isDeleting ? (
+                              <>
+                                <Loader2 className="animate-spin h-4 w-4" />
+                                Deleting...
+                              </>
+                            ) : (
+                              <>
+                                <Trash2 className="w-4 h-4" />
+                                Delete Account
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Enhanced Account Settings */}
-      <div className="glass-effect rounded-lg shadow-lg">
-        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-[#8243ff]/10 to-purple-600/10">
-          <h3 className="text-lg font-bold text-gray-900">Account Settings</h3>
-        </div>
-        <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                <svg
-                  className="w-5 h-5 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900">
-                  Email Notifications
-                </h4>
-                <p className="text-sm text-gray-500">
-                  Receive notifications about new applications and updates
-                </p>
-              </div>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" defaultChecked className="sr-only peer" />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8243ff]"></div>
-            </label>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                <svg
-                  className="w-5 h-5 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900">
-                  SMS Notifications
-                </h4>
-                <p className="text-sm text-gray-500">
-                  Receive SMS alerts for urgent matters and deadlines
-                </p>
-              </div>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8243ff]"></div>
-            </label>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                <svg
-                  className="w-5 h-5 text-purple-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900">
-                  Analytics Reports
-                </h4>
-                <p className="text-sm text-gray-500">
-                  Weekly reports on job performance and candidate metrics
-                </p>
-              </div>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" defaultChecked className="sr-only peer" />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8243ff]"></div>
-            </label>
-          </div>
-
-          <div className="pt-6 border-t border-gray-200">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-red-900 mb-2">
-                Danger Zone
-              </h4>
-              <p className="text-sm text-red-700 mb-4">
-                Permanently delete your company account and all associated data.
-                This action cannot be undone.
-              </p>
-              <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm font-medium transition-colors">
-                Delete Account
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      </>
+        </>
       )}
     </div>
   );

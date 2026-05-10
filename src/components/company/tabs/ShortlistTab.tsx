@@ -116,10 +116,15 @@ export default function ShortlistTab() {
   };
 
   const handleSendEmail = (applicant: ShortlistedApplicant, type: 'interview' | 'selected' | 'custom') => {
+    // Get applicant name - handle both firstName/lastName and name formats
+    const applicantName = applicant.applicantId.firstName 
+      ? `${applicant.applicantId.firstName} ${applicant.applicantId.lastName}`
+      : (applicant.applicantId as any).name || 'Candidate';
+    
     const templates = {
       interview: {
         subject: `Interview Invitation - ${applicant.jobId.title}`,
-        message: `Dear ${applicant.applicantId.firstName} ${applicant.applicantId.lastName},
+        message: `Dear ${applicantName},
 
 We are pleased to inform you that your application for the ${applicant.jobId.title} position has been reviewed and we would like to invite you for an interview.
 
@@ -138,7 +143,7 @@ Best regards,
       },
       selected: {
         subject: `Congratulations - Job Offer for ${applicant.jobId.title}`,
-        message: `Dear ${applicant.applicantId.firstName} ${applicant.applicantId.lastName},
+        message: `Dear ${applicantName},
 
 Congratulations! We are delighted to offer you the position of ${applicant.jobId.title} at our company.
 
@@ -155,7 +160,7 @@ Best regards,
       },
       custom: {
         subject: `Regarding your application for ${applicant.jobId.title}`,
-        message: `Dear ${applicant.applicantId.firstName} ${applicant.applicantId.lastName},
+        message: `Dear ${applicantName},
 
 [Your custom message here]
 
@@ -169,7 +174,7 @@ Best regards,
       subject: templates[type].subject,
       message: templates[type].message,
       applicationId: applicant.applicationId._id,
-      applicantName: `${applicant.applicantId.firstName} ${applicant.applicantId.lastName}`,
+      applicantName: applicantName,
     });
     setShowEmailModal(true);
   };
@@ -212,6 +217,7 @@ Best regards,
   };
 
   const updateApplicationStatus = async (applicationId: string, newStatus: string, statusType: string) => {
+    
     const confirmMessage = statusType === 'interview' 
       ? "Mark this candidate as 'Interview Called'?" 
       : "Mark this candidate as 'Selected'?";
@@ -263,10 +269,19 @@ Best regards,
     }
   };
 
-  const downloadCV = async (cvUrl: string, applicantName: string) => {
+  const downloadCV = async (cvUrl: string, firstName?: string, lastName?: string) => {
+    // Handle both firstName/lastName and name formats
+    const finalFirstName = firstName || 'Applicant';
+    const finalLastName = lastName || '';
+    
     try {
       const token = localStorage.getItem("company_accessToken");
-      const response = await fetch(cvUrl, {
+      
+      // Extract the file path from the URL
+      const urlParts = cvUrl.split('/');
+      const filePath = urlParts.slice(-3).join('/');
+      
+      const response = await fetch(`/api/file/download?path=${encodeURIComponent(filePath)}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -277,15 +292,17 @@ Best regards,
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${applicantName}_CV.pdf`;
+        a.download = `${finalFirstName}_${finalLastName}_CV.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+      } else {
+        alert("Failed to download CV");
       }
     } catch (error) {
       console.error("Error downloading CV:", error);
-      alert("Failed to download CV");
+      alert("Failed to download CV. Please try again.");
     }
   };
 
@@ -377,12 +394,15 @@ Best regards,
               {/* Actions */}
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() =>
+                  onClick={() => {
+                    const firstName = item.applicantId.firstName || (item.applicantId as any).name?.split(' ')[0] || 'Applicant';
+                    const lastName = item.applicantId.lastName || (item.applicantId as any).name?.split(' ').slice(1).join(' ') || '';
                     downloadCV(
                       item.applicationId.cv,
-                      `${item.applicantId.firstName}_${item.applicantId.lastName}`
-                    )
-                  }
+                      firstName,
+                      lastName
+                    );
+                  }}
                   className="px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors"
                 >
                   Download CV
@@ -513,9 +533,14 @@ Best regards,
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Send Email</h3>
-              <p className="text-sm text-gray-600">
-                To: {emailData.applicantName}
-              </p>
+              <div className="mt-2 bg-blue-50 p-3 rounded border border-blue-200">
+                <p className="text-sm font-medium text-gray-700">
+                  To: <span className="text-gray-900 font-semibold">{emailData.applicantName}</span>
+                </p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Email: {emailData.to}
+                </p>
+              </div>
             </div>
 
             <div className="p-6 space-y-4">
@@ -528,7 +553,7 @@ Best regards,
                   type="email"
                   value={emailData.to}
                   onChange={(e) => setEmailData(prev => ({ ...prev, to: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border text-gray-900 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="recipient@example.com"
                 />
               </div>
@@ -542,7 +567,7 @@ Best regards,
                   type="text"
                   value={emailData.subject}
                   onChange={(e) => setEmailData(prev => ({ ...prev, subject: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border text-gray-900 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Email subject"
                 />
               </div>
@@ -556,7 +581,7 @@ Best regards,
                   rows={8}
                   value={emailData.message}
                   onChange={(e) => setEmailData(prev => ({ ...prev, message: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border text-gray-900 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Email message"
                 />
               </div>

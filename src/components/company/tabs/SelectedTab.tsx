@@ -1,6 +1,20 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import {
+  RefreshCw,
+  Users,
+  Calendar,
+  Mail,
+  CheckCircle,
+  Clock,
+  Send,
+  X,
+  Eye,
+  MailOpen,
+  PhoneCall,
+  Target
+} from "lucide-react";
 
 interface SelectedCandidate {
   _id: string;
@@ -90,9 +104,9 @@ export default function SelectedTab() {
           applicationId: c.applicationId?._id || 'No ID'
         })));
         
-        // Filter only selected candidates
+        // Filter candidates that are in selected pipeline (selected, offered, accepted)
         const selected = data.data.filter((candidate: SelectedCandidate) => 
-          candidate.applicationId.status === 'selected'
+          ['selected', 'offered', 'accepted'].includes(candidate.applicationId.status)
         );
         console.log('Filtered selected candidates:', selected);
         setSelectedCandidates(selected);
@@ -232,19 +246,6 @@ HR Team`;
     }
   };
 
-  const statusOptions = [
-    "All",
-    "Interview Scheduled", 
-    "Appointment Letter Sent",
-    "Offer Accepted"
-  ];
-
-  const filteredCandidates = filterStatus === "All" 
-    ? selectedCandidates 
-    : selectedCandidates.filter(candidate => 
-        getDisplayStatus(candidate.applicationId.status) === filterStatus
-      );
-
   const getDisplayStatus = (status: string) => {
     switch (status) {
       case 'selected':
@@ -275,6 +276,19 @@ HR Team`;
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
+
+  const statusOptions = [
+    "All",
+    "Interview Scheduled", 
+    "Appointment Letter Sent",
+    "Offer Accepted"
+  ];
+
+  const filteredCandidates = filterStatus === "All" 
+    ? selectedCandidates 
+    : selectedCandidates.filter(candidate => 
+        getDisplayStatus(candidate.applicationId.status) === filterStatus
+      );
 
   if (loading) {
     return (
@@ -313,9 +327,10 @@ HR Team`;
           </select>
           <button 
             onClick={fetchSelectedCandidates}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
           >
-            🔄 Refresh
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
           </button>
         </div>
       </div>
@@ -325,7 +340,7 @@ HR Team`;
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 bg-purple-100 rounded-lg">
-              <span className="text-2xl">👥</span>
+              <Users className="w-6 h-6 text-purple-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Total Selected</p>
@@ -337,7 +352,7 @@ HR Team`;
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 bg-blue-100 rounded-lg">
-              <span className="text-2xl">📅</span>
+              <Calendar className="w-6 h-6 text-blue-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Interview Scheduled</p>
@@ -351,7 +366,7 @@ HR Team`;
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 bg-green-100 rounded-lg">
-              <span className="text-2xl">📧</span>
+              <Mail className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Letters Sent</p>
@@ -365,7 +380,7 @@ HR Team`;
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 bg-emerald-100 rounded-lg">
-              <span className="text-2xl">✅</span>
+              <CheckCircle className="w-6 h-6 text-emerald-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Offers Accepted</p>
@@ -437,7 +452,8 @@ HR Team`;
                   </div>
                 )}
 
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-500 flex items-center">
+                  <Clock className="w-3 h-3 mr-1" />
                   Selected on {formatDate(candidate.shortlistedAt)}
                 </div>
 
@@ -446,29 +462,33 @@ HR Team`;
                   <div className="flex flex-col gap-2">
                     <button
                       onClick={() => handleSendEmail(candidate, 'appointment')}
-                      className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm font-medium"
+                      className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center"
                     >
-                      📧 Send Appointment Letter
+                      <MailOpen className="w-4 h-4 mr-2" />
+                      Send Appointment Letter
                     </button>
                     
                     <button
                       onClick={() => handleSendEmail(candidate, 'interview')}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium"
+                      className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center"
                     >
-                      📞 Schedule Final Interview
+                      <PhoneCall className="w-4 h-4 mr-2" />
+                      Schedule Final Interview
                     </button>
                     
                     <div className="flex gap-2">
                       <button
                         onClick={() => setSelectedCandidate(candidate)}
-                        className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-sm"
+                        className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-sm flex items-center justify-center"
                       >
+                        <Eye className="w-4 h-4 mr-1" />
                         View Details
                       </button>
                       <button
                         onClick={() => handleSendEmail(candidate, 'custom')}
-                        className="flex-1 px-3 py-2 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors text-sm"
+                        className="flex-1 px-3 py-2 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors text-sm flex items-center justify-center"
                       >
+                        <Send className="w-4 h-4 mr-1" />
                         Custom Email
                       </button>
                     </div>
@@ -483,7 +503,9 @@ HR Team`;
       {/* Empty State */}
       {filteredCandidates.length === 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-          <div className="text-6xl mb-4">🎯</div>
+          <div className="text-6xl mb-4 flex justify-center">
+            <Target className="w-20 h-20 text-gray-400" />
+          </div>
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
             {filterStatus === "All" ? "No selected candidates" : `No candidates with status: ${filterStatus}`}
           </h3>
@@ -498,7 +520,7 @@ HR Team`;
       {/* Candidate Detail Modal */}
       {selectedCandidate && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -516,7 +538,7 @@ HR Team`;
                   onClick={() => setSelectedCandidate(null)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  ✕
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -563,34 +585,55 @@ HR Team`;
               )}
 
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">Application Details</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-700">Applied:</span>
-                    <span className="ml-2 text-gray-600">{formatDate(selectedCandidate.applicationId?.appliedAt || new Date().toISOString())}</span>
+                <h4 className="font-medium text-gray-900 mb-3">Application Details</h4>
+                <div className="space-y-3">
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-gray-700">Current Status</span>
+                      <span className={`text-xs font-semibold rounded-full px-3 py-1 ${getStatusColor(selectedCandidate.applicationId.status)}`}>
+                        {getDisplayStatus(selectedCandidate.applicationId.status)}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-medium text-gray-700">Selected:</span>
-                    <span className="ml-2 text-gray-600">{formatDate(selectedCandidate.shortlistedAt)}</span>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Applied On</p>
+                      <p className="text-gray-900 font-medium">{formatDate(selectedCandidate.applicationId?.appliedAt || new Date().toISOString())}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Selected On</p>
+                      <p className="text-gray-900 font-medium">{formatDate(selectedCandidate.shortlistedAt)}</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-2">
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
               <button
                 onClick={() => setSelectedCandidate(null)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors font-medium"
               >
                 Close
+              </button>
+              <button
+                onClick={() => {
+                  handleSendEmail(selectedCandidate, 'interview');
+                  setSelectedCandidate(null);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center font-medium"
+              >
+                <PhoneCall className="w-4 h-4 mr-2" />
+                Schedule Interview
               </button>
               <button
                 onClick={() => {
                   handleSendEmail(selectedCandidate, 'appointment');
                   setSelectedCandidate(null);
                 }}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center font-medium"
               >
+                <MailOpen className="w-4 h-4 mr-2" />
                 Send Appointment Letter
               </button>
             </div>
@@ -603,10 +646,21 @@ HR Team`;
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Send Email</h3>
-              <p className="text-sm text-gray-600">
-                To: {emailData.candidateName} ({emailData.jobTitle})
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Send Email</h3>
+                  <p className="text-sm text-gray-600">
+                    To: {emailData.candidateName} ({emailData.jobTitle})
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowEmailModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                  disabled={sending}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <div className="p-6 space-y-4">
@@ -616,7 +670,7 @@ HR Team`;
                   type="email"
                   value={emailData.to}
                   onChange={(e) => setEmailData(prev => ({ ...prev, to: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 border text-gray-900 border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
 
@@ -626,7 +680,7 @@ HR Team`;
                   type="text"
                   value={emailData.subject}
                   onChange={(e) => setEmailData(prev => ({ ...prev, subject: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 border text-gray-900 border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
 
@@ -636,7 +690,7 @@ HR Team`;
                   rows={12}
                   value={emailData.message}
                   onChange={(e) => setEmailData(prev => ({ ...prev, message: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 border text-gray-900 border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
             </div>
@@ -652,9 +706,19 @@ HR Team`;
               <button
                 onClick={sendEmail}
                 disabled={sending || !emailData.to.trim() || !emailData.subject.trim() || !emailData.message.trim()}
-                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
-                {sending ? 'Sending...' : 'Send Email'}
+                {sending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Send Email
+                  </>
+                )}
               </button>
             </div>
           </div>
