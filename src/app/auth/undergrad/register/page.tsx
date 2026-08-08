@@ -123,7 +123,7 @@ export default function UndergradRegisterPage() {
 
     try {
       // Remove confirmPassword before sending
-      const { confirmPassword, ...submitData } = formData;
+      const { confirmPassword: _confirmPassword, ...submitData } = formData;
       
       const result = await register(submitData);
       
@@ -132,7 +132,7 @@ export default function UndergradRegisterPage() {
       } else {
         setError(result.message);
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Registration failed. Please try again.');
     } finally {
       setLoading(false);

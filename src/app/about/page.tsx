@@ -81,7 +81,14 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="flex-1 flex items-center justify-center mt-0">
-            <img src="/RAS_SB.PNG" alt="RAS Logo" className="w-full -ml-8" />
+            <a
+              href="https://ieee-ras.uom.lk/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="IEEE RAS UoM website"
+            >
+              <img src="/RAS_SB.PNG" alt="RAS Logo" className="w-full -ml-8" />
+            </a>
           </div>
         </section>
         <h1 className="text-3xl md:text-4xl font-bold text-center gradient-text mb-2">

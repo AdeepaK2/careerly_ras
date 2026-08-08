@@ -3,7 +3,7 @@ import connect from "@/utils/db";
 import ApplicationModel from "@/lib/models/application";
 import { withAdminAuth } from "@/lib/auth/admin/middleware";
 
-async function handler(request: NextRequest) {
+async function handler(_request: NextRequest) {
   try {
     await connect();
 

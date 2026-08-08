@@ -13,10 +13,6 @@ export async function POST(
   try {
     await connect();
 
-    // Ensure all models are loaded
-    ApplicationModel;
-    JobModel;
-
     const { id: applicationId } = await params;
     const token = req.headers.get("authorization")?.replace("Bearer ", "");
 
@@ -97,10 +93,6 @@ export async function DELETE(
 ) {
   try {
     await connect();
-
-    // Ensure all models are loaded
-    ApplicationModel;
-    JobModel;
 
     const { id: applicationId } = await params;
     const token = req.headers.get("authorization")?.replace("Bearer ", "");

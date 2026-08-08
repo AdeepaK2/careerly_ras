@@ -37,7 +37,7 @@ export default function UndergradLoginPage() {
       } else {
         setError(result.message);
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Login failed. Please try again.');
     } finally {
       setLoading(false);

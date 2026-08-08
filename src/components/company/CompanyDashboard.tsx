@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CompanyNavbar from "@/components/company/Navbar";
-import VerificationBanner from "@/components/company/VerificationBanner";
 import HomeTab from "@/components/company/tabs/HomeTab";
 import JobPostingTab from "@/components/company/tabs/JobPostingTab";
 import SelectedTab from "@/components/company/tabs/SelectedTab";
@@ -46,6 +45,7 @@ export default function CompanyDashboard() {
 
   useEffect(() => {
     checkAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuth = async () => {
@@ -73,21 +73,6 @@ export default function CompanyDashboard() {
       router.push("/auth/company/login");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/company/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      if (typeof window !== "undefined")
-        localStorage.removeItem("company_accessToken");
-      router.push("/auth/company/login");
     }
   };
 

@@ -40,7 +40,6 @@ interface CustomSection {
 
 export default function JobPostingTab() {
   const [activeJobForm, setActiveJobForm] = useState(false);
-  const [editingJob, setEditingJob] = useState<JobPosting | null>(null);
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -187,7 +186,7 @@ export default function JobPostingTab() {
       } else {
         setMessage(result.error || "Failed to post job");
       }
-    } catch (error) {
+    } catch (_error) {
       setMessage("Network error occurred");
     } finally {
       setLoading(false);

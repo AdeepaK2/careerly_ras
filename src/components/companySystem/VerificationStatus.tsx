@@ -9,8 +9,6 @@ import {
   Upload, 
   FileText, 
   MessageSquare,
-  Info,
-  Calendar,
   ArrowRight,
   RefreshCw
 } from 'lucide-react';

@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 
 interface NavbarProps {
@@ -15,7 +14,7 @@ export default function Navbar({ showAuthButtons = true }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showLoginDropdown, setShowLoginDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [mounted, setMounted] = useState(false);
+
   // Prevent background scroll when mobile menu is open
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -26,11 +25,7 @@ export default function Navbar({ showAuthButtons = true }: NavbarProps) {
     return () => {
       document.body.style.overflow = '';
     };
-      const [mounted, setMounted] = useState(false);
   }, [mobileMenuOpen]);
-      useEffect(() => {
-        setMounted(true);
-      }, []);
 
   // Close mobile menu on route change
   useEffect(() => {

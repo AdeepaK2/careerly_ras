@@ -32,7 +32,7 @@ export default function CompanyForgotPassword() {
       } else {
         setError(data.message || 'Something went wrong. Please try again.');
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);

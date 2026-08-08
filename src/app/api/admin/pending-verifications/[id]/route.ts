@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import connect from "@/utils/db";
 import CompanyModel from "@/lib/models/company";
-import { sendEmail, emailTemplates } from "@/lib/services/emailService";
+import { sendEmail } from "@/lib/services/emailService";
 
 interface Params {
   id: string;
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, context: { params: Promise<Param
     const { id } = await context.params;
 
     // Find company account
-    let account = await CompanyModel.findById(id)
+    const account = await CompanyModel.findById(id)
       .select('companyName businessEmail registrationNumber industry companySize foundedYear address description website logoUrl contactPerson isVerified verificationStatus verificationDocuments verificationPriority verificationNotes createdAt verificationRequestedAt')
       .lean() as any;
 
@@ -67,7 +67,6 @@ export async function PATCH(request: NextRequest, context: { params: Promise<Par
     const Model = CompanyModel;
     
     let updateData: any = {};
-    let emailData: any = {};
 
     switch (action) {
       case 'approve':

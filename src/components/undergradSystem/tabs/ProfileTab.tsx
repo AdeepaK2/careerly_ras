@@ -52,6 +52,7 @@ export default function ProfileTab() {
 
   useEffect(() => {
     fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchProfile = async () => {
@@ -352,7 +353,7 @@ export default function ProfileTab() {
                     className={`w-32 h-32 rounded-full object-cover border-4 border-gray-200 ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity`}
                     onLoad={() => setImageLoading(false)}
                     onLoadStart={() => setImageLoading(true)}
-                    onError={(e) => {
+                    onError={(_e) => {
                       setImageLoading(false);
                       setImageError(true);
                     }}

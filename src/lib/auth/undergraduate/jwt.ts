@@ -32,7 +32,7 @@ export const generateUndergradTokens = (payload: UndergradJWTPayload): Undergrad
     );
 
     return { accessToken, refreshToken };
-  } catch (error) {
+  } catch (_error) {
     throw new Error('Failed to generate tokens');
   }
 };
@@ -99,7 +99,7 @@ export const generateEmailVerificationToken = (
     };
 
     return (jwt.sign as any)(payload, EMAIL_VERIFICATION_SECRET, { expiresIn: '24h' });
-  } catch (error) {
+  } catch (_error) {
     throw new Error('Failed to generate email verification token');
   }
 };
@@ -146,7 +146,7 @@ export const generatePasswordResetToken = (
     };
 
     return (jwt.sign as any)(payload, EMAIL_VERIFICATION_SECRET, { expiresIn: '1h' });
-  } catch (error) {
+  } catch (_error) {
     throw new Error('Failed to generate password reset token');
   }
 };

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import connect from "@/utils/db";
 import UndergradModel from "@/lib/models/undergraduate";
 import { verifyEmailVerificationToken, generateEmailVerificationToken } from "@/lib/auth/undergraduate/jwt";
-import { sendEmail, emailTemplates } from "@/lib/services/emailService";
 
 export async function GET(request: NextRequest) {
   try {

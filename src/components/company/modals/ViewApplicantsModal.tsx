@@ -59,6 +59,7 @@ export default function ViewApplicantsModal({
       fetchApplications();
       fetchShortlistedApplicants();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, jobId]);
 
   // Add ESC key handler
@@ -74,6 +75,7 @@ export default function ViewApplicantsModal({
     return () => {
       document.removeEventListener("keydown", handleEscape);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, onClose]);
 
   const handleClose = () => {

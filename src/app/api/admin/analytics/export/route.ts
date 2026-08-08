@@ -16,7 +16,7 @@ async function handler(request: NextRequest) {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
 
-    let query: any = {};
+    const query: any = {};
     if (startDate && endDate) {
       query.createdAt = {
         $gte: new Date(startDate),

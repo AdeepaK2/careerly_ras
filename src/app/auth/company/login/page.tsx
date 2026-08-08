@@ -50,7 +50,7 @@ export default function CompanyLoginPage() {
       } else {
         setError(data.message);
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Login failed. Please try again.');
     } finally {
       setLoading(false);

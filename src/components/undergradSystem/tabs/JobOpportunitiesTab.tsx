@@ -117,6 +117,7 @@ export default function JobOpportunitiesTab() {
     fetchJobs();
     fetchSavedJobs();
     fetchAppliedJobs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showAllJobs]);
 
   const fetchJobs = async (isLoadMore = false) => {
@@ -555,7 +556,7 @@ export default function JobOpportunitiesTab() {
       {/* Job Listings */}
       <div className="space-y-4">
         {filteredJobs.length > 0 ? (
-          filteredJobs.map((job, index) => (
+          filteredJobs.map((job, _index) => (
             <div
               key={job._id}
               className="bg-gradient-to-br from-white via-gray-50/30 to-white rounded-xl shadow-md border border-gray-100 hover:shadow-xl"

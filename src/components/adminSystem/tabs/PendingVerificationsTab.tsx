@@ -7,20 +7,14 @@ import {
   CheckCircle, 
   XCircle, 
   Search, 
-  Filter, 
   Eye, 
   MessageSquare,
   Building2,
   GraduationCap,
-  Calendar,
   TrendingUp,
-  Users,
   FileText,
   AlertCircle,
-  ChevronDown,
-  Send,
   Flag,
-  Upload,
   Download
 } from 'lucide-react';
 
@@ -116,7 +110,7 @@ export default function PendingVerificationsTab() {
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'company'>('company');
+  const [filterType, _setFilterType] = useState<'company'>('company');
   const [filterPriority, setFilterPriority] = useState<'all' | 'high' | 'medium' | 'low'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -196,11 +190,13 @@ export default function PendingVerificationsTab() {
   useEffect(() => {
     fetchRequests();
     fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setCurrentPage(1);
     fetchRequests(1, filterPriority, searchTerm);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterType, filterPriority, searchTerm]);
 
   const handlePageChange = (page: number) => {

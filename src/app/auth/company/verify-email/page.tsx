@@ -54,7 +54,7 @@ function VerifyEmailContent() {
           setVerificationStatus('error');
           setMessage(data.message);
         }
-      } catch (error) {
+      } catch (_error) {
         setVerificationStatus('error');
         setMessage('Email verification failed. Please try again.');
       }

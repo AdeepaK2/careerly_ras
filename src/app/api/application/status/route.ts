@@ -2,17 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyUndergradAccessToken } from "@/lib/auth/undergraduate/jwt";
 import connectToDatabase from "@/utils/db";
 import ApplicationModel from "@/lib/models/application";
-import JobModel from "@/lib/models/job";
 import CompanyModel from "@/lib/models/company";
 
 export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
-
-    // Ensure models are registered
-    JobModel;
-    CompanyModel;
-    ApplicationModel;
 
     const token = req.headers.get("authorization")?.replace("Bearer ", "");
     if (!token) {

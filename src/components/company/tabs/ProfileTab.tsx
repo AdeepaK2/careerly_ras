@@ -12,20 +12,7 @@ import {
   X,
   Loader2,
   Upload,
-  Building2,
-  Calendar,
-  Users,
-  Briefcase,
-  MapPin,
-  Globe,
-  Phone,
-  AtSign,
-  Hash,
-  FileText,
-  User,
-  CheckCircle,
-  Eye,
-  Bell
+  Building2
 } from "lucide-react";
 
 export default function ProfileTab() {

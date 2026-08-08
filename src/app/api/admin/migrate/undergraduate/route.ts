@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     // Perform actual migration
     let updated = 0;
-    let errors: any[] = [];
+    const errors: any[] = [];
     const batches = Math.ceil(totalDocuments / batchSize);
 
     for (let batch = 0; batch < batches; batch++) {
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Get migration status
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     await connectDB();
 

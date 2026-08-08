@@ -5,16 +5,12 @@ import {
   CheckCircle, 
   XCircle, 
   Search, 
-  Filter, 
   Eye, 
-  MoreVertical, 
   Building2,
   GraduationCap,
-  Calendar,
   TrendingUp,
   Users,
-  Award,
-  BarChart3
+  Award
 } from 'lucide-react';
 
 interface VerifiedAccount {
@@ -129,11 +125,13 @@ export default function VerifiedAccountsTab() {
   useEffect(() => {
     fetchAccounts();
     fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setCurrentPage(1);
     fetchAccounts(1, filterType, filterVerification, searchTerm);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterType, filterVerification, searchTerm]);
 
   const handlePageChange = (page: number) => {

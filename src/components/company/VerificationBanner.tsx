@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { CheckCircle, Clock, AlertTriangle, XCircle, X } from "lucide-react";
+import { useState } from "react";
+import { Clock, AlertTriangle, XCircle, X } from "lucide-react";
 
 interface VerificationBannerProps {
   user: {

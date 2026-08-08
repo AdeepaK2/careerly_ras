@@ -64,15 +64,7 @@ async function handler(request: NextRequest) {
     const unverifiedStudents = totalRegisteredStudents - verifiedStudents;
     const unverifiedCompanies = totalCompaniesAll - totalVerifiedCompanies;
 
-    // Users registered in the selected period
-    const newUndergradsInPeriod = totalUndergrads;
-    const newCompaniesInPeriod = totalCompanies;
-
-    // KPI: Jobs and applications in the selected period
-    const jobDateFilter = dateFilter.createdAt
-      ? { posted_date: dateFilter.createdAt }
-      : {};
-    const jobsInPeriod = await JobModel.countDocuments(jobDateFilter);
+    // KPI: Applications in the selected period
     const applicationsInPeriod = await ApplicationModel.countDocuments(
       applicationDateFilter
     );
@@ -136,7 +128,6 @@ async function handler(request: NextRequest) {
     });
 
     // KPI: Platform growth rate (30-day growth)
-    const since60d = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
     const users30dAgo =
       (await UndergradModel.countDocuments({
         createdAt: { $lte: since30d },

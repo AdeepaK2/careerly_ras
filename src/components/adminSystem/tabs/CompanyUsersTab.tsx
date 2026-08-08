@@ -120,22 +120,6 @@ export default function CompanyUsersTab() {
     }
   };
 
-  const handleUpdateJobLimit = (companyId: string, newLimit: number) => {
-    setCompanies((prev) =>
-      prev.map((company) =>
-        company.id === companyId
-          ? {
-              ...company,
-              jobPostingLimits: {
-                ...company.jobPostingLimits,
-                maxActiveJobs: newLimit,
-              },
-            }
-          : company
-      )
-    );
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">

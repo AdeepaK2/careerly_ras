@@ -122,7 +122,7 @@ export default function CompanyRegisterPage() {
 
     setLoading(true);
     try {
-      const { confirmPassword, ...submitData } = formData;
+      const { confirmPassword: _confirmPassword, ...submitData } = formData;
       const dataToSubmit = { ...submitData, foundedYear };
       const response = await fetch("/api/auth/company/register", {
         method: "POST",

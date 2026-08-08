@@ -83,7 +83,7 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
   // Modal states
   const [showAppliedJobsModal, setShowAppliedJobsModal] = useState(false);
   const [showSavedJobsModal, setShowSavedJobsModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
 
   const { makeAuthenticatedRequest } = useAuthenticatedRequest();
   const { user } = useAuth();
@@ -110,6 +110,7 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
   useEffect(() => {
     fetchSavedJobs();
     fetchAppliedJobs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stats = [

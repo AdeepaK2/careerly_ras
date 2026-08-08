@@ -80,7 +80,7 @@ function ResetPasswordForm() {
       } else {
         setError(data.message || 'Failed to reset password. Please try again.');
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);

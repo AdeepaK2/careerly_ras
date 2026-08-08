@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     let payload;
     try {
       payload = verifyAdminAccessToken(token);
-    } catch (err) {
+    } catch (_err) {
       return NextResponse.json(
         { success: false, message: "Invalid or expired token" },
         { status: 401 }

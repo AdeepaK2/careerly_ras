@@ -7,7 +7,6 @@ import {
   Users,
   Shield,
   Briefcase,
-  BarChart3,
   Menu,
   LogOut,
   ChevronDown,

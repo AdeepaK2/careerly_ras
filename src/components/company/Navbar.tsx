@@ -9,7 +9,6 @@ import {
   XCircle,
   Menu,
   X as CloseIcon,
-  User,
   LogOut,
   Settings,
 } from "lucide-react";
