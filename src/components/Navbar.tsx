@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 
 interface NavbarProps {
@@ -14,6 +15,11 @@ export default function Navbar({ showAuthButtons = true }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showLoginDropdown, setShowLoginDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Prevent background scroll when mobile menu is open
   useEffect(() => {
@@ -48,10 +54,96 @@ export default function Navbar({ showAuthButtons = true }: NavbarProps) {
     return false;
   };
 
+  const mobileMenu =
+    mobileMenuOpen && mounted
+      ? createPortal(
+          <nav
+            className="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center gap-8 text-lg font-semibold md:hidden"
+            aria-label="Mobile navigation menu"
+          >
+            <button
+              aria-label="Close menu"
+              className="absolute top-6 right-6 text-gray-600"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <Link
+              href="/"
+              className={`transition duration-200 ${isActive("/") ? "font-bold text-purple-700" : "text-gray-500 hover:text-purple-600"}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link
+              href="/contact-us"
+              className={`transition duration-200 ${isActive("/contact-us") ? "font-bold text-purple-700" : "text-gray-500 hover:text-purple-600"}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Contact Us
+            </Link>
+            <Link
+              href="/about"
+              className={`transition duration-200 ${isActive("/about") ? "font-bold text-purple-700" : "text-gray-500 hover:text-purple-600"}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              About
+            </Link>
+            {showAuthButtons ? (
+              <div className="flex flex-col gap-3 w-full max-w-xs mt-6 px-6">
+                <Link
+                  href="/auth"
+                  className="w-full text-center bg-purple-600 text-white px-5 py-3 rounded-full text-base font-medium hover:bg-purple-700 transition"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign up
+                </Link>
+                <button
+                  className="w-full text-purple-600 bg-purple-100 px-5 py-3 rounded-full text-base font-medium hover:bg-purple-200 transition flex items-center justify-center gap-1"
+                  onClick={() => setShowLoginDropdown((v) => !v)}
+                  type="button"
+                >
+                  Login
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {showLoginDropdown && (
+                  <div className="bg-white rounded-lg shadow-lg mt-2 border w-full z-10">
+                    <Link
+                      href="/auth/undergrad/login"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:rounded-t-lg hover:bg-purple-50 hover:text-purple-600"
+                      onClick={() => { setShowLoginDropdown(false); setMobileMenuOpen(false); }}
+                    >
+                      Undergraduate Login
+                    </Link>
+                    <Link
+                      href="/auth/company/login"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:rounded-b-lg hover:bg-purple-50 hover:text-purple-600"
+                      onClick={() => { setShowLoginDropdown(false); setMobileMenuOpen(false); }}
+                    >
+                      Company Login
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </nav>,
+          document.body
+        )
+      : null;
+
   return (
-    <header className={`sticky top-0 z-50 flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 w-full transition-all duration-300 ${
-      isScrolled ? 'bg-white/80 backdrop-blur-md ' : 'bg-transparent'
-    }`}>
+    <header className="sticky top-0 z-50 relative flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 w-full">
+      {/* Blur on a child so it doesn't trap position:fixed descendants */}
+      {isScrolled && (
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 bg-white/80 backdrop-blur-md pointer-events-none transition-all duration-300"
+        />
+      )}
       <Link href="/" className="flex items-center space-x-2">
         <img src="/logo.png" className="w-12 h-12" alt="Careerly Logo" />
         <span className="text-purple-600 font-bold">Careerly</span>
@@ -85,8 +177,8 @@ export default function Navbar({ showAuthButtons = true }: NavbarProps) {
       {/* Mobile nav button (hamburger) */}
       <button
         id="openMenu"
-        className="md:hidden text-gray-600"
-        aria-label="Open menu"
+        className="md:hidden text-gray-600 relative z-[101]"
+        aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
         onClick={() => setMobileMenuOpen((v) => !v)}
       >
         <svg
@@ -106,84 +198,7 @@ export default function Navbar({ showAuthButtons = true }: NavbarProps) {
         </svg>
       </button>
 
-      {/* Mobile nav menu */}
-      {mobileMenuOpen && (
-        <nav
-          className="fixed inset-0 z-50 bg-white/95 flex flex-col items-center justify-center gap-8 text-lg font-semibold md:hidden transition-all"
-          aria-label="Mobile navigation menu"
-        >
-          <button
-            aria-label="Close menu"
-            className="absolute top-6 right-6 text-gray-600"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          <Link
-            href="/"
-            className={`transition duration-200 ${isActive("/") ? "font-bold text-purple-700" : "text-gray-400 hover:text-purple-600"}`}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Home
-          </Link>
-          <Link
-            href="/contact-us"
-            className={`transition duration-200 ${isActive("/contact-us") ? "font-bold text-purple-700" : "text-gray-400 hover:text-purple-600"}`}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Contact Us
-          </Link>
-          <Link
-            href="/about"
-            className={`transition duration-200 ${isActive("/about") ? "font-bold text-purple-700" : "text-gray-400 hover:text-purple-600"}`}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            About
-          </Link>
-          {/* Auth buttons for mobile */}
-          {showAuthButtons ? (
-            <div className="flex flex-col gap-3 w-full max-w-xs mt-6">
-              <Link
-                href="/auth"
-                className="w-full text-center bg-purple-600 text-white px-5 py-3 rounded-full text-base font-medium hover:bg-purple-700 transition"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Sign up
-              </Link>
-              <button
-                className="w-full text-purple-600 bg-purple-100 px-5 py-3 rounded-full text-base font-medium hover:bg-purple-200 transition flex items-center justify-center gap-1"
-                onClick={() => setShowLoginDropdown((v) => !v)}
-                type="button"
-              >
-                Login
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {showLoginDropdown && (
-                <div className="bg-white rounded-lg shadow-lg mt-2 border w-full z-10">
-                  <Link
-                    href="/auth/undergrad/login"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:rounded-t-lg hover:bg-purple-50 hover:text-purple-600"
-                    onClick={() => { setShowLoginDropdown(false); setMobileMenuOpen(false); }}
-                  >
-                    Undergraduate Login
-                  </Link>
-                  <Link
-                    href="/auth/company/login"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:rounded-b-lg hover:bg-purple-50 hover:text-purple-600"
-                    onClick={() => { setShowLoginDropdown(false); setMobileMenuOpen(false); }}
-                  >
-                    Company Login
-                  </Link>
-                </div>
-              )}
-            </div>
-          ) : null}
-        </nav>
-      )}
+      {mobileMenu}
       
       {showAuthButtons ? (
         <div className="hidden md:flex space-x-4">

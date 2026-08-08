@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import connect from "@/utils/db";
 import CompanyModel from "@/lib/models/company";
 import { verifyCompanyPasswordResetToken } from "@/lib/auth/company/jwt";
-import { hashPassword } from "@/lib/auth/company/password";
+import { hashPassword, getPasswordPolicyError } from "@/lib/auth/company/password";
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,10 +20,11 @@ export async function POST(request: NextRequest) {
     const { token, password } = body;
     
     // Password strength validation
-    if (password.length < 8) {
+    const passwordError = getPasswordPolicyError(password);
+    if (passwordError) {
       return NextResponse.json({
         success: false,
-        message: "Password must be at least 8 characters long"
+        message: passwordError
       }, { status: 400 });
     }
     

@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import connect from "@/utils/db";
 import AdminModel from "@/lib/models/admin";
-import { hashPassword } from "@/lib/auth/admin/password";
+import { hashPassword, getPasswordPolicyError } from "@/lib/auth/admin/password";
 import { verifyAdminAccessToken } from "@/lib/auth/admin/jwt";
 
 function getBearerToken(req: NextRequest): string | null {
@@ -62,9 +62,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (password.length < 8) {
+    const passwordError = getPasswordPolicyError(password);
+    if (passwordError) {
       return NextResponse.json(
-        { success: false, message: "Password must be at least 8 characters" },
+        { success: false, message: passwordError },
         { status: 400 }
       );
     }

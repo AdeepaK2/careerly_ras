@@ -1,4 +1,11 @@
 import bcryptjs from 'bcryptjs';
+export {
+  validatePasswordStrength,
+  getPasswordPolicyError,
+  getPasswordRequirements,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MAX_LENGTH,
+} from '@/lib/auth/passwordPolicy';
 
 const SALT_ROUNDS = 12;
 
@@ -33,51 +40,6 @@ export async function comparePassword(password: string, hashedPassword: string):
  * Alias for comparePassword to maintain backward compatibility
  */
 export const verifyPassword = comparePassword;
-
-/**
- * Validate password strength
- */
-export function validatePasswordStrength(password: string): { 
-  isValid: boolean; 
-  errors: string[] 
-} {
-  const errors: string[] = [];
-
-  // Minimum length
-  if (password.length < 8) {
-    errors.push('Password must be at least 8 characters long');
-  }
-
-  // Maximum length
-  if (password.length > 128) {
-    errors.push('Password must be no more than 128 characters long');
-  }
-
-  // Must contain at least one lowercase letter
-  if (!/[a-z]/.test(password)) {
-    errors.push('Password must contain at least one lowercase letter');
-  }
-
-  // Must contain at least one uppercase letter
-  if (!/[A-Z]/.test(password)) {
-    errors.push('Password must contain at least one uppercase letter');
-  }
-
-  // Must contain at least one number
-  if (!/\d/.test(password)) {
-    errors.push('Password must contain at least one number');
-  }
-
-  // Must contain at least one special character
-  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    errors.push('Password must contain at least one special character');
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
-}
 
 /**
  * Generate a secure random password

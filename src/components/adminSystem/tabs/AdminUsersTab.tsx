@@ -11,6 +11,8 @@ import {
   Filter,
   Plus,
 } from "lucide-react";
+import { getPasswordPolicyError } from "@/lib/auth/passwordPolicy";
+import PasswordRequirements from "@/components/PasswordRequirements";
 
 /* -------------------- Types -------------------- */
 type AdminRole = "superadmin" | "admin";
@@ -161,8 +163,8 @@ export default function AdminUsersTab() {
       return setFormError("Username must be at least 4 characters");
     if (!/\S+@\S+\.\S+/.test(newEmail))
       return setFormError("Valid email required");
-    if (newPassword.length < 8)
-      return setFormError("Password must be ≥ 8 characters");
+    const passwordError = getPasswordPolicyError(newPassword);
+    if (passwordError) return setFormError(passwordError);
 
     setCreating(true);
     setFormError("");
@@ -239,10 +241,10 @@ export default function AdminUsersTab() {
       return setEditFormError("Username must be at least 4 characters");
     if (!/\S+@\S+\.\S+/.test(editEmail))
       return setEditFormError("Valid email required");
-    if (editPassword && editPassword.length < 8)
-      return setEditFormError(
-        "Password must be ≥ 8 characters (leave empty to keep current)"
-      );
+    if (editPassword) {
+      const passwordError = getPasswordPolicyError(editPassword);
+      if (passwordError) return setEditFormError(passwordError);
+    }
 
     setUpdating(true);
     setEditFormError("");
@@ -545,7 +547,7 @@ export default function AdminUsersTab() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-xl pr-10 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                    placeholder="Min 8 characters"
+                    placeholder="Create a strong password"
                   />
                   <button
                     type="button"
@@ -560,6 +562,7 @@ export default function AdminUsersTab() {
                     )}
                   </button>
                 </div>
+                <PasswordRequirements password={newPassword} />
               </div>
 
               <div>
@@ -699,7 +702,7 @@ export default function AdminUsersTab() {
                     value={editPassword}
                     onChange={(e) => setEditPassword(e.target.value)}
                     className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-xl pr-10 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                    placeholder="Min 8 characters or leave empty"
+                    placeholder="Strong password or leave empty"
                   />
                   <button
                     type="button"
@@ -714,6 +717,7 @@ export default function AdminUsersTab() {
                     )}
                   </button>
                 </div>
+                {editPassword ? <PasswordRequirements password={editPassword} /> : null}
               </div>
 
               <div className="flex justify-end gap-2 pt-2">

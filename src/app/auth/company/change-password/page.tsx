@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { getPasswordPolicyError } from '@/lib/auth/passwordPolicy';
+import PasswordRequirements from '@/components/PasswordRequirements';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -25,14 +27,19 @@ export default function ChangePasswordPage() {
     setError('');
     setSuccess('');
     
-    // Validate passwords
     if (formData.newPassword !== formData.confirmPassword) {
       setError('New password and confirm password do not match');
       return;
     }
 
-    if (formData.newPassword.length < 8) {
-      setError('New password must be at least 8 characters long');
+    if (formData.currentPassword === formData.newPassword) {
+      setError('New password must be different from your current password');
+      return;
+    }
+
+    const policyError = getPasswordPolicyError(formData.newPassword);
+    if (policyError) {
+      setError(policyError);
       return;
     }
 
@@ -69,15 +76,14 @@ export default function ChangePasswordPage() {
           confirmPassword: ''
         });
         
-        // Redirect after 3 seconds
         setTimeout(() => {
           router.push('/company/profile');
         }, 3000);
       } else {
         setError(data.message || 'Failed to change password');
       }
-    } catch (error) {
-      console.error('Error changing password:', error);
+    } catch (err) {
+      console.error('Error changing password:', err);
       setError('An error occurred. Please try again later.');
     } finally {
       setLoading(false);
@@ -87,13 +93,12 @@ export default function ChangePasswordPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="bg-white shadow rounded-lg mb-6">
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Change Password</h1>
-                <p className="text-gray-600">Update your account password</p>
+                <p className="text-gray-600">Update your account password securely</p>
               </div>
               <div>
                 <Link href="/company/profile" className="text-blue-600 hover:text-blue-800 flex items-center">
@@ -107,7 +112,6 @@ export default function ChangePasswordPage() {
           </div>
         </div>
 
-        {/* Success/Error Messages */}
         {success && (
           <div className="mb-6 bg-green-50 border border-green-200 text-green-700 p-4 rounded-md">
             {success}
@@ -133,6 +137,7 @@ export default function ChangePasswordPage() {
                   value={formData.currentPassword}
                   onChange={handleChange}
                   required
+                  autoComplete="current-password"
                   className="w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter your current password"
                 />
@@ -148,9 +153,11 @@ export default function ChangePasswordPage() {
                   value={formData.newPassword}
                   onChange={handleChange}
                   required
+                  autoComplete="new-password"
                   className="w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter new password (min. 8 characters)"
+                  placeholder="Create a strong password"
                 />
+                <PasswordRequirements password={formData.newPassword} />
               </div>
               
               <div>
@@ -163,6 +170,7 @@ export default function ChangePasswordPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
+                  autoComplete="new-password"
                   className="w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Confirm your new password"
                 />
@@ -171,7 +179,7 @@ export default function ChangePasswordPage() {
               <div>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !!getPasswordPolicyError(formData.newPassword)}
                   className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 >
                   {loading ? 'Updating...' : 'Update Password'}
