@@ -43,7 +43,7 @@ export async function POST(
     }
 
     // Verify company owns this job
-    if (job.companyId.toString() !== company.id) {
+    if (!job.companyId || job.companyId.toString() !== company.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 

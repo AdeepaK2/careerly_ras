@@ -9,7 +9,6 @@ import {
   AlertCircle,
   Trash2,
   Pencil,
-  X,
   Loader2,
   Upload,
   Building2

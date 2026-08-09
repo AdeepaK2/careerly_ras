@@ -26,7 +26,7 @@ export async function GET(
 
     // Verify company owns this job
     const job = await JobModel.findById(jobId);
-    if (!job || job.companyId.toString() !== company.id) {
+    if (!job || !job.companyId || job.companyId.toString() !== company.id) {
       return NextResponse.json(
         { error: "Job not found or unauthorized" },
         { status: 403 }

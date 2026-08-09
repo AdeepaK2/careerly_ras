@@ -61,7 +61,9 @@ function pushToast(input: ToastInput) {
 export function subscribeToasts(listener: Listener) {
   listeners.add(listener);
   listener([...toasts]);
-  return () => listeners.delete(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 export function dismissToast(id: string) {

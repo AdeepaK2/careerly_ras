@@ -110,7 +110,9 @@ function ToastCard({ item }: { item: ToastItem }) {
 export default function ToastViewport() {
   const [items, setItems] = useState<ToastItem[]>([]);
 
-  useEffect(() => subscribeToasts(setItems), []);
+  useEffect(() => {
+    return subscribeToasts(setItems);
+  }, []);
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-4 z-[200] flex flex-col items-center gap-3 px-4 sm:items-end sm:pr-6">
