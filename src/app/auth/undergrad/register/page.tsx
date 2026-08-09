@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { getPasswordPolicyError } from '@/lib/auth/passwordPolicy';
 import PasswordRequirements from '@/components/PasswordRequirements';
 import { getUniversityEmailError } from '@/lib/auth/undergraduate/universityEmail';
+import Notice from '@/components/ui/Notice';
 
 export default function UndergradRegisterPage() {
   const { register } = useAuth();
@@ -196,18 +197,9 @@ export default function UndergradRegisterPage() {
             </div>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-red-700 text-sm font-medium">{error}</p>
-                  </div>
-                </div>
-              </div>
+              <Notice type="error" className="mb-6" onClose={() => setError('')}>
+                {error}
+              </Notice>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -239,7 +231,7 @@ export default function UndergradRegisterPage() {
                     onChange={handleChange}
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
-                    placeholder="name@uom.lk"
+                    placeholder="you@university.edu"
                   />
                   {universityEmailFieldError && (
                     <p className="mt-1 text-xs text-red-600" aria-live="polite">

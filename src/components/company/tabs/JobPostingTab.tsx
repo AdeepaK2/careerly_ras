@@ -10,6 +10,7 @@ import {
   Clock,
   Users
 } from "lucide-react";
+import { toast } from "@/lib/toast";
 
 interface JobPosting {
   _id: string;
@@ -42,7 +43,6 @@ export default function JobPostingTab() {
   const [activeJobForm, setActiveJobForm] = useState(false);
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
   const [newSectionTitle, setNewSectionTitle] = useState("");
   const [showNewSectionInput, setShowNewSectionInput] = useState(false);
 
@@ -141,11 +141,9 @@ export default function JobPostingTab() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
-
     // Client-side validation
     if (formData.qualifiedDegrees.length === 0) {
-      setMessage("Please select at least one qualified degree");
+      toast.warning("Please select at least one qualified degree");
       setLoading(false);
       return;
     }
@@ -165,7 +163,7 @@ export default function JobPostingTab() {
       const result = await response.json();
 
       if (response.ok) {
-        setMessage("Job posted successfully!");
+        toast.success("Job posted successfully!");
         setActiveJobForm(false);
         // Reset form
         setFormData({
@@ -184,10 +182,10 @@ export default function JobPostingTab() {
         // Refresh jobs list
         fetchJobs();
       } else {
-        setMessage(result.error || "Failed to post job");
+        toast.error(result.error || "Failed to post job");
       }
     } catch (_error) {
-      setMessage("Network error occurred");
+      toast.error("Network error occurred");
     } finally {
       setLoading(false);
     }
@@ -216,19 +214,14 @@ export default function JobPostingTab() {
 
       if (response.ok) {
         setJobs(jobs.filter((job) => job._id !== id));
-        setMessage(`✅ Job "${jobTitle}" deleted successfully`);
-        setTimeout(() => setMessage(""), 5000);
+        toast.success(`Job "${jobTitle}" deleted successfully`);
       } else {
         const errorData = await response.json();
-        setMessage(
-          `❌ Failed to delete job: ${errorData.error || "Unknown error"}`
-        );
-        setTimeout(() => setMessage(""), 5000);
+        toast.error(`Failed to delete job: ${errorData.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Delete job error:", error);
-      setMessage("❌ Failed to delete job: Network error");
-      setTimeout(() => setMessage(""), 5000);
+      toast.error("Failed to delete job: Network error");
     }
   };
 
@@ -263,19 +256,14 @@ export default function JobPostingTab() {
             job._id === id ? { ...job, status: newStatus } : job
           )
         );
-        setMessage(`✅ Job "${job.title}" ${action}d successfully`);
-        setTimeout(() => setMessage(""), 5000);
+        toast.success(`Job "${job.title}" ${action}d successfully`);
       } else {
         const errorData = await response.json();
-        setMessage(
-          `❌ Failed to ${action} job: ${errorData.error || "Unknown error"}`
-        );
-        setTimeout(() => setMessage(""), 5000);
+        toast.error(`Failed to ${action} job: ${errorData.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Toggle job status error:", error);
-      setMessage("❌ Failed to update job status: Network error");
-      setTimeout(() => setMessage(""), 5000);
+      toast.error("Failed to update job status: Network error");
     }
   };
 
@@ -318,8 +306,7 @@ export default function JobPostingTab() {
       const trimmedTitle = newSectionTitle.trim();
       // Check if section already exists
       if (formData.customSections.some(section => section.title === trimmedTitle)) {
-        setMessage("❌ A section with this title already exists!");
-        setTimeout(() => setMessage(""), 3000);
+        toast.warning("A section with this title already exists!");
         return;
       }
       setFormData(prev => ({
@@ -452,62 +439,6 @@ export default function JobPostingTab() {
           </div>
         </div>
       </div>
-
-      {/* Message Display */}
-      {message && (
-        <div
-          className={`p-4 rounded-lg border flex items-center justify-between ${
-            message.includes("✅")
-              ? "bg-green-50 border-green-200 text-green-800"
-              : message.includes("❌")
-              ? "bg-red-50 border-red-200 text-red-800"
-              : message.includes("successfully")
-              ? "bg-green-50 border-green-200 text-green-800"
-              : "bg-red-50 border-red-200 text-red-800"
-          }`}
-        >
-          <span className="flex items-center">
-            {message.includes("✅") ? (
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            ) : (
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            )}
-            {message}
-          </span>
-          <button
-            onClick={() => setMessage("")}
-            className="text-gray-500 hover:text-gray-700 ml-4"
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-        </div>
-      )}
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

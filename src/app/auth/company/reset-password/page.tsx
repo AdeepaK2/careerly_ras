@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getPasswordPolicyError } from '@/lib/auth/passwordPolicy';
 import PasswordRequirements from '@/components/PasswordRequirements';
+import Notice from '@/components/ui/Notice';
 
 function ResetPasswordForm() {
   const [password, setPassword] = useState('');
@@ -94,15 +95,15 @@ function ResetPasswordForm() {
         </div>
 
         {message && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-blue-800 text-sm">{message}</p>
-          </div>
+          <Notice type="success" className="mb-6">
+            {message}
+          </Notice>
         )}
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800 text-sm">{error}</p>
-          </div>
+          <Notice type="error" className="mb-6" onClose={() => setError('')}>
+            {error}
+          </Notice>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">

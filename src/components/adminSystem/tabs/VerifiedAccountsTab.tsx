@@ -12,6 +12,7 @@ import {
   Users,
   Award
 } from 'lucide-react';
+import { toast } from '@/lib/toast';
 
 interface VerifiedAccount {
   _id: string;
@@ -165,11 +166,11 @@ export default function VerifiedAccountsTab() {
         fetchStats();
       } else {
         console.error('Failed to update verification:', data.message);
-        alert('Failed to update verification status');
+        toast.error('Failed to update verification status');
       }
     } catch (error) {
       console.error('Error updating verification:', error);
-      alert('Failed to update verification status');
+      toast.error('Failed to update verification status');
     } finally {
       setActionLoading(null);
     }

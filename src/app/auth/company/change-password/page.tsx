@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getPasswordPolicyError } from '@/lib/auth/passwordPolicy';
 import PasswordRequirements from '@/components/PasswordRequirements';
+import Notice from '@/components/ui/Notice';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -113,15 +114,15 @@ export default function ChangePasswordPage() {
         </div>
 
         {success && (
-          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 p-4 rounded-md">
+          <Notice type="success" className="mb-6" onClose={() => setSuccess('')}>
             {success}
-          </div>
+          </Notice>
         )}
 
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 p-4 rounded-md">
+          <Notice type="error" className="mb-6" onClose={() => setError('')}>
             {error}
-          </div>
+          </Notice>
         )}
 
         <div className="bg-white shadow rounded-lg overflow-hidden">

@@ -9,15 +9,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Verify transporter configuration
-transporter.verify((error: any, _success: any) => {
-  if (error) {
-    console.error('Email service configuration error:', error);
-  } else {
-    console.log('Email service is ready to send messages');
-  }
-});
-
 export interface EmailOptions {
   to: string | string[];
   subject: string;

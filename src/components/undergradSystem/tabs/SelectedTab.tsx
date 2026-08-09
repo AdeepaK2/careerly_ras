@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthenticatedRequest } from '@/hooks/useAuthenticatedRequest';
+import { toast } from '@/lib/toast';
 import {
   Briefcase,
   RefreshCw,
@@ -107,7 +108,7 @@ export default function SelectedTab() {
       }
     } catch (error) {
       console.error('Error downloading CV:', error);
-      alert(error instanceof Error ? error.message : 'Failed to download CV');
+      toast.error(error instanceof Error ? error.message : 'Failed to download CV');
     }
   };
 

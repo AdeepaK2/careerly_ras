@@ -9,7 +9,9 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "create-superadmin": "node --loader ts-node/esm scripts/create-superadmin.ts",
-    "migrate-custom-sections": "node --loader ts-node/esm scripts/migrate-custom-sections.ts"
+    "migrate-custom-sections": "node --loader ts-node/esm scripts/migrate-custom-sections.ts",
+    "seed": "npx tsx scripts/seed-sample-data.ts",
+    "seed:reset": "npx tsx scripts/seed-sample-data.ts --reset"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.0.0",

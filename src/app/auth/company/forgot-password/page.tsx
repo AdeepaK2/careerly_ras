@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Notice from '@/components/ui/Notice';
 
 export default function CompanyForgotPassword() {
   const [email, setEmail] = useState('');
@@ -50,15 +51,15 @@ export default function CompanyForgotPassword() {
         </div>
 
         {message && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-blue-800 text-sm">{message}</p>
-          </div>
+          <Notice type="info" className="mb-6">
+            {message}
+          </Notice>
         )}
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800 text-sm">{error}</p>
-          </div>
+          <Notice type="error" className="mb-6" onClose={() => setError('')}>
+            {error}
+          </Notice>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">

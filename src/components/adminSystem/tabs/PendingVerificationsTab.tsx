@@ -17,6 +17,7 @@ import {
   Flag,
   Download
 } from 'lucide-react';
+import { toast } from '@/lib/toast';
 
 interface VerificationRequest {
   _id: string;
@@ -159,11 +160,11 @@ export default function PendingVerificationsTab() {
         setDetailedRequest(data.data);
       } else {
         console.error('Failed to fetch detailed request:', data.message);
-        alert('Failed to load detailed information');
+        toast.error('Failed to load detailed information');
       }
     } catch (error) {
       console.error('Error fetching detailed request:', error);
-      alert('Failed to load detailed information');
+      toast.error('Failed to load detailed information');
     } finally {
       setLoadingDetails(false);
     }
@@ -241,14 +242,14 @@ export default function PendingVerificationsTab() {
         setNewNote('');
         
         // Show success message
-        alert(`Action completed successfully!`);
+        toast.success(`Action completed successfully!`);
       } else {
         console.error('Failed to perform action:', data.message);
-        alert('Failed to perform action');
+        toast.error('Failed to perform action');
       }
     } catch (error) {
       console.error('Error performing action:', error);
-      alert('Failed to perform action');
+      toast.error('Failed to perform action');
     } finally {
       setActionLoading(null);
     }

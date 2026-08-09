@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { toast } from "@/lib/toast";
 
 interface ApplicationFormData {
   cv: File | null;
@@ -78,7 +79,7 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
                   if (file) {
                     // Validate file size (5MB max)
                     if (file.size > 5 * 1024 * 1024) {
-                      alert("File size must be less than 5MB");
+                      toast.warning("File size must be less than 5MB");
                       return;
                     }
                     // Validate file type
@@ -88,7 +89,7 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
                       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                     ];
                     if (!allowedTypes.includes(file.type)) {
-                      alert("Please upload only PDF, DOC, or DOCX files");
+                      toast.warning("Please upload only PDF, DOC, or DOCX files");
                       return;
                     }
                   }

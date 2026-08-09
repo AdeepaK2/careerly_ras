@@ -1,6 +1,7 @@
 /**
  * University email validation for undergraduate accounts.
  * Rejects personal providers (Gmail, Yahoo, …) and requires an institutional domain.
+ * Supports many universities — not only University of Moratuwa.
  */
 
 const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -34,13 +35,41 @@ const PERSONAL_EMAIL_DOMAINS = new Set([
 ]);
 
 /**
- * Explicit institutional domains that do not match .edu / .ac. patterns
- * (e.g. University of Moratuwa).
+ * Known university / HEI domains (including those without .edu / .ac.).
+ * Subdomains are accepted automatically (e.g. stu.uom.lk, mail.sliit.lk).
  */
-const ALLOWED_UNIVERSITY_DOMAINS = new Set([
+const ALLOWED_UNIVERSITY_DOMAINS = [
+  // University of Moratuwa
   "uom.lk",
   "mrt.ac.lk",
-]);
+  // Other Sri Lankan state universities
+  "cmb.ac.lk",
+  "pdn.ac.lk",
+  "sjp.ac.lk",
+  "kln.ac.lk",
+  "jfn.ac.lk",
+  "ruh.ac.lk",
+  "ou.ac.lk",
+  "sab.ac.lk",
+  "rjt.ac.lk",
+  "uwu.ac.lk",
+  "seu.ac.lk",
+  "esn.ac.lk",
+  "wyb.ac.lk",
+  "kdu.ac.lk",
+  "vau.ac.lk",
+  "uwu.ac.lk",
+  // Private / other HEIs in Sri Lanka
+  "sliit.lk",
+  "sliit.ac.lk",
+  "nsbm.lk",
+  "nsbm.ac.lk",
+  "iit.ac.lk",
+  "nibm.lk",
+  "apiit.lk",
+  "cinec.edu",
+  "kdu.ac.lk",
+];
 
 function getEmailDomain(email: string): string | null {
   const trimmed = email.trim().toLowerCase();
@@ -49,17 +78,19 @@ function getEmailDomain(email: string): string | null {
   return trimmed.slice(at + 1);
 }
 
+function matchesAllowedDomain(domain: string): boolean {
+  return ALLOWED_UNIVERSITY_DOMAINS.some(
+    (allowed) => domain === allowed || domain.endsWith(`.${allowed}`)
+  );
+}
+
 function isInstitutionalDomain(domain: string): boolean {
-  if (ALLOWED_UNIVERSITY_DOMAINS.has(domain)) return true;
+  if (matchesAllowedDomain(domain)) return true;
 
-  // *.edu, *.edu.xx
+  // Global academic patterns: university.edu, college.edu.au, ox.ac.uk, …
   if (domain.endsWith(".edu") || domain.includes(".edu.")) return true;
-
-  // *.ac.xx (common for UK / South Asia universities)
   if (domain.includes(".ac.")) return true;
 
-  // Other Sri Lankan university-style hosts ending in .lk that aren't personal
-  // e.g. something.uom.lk already covered; keep conservative for plain .lk
   return false;
 }
 
@@ -96,7 +127,7 @@ export function getUniversityEmailError(email: string): string | null {
   }
 
   if (!isInstitutionalDomain(domain)) {
-    return "Please use a valid university email address (e.g. name@uom.lk)";
+    return "Please use a valid university email address (not a personal email)";
   }
 
   return null;

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuthenticatedRequest } from "@/hooks/useAuthenticatedRequest";
+import { toast } from "@/lib/toast";
 import JobDetailsModal from "../modals/JobDetailsModal";
 import ApplyJobModal from "../modals/ApplyJobModal";
 import {
@@ -217,11 +218,11 @@ export default function JobOpportunitiesTab() {
         }
       } else {
         console.error("Failed to save/unsave job:", response.error);
-        alert(response.error || "Failed to save job");
+        toast.error(response.error || "Failed to save job");
       }
     } catch (error) {
       console.error("Error saving/unsaving job:", error);
-      alert("Failed to save job. Please try again.");
+      toast.error("Failed to save job. Please try again.");
     } finally {
       setSavingJob(null);
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "@/lib/toast";
 
 interface ShortlistedApplicant {
   _id: string;
@@ -103,13 +104,13 @@ export default function ShortlistTab() {
         setShortlisted((prev) =>
           prev.filter((item) => item.applicationId._id !== applicationId)
         );
-        alert("Candidate removed from shortlist successfully");
+        toast.success("Candidate removed from shortlist successfully");
       } else {
-        alert("Failed to remove candidate from shortlist");
+        toast.error("Failed to remove candidate from shortlist");
       }
     } catch (error) {
       console.error("Error removing from shortlist:", error);
-      alert("Error removing candidate from shortlist");
+      toast.error("Error removing candidate from shortlist");
     } finally {
       setRemoving(null);
     }
@@ -197,7 +198,7 @@ Best regards,
       });
 
       if (response.ok) {
-        alert("Email sent successfully!");
+        toast.success("Email sent successfully!");
         setShowEmailModal(false);
         setEmailData({
           to: "",
@@ -208,11 +209,11 @@ Best regards,
         });
       } else {
         const error = await response.json();
-        alert(`Failed to send email: ${error.error || "Unknown error"}`);
+        toast.error(`Failed to send email: ${error.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error sending email:", error);
-      alert("Error sending email. Please try again.");
+      toast.error("Error sending email. Please try again.");
     }
   };
 
@@ -256,14 +257,14 @@ Best regards,
               : item
           )
         );
-        alert(`Candidate marked as ${statusType === 'interview' ? 'Interview Called' : 'Selected'} successfully!`);
+        toast.success(`Candidate marked as ${statusType === 'interview' ? 'Interview Called' : 'Selected'} successfully!`);
       } else {
         const error = await response.json();
-        alert(`Failed to update status: ${error.error || "Unknown error"}`);
+        toast.error(`Failed to update status: ${error.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error updating status:", error);
-      alert("Error updating status. Please try again.");
+      toast.error("Error updating status. Please try again.");
     } finally {
       setUpdatingStatus(null);
     }
@@ -298,11 +299,11 @@ Best regards,
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        alert("Failed to download CV");
+        toast.error("Failed to download CV");
       }
     } catch (error) {
       console.error("Error downloading CV:", error);
-      alert("Failed to download CV. Please try again.");
+      toast.error("Failed to download CV. Please try again.");
     }
   };
 

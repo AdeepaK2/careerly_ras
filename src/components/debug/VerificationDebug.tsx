@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { AlertTriangle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { toast } from '@/lib/toast';
 
 interface DebugInfo {
   tokenExists: boolean;
@@ -110,7 +111,7 @@ export default function VerificationDebug({ userType }: VerificationDebugProps) 
     if (typeof window !== 'undefined') {
       localStorage.removeItem('company_accessToken');
       localStorage.removeItem('accessToken');
-      alert('Tokens cleared. Please log in again.');
+      toast.success('Tokens cleared. Please log in again.');
       window.location.href = userType === 'company' ? '/auth/company/login' : '/auth/undergrad/login';
     }
   };
