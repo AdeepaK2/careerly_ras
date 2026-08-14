@@ -7,22 +7,17 @@ import {
   CheckCircle, 
   XCircle, 
   Search, 
-  Filter, 
   Eye, 
   MessageSquare,
   Building2,
   GraduationCap,
-  Calendar,
   TrendingUp,
-  Users,
   FileText,
   AlertCircle,
-  ChevronDown,
-  Send,
   Flag,
-  Upload,
   Download
 } from 'lucide-react';
+import { toast } from '@/lib/toast';
 
 interface VerificationRequest {
   _id: string;
@@ -116,7 +111,7 @@ export default function PendingVerificationsTab() {
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'company'>('company');
+  const [filterType, _setFilterType] = useState<'company'>('company');
   const [filterPriority, setFilterPriority] = useState<'all' | 'high' | 'medium' | 'low'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -165,11 +160,11 @@ export default function PendingVerificationsTab() {
         setDetailedRequest(data.data);
       } else {
         console.error('Failed to fetch detailed request:', data.message);
-        alert('Failed to load detailed information');
+        toast.error('Failed to load detailed information');
       }
     } catch (error) {
       console.error('Error fetching detailed request:', error);
-      alert('Failed to load detailed information');
+      toast.error('Failed to load detailed information');
     } finally {
       setLoadingDetails(false);
     }
@@ -196,11 +191,13 @@ export default function PendingVerificationsTab() {
   useEffect(() => {
     fetchRequests();
     fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setCurrentPage(1);
     fetchRequests(1, filterPriority, searchTerm);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterType, filterPriority, searchTerm]);
 
   const handlePageChange = (page: number) => {
@@ -245,14 +242,14 @@ export default function PendingVerificationsTab() {
         setNewNote('');
         
         // Show success message
-        alert(`Action completed successfully!`);
+        toast.success(`Action completed successfully!`);
       } else {
         console.error('Failed to perform action:', data.message);
-        alert('Failed to perform action');
+        toast.error('Failed to perform action');
       }
     } catch (error) {
       console.error('Error performing action:', error);
-      alert('Failed to perform action');
+      toast.error('Failed to perform action');
     } finally {
       setActionLoading(null);
     }

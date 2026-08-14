@@ -65,11 +65,41 @@ export async function POST(request: NextRequest) {
       )}`;
 
       const emailTemplate = emailTemplates.passwordReset(user.name, resetLink);
-      await sendEmail({
+      const emailResult = await sendEmail({
         to: user.universityEmail,
         subject: emailTemplate.subject,
         html: emailTemplate.html,
       });
+
+      if (!emailResult.success) {
+        console.error("Undergrad password reset email failed:", {
+          to: user.universityEmail,
+          error: emailResult.error,
+          message: emailResult.message,
+        });
+      } else {
+        console.log("Undergrad password reset email sent:", {
+          to: user.universityEmail,
+          messageId: emailResult.messageId,
+        });
+      }
+
+      // In local/dev, include the link so you can test when university mail blocks Gmail SMTP
+      const isDev = process.env.NODE_ENV === "development";
+      return NextResponse.json(
+        {
+          success: true,
+          message: successMessage,
+          ...(isDev
+            ? {
+                debugResetLink: resetLink,
+                debugEmailSent: emailResult.success,
+                debugEmailError: emailResult.success ? undefined : emailResult.error,
+              }
+            : {}),
+        },
+        { status: 200 }
+      );
     } catch (emailError) {
       console.error("Failed to send undergrad password reset email:", emailError);
       // Intentionally continue returning success to avoid enumeration and UX leakage

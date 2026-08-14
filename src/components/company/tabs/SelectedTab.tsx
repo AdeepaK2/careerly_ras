@@ -15,6 +15,7 @@ import {
   PhoneCall,
   Target
 } from "lucide-react";
+import { toast } from "@/lib/toast";
 
 interface SelectedCandidate {
   _id: string;
@@ -204,7 +205,7 @@ HR Team`;
       const token = localStorage.getItem("company_accessToken");
       
       if (!token) {
-        alert('Authentication error. Please login again.');
+        toast.error('Authentication error. Please login again.');
         return;
       }
 
@@ -223,7 +224,7 @@ HR Team`;
       });
 
       if (response.ok) {
-        alert('Email sent successfully!');
+        toast.success('Email sent successfully!');
         setShowEmailModal(false);
         setEmailData({
           to: "",
@@ -236,11 +237,11 @@ HR Team`;
         });
       } else {
         const error = await response.json();
-        alert(`Failed to send email: ${error.error || 'Unknown error'}`);
+        toast.error(`Failed to send email: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error sending email:', error);
-      alert('Error sending email. Please try again.');
+      toast.error('Error sending email. Please try again.');
     } finally {
       setSending(false);
     }

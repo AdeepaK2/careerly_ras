@@ -66,7 +66,7 @@ export const verifyUndergradAuth = (request: NextRequest): UndergradAuthResult =
       user: verification.payload
     };
 
-  } catch (error) {
+  } catch (_error) {
     return {
       success: false,
       error: 'Authentication verification failed'

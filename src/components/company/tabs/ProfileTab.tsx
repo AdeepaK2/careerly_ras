@@ -9,24 +9,11 @@ import {
   AlertCircle,
   Trash2,
   Pencil,
-  X,
   Loader2,
   Upload,
-  Building2,
-  Calendar,
-  Users,
-  Briefcase,
-  MapPin,
-  Globe,
-  Phone,
-  AtSign,
-  Hash,
-  FileText,
-  User,
-  CheckCircle,
-  Eye,
-  Bell
+  Building2
 } from "lucide-react";
+import Notice from "@/components/ui/Notice";
 
 export default function ProfileTab() {
   const [isEditing, setIsEditing] = useState(false);
@@ -363,19 +350,9 @@ export default function ProfileTab() {
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <AlertCircle className="h-5 w-5 text-red-400" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-600">{error}</p>
-            </div>
-            <button onClick={() => setError(null)} className="ml-auto">
-              <X className="h-4 w-4 text-red-500" />
-            </button>
-          </div>
-        </div>
+        <Notice type="error" className="mb-6" onClose={() => setError(null)}>
+          {error}
+        </Notice>
       )}
 
       {/* Main Content - Only show when not loading */}

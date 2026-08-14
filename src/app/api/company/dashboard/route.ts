@@ -150,7 +150,7 @@ export const GET = withCompanyAuth(async (_request: NextRequest, user) => {
     ]
       .sort((left, right) => right.timestamp.getTime() - left.timestamp.getTime())
       .slice(0, 6)
-      .map(({ timestamp, ...item }) => item);
+      .map(({ timestamp: _timestamp, ...item }) => item);
 
     return NextResponse.json(
       {

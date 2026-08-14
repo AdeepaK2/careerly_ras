@@ -2,15 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/utils/db";
 import Job from "@/lib/models/job";
 import Application from "@/lib/models/application";
-import Company from "@/lib/models/company"; // Import Company model to register it with Mongoose
 import { verifyAdminAccessToken } from "@/lib/auth/admin/jwt";
 
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
-
-    // Ensure Company model is registered by accessing it
-    Company;
 
     // Verify admin authentication
     const token = request.headers.get("authorization")?.replace("Bearer ", "");

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthenticatedRequest } from "@/hooks/useAuthenticatedRequest";
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from "@/lib/toast";
 import AppliedJobsModal from '@/components/undergradSystem/modals/AppliedJobsModal';
 import SavedJobsModal from '@/components/undergradSystem/modals/SavedJobsModal';
 import {
@@ -83,7 +84,7 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
   // Modal states
   const [showAppliedJobsModal, setShowAppliedJobsModal] = useState(false);
   const [showSavedJobsModal, setShowSavedJobsModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
 
   const { makeAuthenticatedRequest } = useAuthenticatedRequest();
   const { user } = useAuth();
@@ -110,6 +111,7 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
   useEffect(() => {
     fetchSavedJobs();
     fetchAppliedJobs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stats = [
@@ -188,11 +190,11 @@ export default function HomeTab({ onNavigateToTab }: HomeTabProps) {
         setSavedJobs(prevSaved => prevSaved.filter(job => job.jobId._id !== jobId));
       } else {
         console.error("Failed to unsave job:", response.error);
-        alert(response.error || "Failed to remove saved job");
+        toast.error(response.error || "Failed to remove saved job");
       }
     } catch (error) {
       console.error("Error unsaving job:", error);
-      alert("Failed to remove saved job. Please try again.");
+      toast.error("Failed to remove saved job. Please try again.");
     }
   };
 

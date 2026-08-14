@@ -5,20 +5,14 @@ import {
   Users,
   Building2,
   Briefcase,
-  AlertTriangle,
   CheckCircle,
   UserPlus,
   FileText,
   TrendingUp,
-  ArrowRight,
   Download,
-  Calendar,
-  Filter,
   RefreshCw,
-  Target,
   Award,
   Clock,
-  UserCheck,
   Building,
   Zap,
 } from "lucide-react";
@@ -40,7 +34,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useAuthenticatedRequest } from "@/hooks/useAuthenticatedRequest";
-import { format as formatDate, subDays, startOfDay, endOfDay } from "date-fns";
+import { format as formatDate, subDays } from "date-fns";
 import {
   DashboardStats,
   Activity,
@@ -312,6 +306,7 @@ export default function DashboardTab({ onNavigateToTab }: DashboardTabProps) {
 
   useEffect(() => {
     fetchDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange]);
 
   // Refresh data manually

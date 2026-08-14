@@ -3,8 +3,6 @@ import { verifyCompanyAccessToken } from "@/lib/auth/company/jwt";
 import { sendEmail } from "@/lib/services/emailService";
 import connectToDatabase from "@/utils/db";
 import Application from "@/lib/models/application";
-import Undergraduate from "@/lib/models/undergraduate";
-import Job from "@/lib/models/job";
 
 export async function POST(request: NextRequest) {
   try {

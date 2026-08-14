@@ -5,17 +5,10 @@ import {
   Eye,
   ExternalLink,
   Building2,
-  Calendar,
   MapPin,
   Users,
   Briefcase,
-  Globe,
-  CheckCircle,
-  Clock,
   Search,
-  Filter,
-  User,
-  Shield,
   Edit,
   RefreshCw,
   RotateCcw,
@@ -133,6 +126,7 @@ export default function AllJobsTab() {
 
   useEffect(() => {
     applyFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobs, filters]);
 
   const fetchAllJobs = async () => {

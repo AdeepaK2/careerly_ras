@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Shield } from "lucide-react";
+import Notice from "@/components/ui/Notice";
 
 // Reuse the same parseJwt helper logic used elsewhere in the app
 function parseJwt(token: string) {
@@ -172,9 +173,9 @@ export default function AdminLoginPage() {
           </div>
 
           {error && (
-            <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
+            <Notice type="error" className="mb-6" onClose={() => setError("")}>
+              {error}
+            </Notice>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">

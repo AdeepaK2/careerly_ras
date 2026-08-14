@@ -5,7 +5,6 @@ import {
   Plus,
   Send,
   X,
-  ExternalLink,
   Building2,
   ChevronDown,
   Search,
@@ -194,18 +193,6 @@ export default function AdminJobPostTab() {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
-
-  const handleCheckboxChange = (
-    value: string,
-    field: "qualifiedDegrees" | "skillsRequired"
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: prev[field].includes(value)
-        ? prev[field].filter((item) => item !== value)
-        : [...prev[field], value],
     }));
   };
 
@@ -401,7 +388,7 @@ export default function AdminJobPostTab() {
         setMessage(result.error || "Failed to post job");
         setMessageType("error");
       }
-    } catch (error) {
+    } catch (_error) {
       setMessage("Network error occurred");
       setMessageType("error");
     } finally {

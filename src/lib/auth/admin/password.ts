@@ -1,4 +1,8 @@
 import bcrypt from 'bcrypt';
+export {
+  validatePasswordStrength,
+  getPasswordPolicyError,
+} from '@/lib/auth/passwordPolicy';
 
 const SALT_ROUNDS = 12;
 

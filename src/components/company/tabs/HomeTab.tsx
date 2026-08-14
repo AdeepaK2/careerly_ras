@@ -12,9 +12,7 @@ import {
   Plus,
   FileText,
   UserCheck,
-  Clock,
   Building,
-  Mail,
   Phone,
   Activity,
   ArrowRight,
@@ -74,6 +72,7 @@ export default function HomeTab({ onTabChange }: HomeTabProps) {
 
   useEffect(() => {
     loadDashboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadDashboard = async () => {

@@ -3,8 +3,6 @@ import { verifyCompanyAccessToken } from "@/lib/auth/company/jwt";
 import connect from "@/utils/db";
 import ShortlistModel from "@/lib/models/shortlist";
 import JobModel from "@/lib/models/job";
-import ApplicationModel from "@/lib/models/application";
-import UndergradModel from "@/lib/models/undergraduate";
 
 // GET: Get all shortlisted applicants for a job
 export async function GET(
@@ -13,10 +11,6 @@ export async function GET(
 ) {
   try {
     await connect();
-
-    // Ensure all models are loaded for populate operations
-    ApplicationModel;
-    UndergradModel;
 
     const { id: jobId } = await params;
     const token = req.headers.get("authorization")?.replace("Bearer ", "");
@@ -32,7 +26,7 @@ export async function GET(
 
     // Verify company owns this job
     const job = await JobModel.findById(jobId);
-    if (!job || job.companyId.toString() !== company.id) {
+    if (!job || !job.companyId || job.companyId.toString() !== company.id) {
       return NextResponse.json(
         { error: "Job not found or unauthorized" },
         { status: 403 }

@@ -66,15 +66,38 @@ export async function POST(request: NextRequest) {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
       const resetLink = `${baseUrl}/auth/company/reset-password?token=${encodeURIComponent(resetToken)}`;
       
-      console.log('Base URL:', baseUrl); // Debug log
-      console.log('Reset link generated:', resetLink); // Debug log
-      
       const emailTemplate = emailTemplates.passwordReset(company.companyName, resetLink);
-      await sendEmail({
+      const emailResult = await sendEmail({
         to: company.businessEmail,
         subject: emailTemplate.subject,
         html: emailTemplate.html
       });
+
+      if (!emailResult.success) {
+        console.error('Company password reset email failed:', {
+          to: company.businessEmail,
+          error: emailResult.error,
+          message: emailResult.message,
+        });
+      } else {
+        console.log('Company password reset email sent:', {
+          to: company.businessEmail,
+          messageId: emailResult.messageId,
+        });
+      }
+
+      const isDev = process.env.NODE_ENV === 'development';
+      return NextResponse.json({
+        success: true,
+        message: successMessage,
+        ...(isDev
+          ? {
+              debugResetLink: resetLink,
+              debugEmailSent: emailResult.success,
+              debugEmailError: emailResult.success ? undefined : emailResult.error,
+            }
+          : {}),
+      }, { status: 200 });
     } catch (emailError) {
       console.error('Failed to send password reset email:', emailError);
       // Continue and return success to prevent revealing if email exists

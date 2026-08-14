@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { toast } from "@/lib/toast";
 
 interface ApplicationFormData {
   cv: File | null;
@@ -69,54 +70,106 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Upload CV *
             </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-[#8243ff] transition-colors duration-300">
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={(e) => {
-                  const file = e.target.files?.[0] || null;
-                  if (file) {
-                    // Validate file size (5MB max)
-                    if (file.size > 5 * 1024 * 1024) {
-                      alert("File size must be less than 5MB");
-                      return;
-                    }
-                    // Validate file type
-                    const allowedTypes = [
-                      'application/pdf',
-                      'application/msword',
-                      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                    ];
-                    if (!allowedTypes.includes(file.type)) {
-                      alert("Please upload only PDF, DOC, or DOCX files");
-                      return;
-                    }
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx"
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                if (file) {
+                  if (file.size > 5 * 1024 * 1024) {
+                    toast.warning("File size must be less than 5MB");
+                    e.target.value = "";
+                    return;
                   }
-                  setApplicationForm((prev) => ({
-                    ...prev,
-                    cv: file,
-                  }));
-                }}
-                className="hidden"
-                id="cv-upload"
-              />
+                  const allowedTypes = [
+                    "application/pdf",
+                    "application/msword",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                  ];
+                  if (!allowedTypes.includes(file.type)) {
+                    toast.warning("Please upload only PDF, DOC, or DOCX files");
+                    e.target.value = "";
+                    return;
+                  }
+                }
+                setApplicationForm((prev) => ({
+                  ...prev,
+                  cv: file,
+                }));
+              }}
+              className="hidden"
+              id="cv-upload"
+            />
+
+            {applicationForm.cv ? (
+              <div className="rounded-xl border-2 border-[#8243ff]/40 bg-gradient-to-br from-[#8243ff]/8 to-violet-50 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#8243ff] text-white shadow-md shadow-purple-200">
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-semibold text-gray-900">
+                        {applicationForm.cv.name}
+                      </p>
+                      <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+                        Selected
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {(applicationForm.cv.size / (1024 * 1024)).toFixed(2)} MB · Ready to submit
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <label
+                        htmlFor="cv-upload"
+                        className="cursor-pointer rounded-lg border border-[#8243ff]/30 bg-white px-3 py-1.5 text-xs font-medium text-[#8243ff] transition hover:bg-[#8243ff]/5"
+                      >
+                        Change file
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setApplicationForm((prev) => ({ ...prev, cv: null }));
+                          const input = document.getElementById("cv-upload") as HTMLInputElement | null;
+                          if (input) input.value = "";
+                        }}
+                        className="rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-1 text-emerald-500" aria-hidden>
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            ) : (
               <label
                 htmlFor="cv-upload"
-                className="cursor-pointer flex flex-col items-center"
+                className="flex cursor-pointer flex-col items-center rounded-xl border-2 border-dashed border-gray-300 p-6 transition-colors duration-300 hover:border-[#8243ff] hover:bg-[#8243ff]/5"
               >
-                <div className="w-12 h-12 bg-[#8243ff]/10 rounded-full flex items-center justify-center mb-3">
-                  <svg className="w-6 h-6 text-[#8243ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#8243ff]/10">
+                  <svg className="h-6 w-6 text-[#8243ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                 </div>
                 <span className="text-sm font-medium text-gray-700">
-                  {applicationForm.cv ? applicationForm.cv.name : "Click to upload CV"}
+                  Click to upload CV
                 </span>
-                <span className="text-xs text-gray-500 mt-1">
+                <span className="mt-1 text-xs text-gray-500">
                   PDF, DOC, DOCX (Max 5MB)
                 </span>
               </label>
-            </div>
+            )}
           </div>
 
           {/* Cover Letter */}

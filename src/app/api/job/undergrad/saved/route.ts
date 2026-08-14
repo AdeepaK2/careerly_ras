@@ -34,8 +34,19 @@ export async function GET(req: NextRequest) {
       }, { status: 200 });
     }
 
+    const undergradDoc = savedJobs as {
+      savedJobs?: Array<{
+        jobId?: {
+          companyId?: unknown;
+          [key: string]: unknown;
+        } | null;
+        companyName?: string;
+        [key: string]: unknown;
+      }>;
+    };
+
     const savedJobsWithCompany = await Promise.all(
-      (savedJobs.savedJobs || []).map(async (savedJob: any) => {
+      (undergradDoc.savedJobs || []).map(async (savedJob) => {
         if (!savedJob.jobId) {
           return {
             ...savedJob,
@@ -46,7 +57,7 @@ export async function GET(req: NextRequest) {
         if (savedJob.jobId.companyId) {
           const company = await CompanyModel.findById(savedJob.jobId.companyId)
             .select('companyName logo')
-            .lean();
+            .lean() as { companyName?: string; logo?: string | null } | null;
 
           return {
             ...savedJob,
@@ -60,11 +71,19 @@ export async function GET(req: NextRequest) {
 
         return {
           ...savedJob,
-          companyName: savedJob.jobId.customCompanyName || savedJob.companyName || 'Unknown Company',
+          companyName:
+            (typeof savedJob.jobId.customCompanyName === "string"
+              ? savedJob.jobId.customCompanyName
+              : undefined) ||
+            savedJob.companyName ||
+            "Unknown Company",
           jobId: {
             ...savedJob.jobId,
             companyId: {
-              companyName: savedJob.jobId.customCompanyName || 'Unknown Company',
+              companyName:
+                (typeof savedJob.jobId.customCompanyName === "string"
+                  ? savedJob.jobId.customCompanyName
+                  : undefined) || "Unknown Company",
               logo: null,
             },
           },

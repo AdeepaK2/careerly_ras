@@ -2,19 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyCompanyAccessToken } from "@/lib/auth/company/jwt";
 import connect from "@/utils/db";
 import ShortlistModel from "@/lib/models/shortlist";
-import ApplicationModel from "@/lib/models/application";
-import JobModel from "@/lib/models/job";
-import UndergradModel from "@/lib/models/undergraduate";
 
 // GET: Get all shortlisted applicants across all company jobs
 export async function GET(req: NextRequest) {
   try {
     await connect();
-
-    // Ensure all models are loaded for populate operations
-    ApplicationModel;
-    JobModel;
-    UndergradModel;
 
     const token = req.headers.get("authorization")?.replace("Bearer ", "");
 

@@ -3,6 +3,9 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { getPasswordPolicyError } from '@/lib/auth/passwordPolicy';
+import PasswordRequirements from '@/components/PasswordRequirements';
+import Notice from '@/components/ui/Notice';
 
 function ResetPasswordForm() {
   const [password, setPassword] = useState('');
@@ -24,29 +27,13 @@ function ResetPasswordForm() {
     setToken(tokenFromUrl);
   }, [searchParams]);
 
-  const validatePassword = (input: string) => {
-    if (input.length < 8) {
-      return 'Password must be at least 8 characters long';
-    }
-    if (!/(?=.*[a-z])/.test(input)) {
-      return 'Password must contain at least one lowercase letter';
-    }
-    if (!/(?=.*[A-Z])/.test(input)) {
-      return 'Password must contain at least one uppercase letter';
-    }
-    if (!/(?=.*\d)/.test(input)) {
-      return 'Password must contain at least one number';
-    }
-    return null;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setMessage('');
 
-    const passwordError = validatePassword(password);
+    const passwordError = getPasswordPolicyError(password);
     if (passwordError) {
       setError(passwordError);
       setLoading(false);
@@ -78,7 +65,7 @@ function ResetPasswordForm() {
       } else {
         setError(data.message || 'Failed to reset password. Please try again.');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);
@@ -105,15 +92,15 @@ function ResetPasswordForm() {
         </div>
 
         {message && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-blue-800 text-sm">{message}</p>
-          </div>
+          <Notice type="success" className="mb-6">
+            {message}
+          </Notice>
         )}
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800 text-sm">{error}</p>
-          </div>
+          <Notice type="error" className="mb-6" onClose={() => setError('')}>
+            {error}
+          </Notice>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -127,19 +114,12 @@ function ResetPasswordForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="new-password"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900"
-              placeholder="Enter new password"
+              placeholder="Create a strong password"
               disabled={loading || !token}
             />
-            <div className="mt-2 text-xs text-gray-500">
-              <p>Password must contain:</p>
-              <ul className="list-disc list-inside ml-2">
-                <li>At least 8 characters</li>
-                <li>One uppercase letter</li>
-                <li>One lowercase letter</li>
-                <li>One number</li>
-              </ul>
-            </div>
+            <PasswordRequirements password={password} />
           </div>
 
           <div>

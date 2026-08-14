@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import connectDB from "@/utils/db";
 import AdminModel from "@/lib/models/admin";
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     await connectDB();
 

@@ -46,7 +46,7 @@ interface SavedJob {
     posted_date: string;
   };
   savedAt: string;
-  companyName: string;
+  companyName?: string;
 }
 
 interface SavedJobsModalProps {

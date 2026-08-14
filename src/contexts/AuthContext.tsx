@@ -61,6 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Check if user is logged in on mount
   useEffect(() => {
     checkAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuth = async () => {

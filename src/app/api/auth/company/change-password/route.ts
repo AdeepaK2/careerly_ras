@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withCompanyAuth } from "@/lib/auth/company/middleware";
 import connect from "@/utils/db";
 import CompanyModel from "@/lib/models/company";
-import { verifyPassword, hashPassword } from "@/lib/auth/company/password";
+import { verifyPassword, hashPassword, getPasswordPolicyError } from "@/lib/auth/company/password";
 
 export const POST = withCompanyAuth(async (request: NextRequest, user) => {
   try {
@@ -11,7 +11,6 @@ export const POST = withCompanyAuth(async (request: NextRequest, user) => {
     const body = await request.json();
     const { currentPassword, newPassword } = body;
 
-    // Validation
     if (!currentPassword || !newPassword) {
       return NextResponse.json({
         success: false,
@@ -19,14 +18,21 @@ export const POST = withCompanyAuth(async (request: NextRequest, user) => {
       }, { status: 400 });
     }
 
-    if (newPassword.length < 8) {
+    const policyError = getPasswordPolicyError(newPassword);
+    if (policyError) {
       return NextResponse.json({
         success: false,
-        message: "New password must be at least 8 characters"
+        message: policyError
       }, { status: 400 });
     }
 
-    // Get the company with password
+    if (currentPassword === newPassword) {
+      return NextResponse.json({
+        success: false,
+        message: "New password must be different from your current password"
+      }, { status: 400 });
+    }
+
     const company = await CompanyModel.findById(user.id);
     if (!company) {
       return NextResponse.json({
@@ -35,7 +41,6 @@ export const POST = withCompanyAuth(async (request: NextRequest, user) => {
       }, { status: 404 });
     }
 
-    // Verify current password
     const isValidPassword = await verifyPassword(currentPassword, company.password);
     if (!isValidPassword) {
       return NextResponse.json({
@@ -44,11 +49,7 @@ export const POST = withCompanyAuth(async (request: NextRequest, user) => {
       }, { status: 400 });
     }
 
-    // Hash new password
-    const hashedNewPassword = await hashPassword(newPassword);
-
-    // Update password
-    company.password = hashedNewPassword;
+    company.password = await hashPassword(newPassword);
     await company.save();
 
     return NextResponse.json({

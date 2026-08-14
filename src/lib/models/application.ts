@@ -1,5 +1,4 @@
-import mongoose, { Mongoose, Schema } from "mongoose";
-import JobModel from "./job";
+import mongoose, { Schema } from "mongoose";
 
 const applicationSchema = new mongoose.Schema({
   jobId: {

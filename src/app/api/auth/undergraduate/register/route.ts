@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import connect from "@/utils/db";
 import UndergradModel from "@/lib/models/undergraduate";
-import { hashPassword } from "@/lib/auth/undergraduate/password";
+import { hashPassword, getPasswordPolicyError } from "@/lib/auth/undergraduate/password";
 import { generateUndergradTokens, generateEmailVerificationToken } from "@/lib/auth/undergraduate/jwt";
 import { sendEmail, emailTemplates } from "@/lib/services/emailService";
+import { getUniversityEmailError } from "@/lib/auth/undergraduate/universityEmail";
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,20 +20,21 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
     
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(body.universityEmail)) {
+    // University email validation (reject Gmail and other personal providers)
+    const universityEmailError = getUniversityEmailError(body.universityEmail);
+    if (universityEmailError) {
       return NextResponse.json({
         success: false,
-        message: "Invalid email format"
+        message: universityEmailError
       }, { status: 400 });
     }
     
     // Password strength validation
-    if (body.password.length < 8) {
+    const passwordError = getPasswordPolicyError(body.password);
+    if (passwordError) {
       return NextResponse.json({
         success: false,
-        message: "Password must be at least 8 characters"
+        message: passwordError
       }, { status: 400 });
     }
     

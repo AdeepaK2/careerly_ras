@@ -9,12 +9,11 @@ import {
   Upload, 
   FileText, 
   MessageSquare,
-  Info,
-  Calendar,
   ArrowRight,
   RefreshCw
 } from 'lucide-react';
 import VerificationDebug from '@/components/debug/VerificationDebug';
+import { toast } from '@/lib/toast';
 
 interface VerificationData {
   company: {
@@ -74,7 +73,7 @@ export default function CompanyVerificationStatus({ onVerificationUpdate }: Comp
       
       if (!token) {
         console.error('No access token found for company');
-        alert('Authentication error: Please log in again');
+        toast.error('Authentication error: Please log in again');
         return;
       }
 
@@ -94,11 +93,11 @@ export default function CompanyVerificationStatus({ onVerificationUpdate }: Comp
         console.log('Verification data loaded successfully');
       } else {
         console.error('Failed to fetch verification status:', data.message);
-        alert('Failed to load verification status: ' + data.message);
+        toast.error('Failed to load verification status: ' + data.message);
       }
     } catch (error) {
       console.error('Error fetching verification status:', error);
-      alert('Network error: Failed to load verification status');
+      toast.error('Network error: Failed to load verification status');
     } finally {
       setLoading(false);
     }
@@ -110,7 +109,7 @@ export default function CompanyVerificationStatus({ onVerificationUpdate }: Comp
     // Validate file size (10MB limit)
     const maxSize = 10 * 1024 * 1024; // 10MB in bytes
     if (uploadFile.size > maxSize) {
-      alert('File size must be less than 10MB');
+      toast.warning('File size must be less than 10MB');
       return;
     }
 
@@ -118,7 +117,7 @@ export default function CompanyVerificationStatus({ onVerificationUpdate }: Comp
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 
                          'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     if (!allowedTypes.includes(uploadFile.type)) {
-      alert('Please upload a valid file type (PDF, JPG, PNG, DOC, DOCX)');
+      toast.warning('Please upload a valid file type (PDF, JPG, PNG, DOC, DOCX)');
       return;
     }
 
@@ -140,7 +139,7 @@ export default function CompanyVerificationStatus({ onVerificationUpdate }: Comp
       console.log('Upload response:', uploadData);
       
       if (!uploadData.success) {
-        alert('Failed to upload file: ' + uploadData.message);
+        toast.error('Failed to upload file: ' + uploadData.message);
         return;
       }
 
@@ -178,13 +177,13 @@ export default function CompanyVerificationStatus({ onVerificationUpdate }: Comp
         setSelectedDocType('');
         await fetchVerificationStatus();
         if (onVerificationUpdate) onVerificationUpdate();
-        alert('Document uploaded successfully!');
+        toast.success('Document uploaded successfully!');
       } else {
-        alert('Failed to submit document: ' + data.message);
+        toast.error('Failed to submit document: ' + data.message);
       }
     } catch (error) {
       console.error('Error uploading document:', error);
-      alert('Failed to upload document: ' + (error as Error).message);
+      toast.error('Failed to upload document: ' + (error as Error).message);
     } finally {
       setUploading(false);
     }
@@ -214,13 +213,13 @@ export default function CompanyVerificationStatus({ onVerificationUpdate }: Comp
         setShowMessageModal(false);
         setNewMessage('');
         await fetchVerificationStatus();
-        alert('Message sent successfully!');
+        toast.success('Message sent successfully!');
       } else {
-        alert('Failed to send message: ' + data.message);
+        toast.error('Failed to send message: ' + data.message);
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      alert('Failed to send message');
+      toast.error('Failed to send message');
     }
   };
 
@@ -244,13 +243,13 @@ export default function CompanyVerificationStatus({ onVerificationUpdate }: Comp
       if (data.success) {
         await fetchVerificationStatus();
         if (onVerificationUpdate) onVerificationUpdate();
-        alert('Verification request submitted successfully!');
+        toast.success('Verification request submitted successfully!');
       } else {
-        alert('Failed to submit verification request: ' + data.message);
+        toast.error('Failed to submit verification request: ' + data.message);
       }
     } catch (error) {
       console.error('Error requesting verification:', error);
-      alert('Failed to submit verification request');
+      toast.error('Failed to submit verification request');
     }
   };
 

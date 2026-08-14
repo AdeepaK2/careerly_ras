@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import CompanyVerificationStatus from "@/components/companySystem/VerificationStatus";
 
 export default function VerificationTab() {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuthenticatedRequest } from "@/hooks/useAuthenticatedRequest";
+import { toast } from "@/lib/toast";
 import JobDetailsModal from "../modals/JobDetailsModal";
 import ApplyJobModal from "../modals/ApplyJobModal";
 import {
@@ -117,6 +118,7 @@ export default function JobOpportunitiesTab() {
     fetchJobs();
     fetchSavedJobs();
     fetchAppliedJobs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showAllJobs]);
 
   const fetchJobs = async (isLoadMore = false) => {
@@ -216,11 +218,11 @@ export default function JobOpportunitiesTab() {
         }
       } else {
         console.error("Failed to save/unsave job:", response.error);
-        alert(response.error || "Failed to save job");
+        toast.error(response.error || "Failed to save job");
       }
     } catch (error) {
       console.error("Error saving/unsaving job:", error);
-      alert("Failed to save job. Please try again.");
+      toast.error("Failed to save job. Please try again.");
     } finally {
       setSavingJob(null);
     }
@@ -555,7 +557,7 @@ export default function JobOpportunitiesTab() {
       {/* Job Listings */}
       <div className="space-y-4">
         {filteredJobs.length > 0 ? (
-          filteredJobs.map((job, index) => (
+          filteredJobs.map((job, _index) => (
             <div
               key={job._id}
               className="bg-gradient-to-br from-white via-gray-50/30 to-white rounded-xl shadow-md border border-gray-100 hover:shadow-xl"

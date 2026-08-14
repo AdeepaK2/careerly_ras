@@ -4,7 +4,7 @@ import CompanyModel from "@/lib/models/company";
 import UndergraduateModel from "@/lib/models/undergraduate";
 // import { withAdminAuth } from "@/lib/auth/admin/middleware";
 
-async function handler(request: NextRequest) {
+async function handler(_request: NextRequest) {
   try {
     await connect();
     

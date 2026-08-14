@@ -9,7 +9,9 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "create-superadmin": "node --loader ts-node/esm scripts/create-superadmin.ts",
-    "migrate-custom-sections": "node --loader ts-node/esm scripts/migrate-custom-sections.ts"
+    "migrate-custom-sections": "node --loader ts-node/esm scripts/migrate-custom-sections.ts",
+    "seed": "npx tsx scripts/seed-sample-data.ts",
+    "seed:reset": "npx tsx scripts/seed-sample-data.ts --reset"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.0.0",
@@ -37,6 +39,8 @@
     "@types/node": "^20.19.9",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19",
+    "eslint": "9.39.5",
+    "eslint-config-next": "^15.4.10",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"

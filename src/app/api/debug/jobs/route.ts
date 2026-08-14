@@ -61,16 +61,19 @@ export async function GET(req: NextRequest) {
       },
       userInfo: userDegreeInfo,
       matchingJobsCount: matchingJobs.length,
-      jobs: allJobs.map(job => ({
-        _id: job._id,
-        title: job.title,
-        company: job.companyId?.companyName || "Unknown Company",
-        status: job.status,
-        qualifiedDegrees: job.qualifiedDegrees,
-        posted_date: job.posted_date,
-        createdAt: job.createdAt,
-        matchesUserDegree: userDegreeInfo?.degree ? job.qualifiedDegrees?.includes(userDegreeInfo.degree) : null
-      }))
+      jobs: allJobs.map(job => {
+        const company = job.companyId as { companyName?: string } | null | undefined;
+        return {
+          _id: job._id,
+          title: job.title,
+          company: company?.companyName || "Unknown Company",
+          status: job.status,
+          qualifiedDegrees: job.qualifiedDegrees,
+          posted_date: job.posted_date,
+          createdAt: job.createdAt,
+          matchesUserDegree: userDegreeInfo?.degree ? job.qualifiedDegrees?.includes(userDegreeInfo.degree) : null
+        };
+      })
     }, { status: 200 });
 
   } catch (error) {

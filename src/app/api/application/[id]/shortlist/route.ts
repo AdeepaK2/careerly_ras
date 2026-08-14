@@ -13,10 +13,6 @@ export async function POST(
   try {
     await connect();
 
-    // Ensure all models are loaded
-    ApplicationModel;
-    JobModel;
-
     const { id: applicationId } = await params;
     const token = req.headers.get("authorization")?.replace("Bearer ", "");
 
@@ -47,7 +43,7 @@ export async function POST(
     }
 
     // Verify company owns this job
-    if (job.companyId.toString() !== company.id) {
+    if (!job.companyId || job.companyId.toString() !== company.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -97,10 +93,6 @@ export async function DELETE(
 ) {
   try {
     await connect();
-
-    // Ensure all models are loaded
-    ApplicationModel;
-    JobModel;
 
     const { id: applicationId } = await params;
     const token = req.headers.get("authorization")?.replace("Bearer ", "");

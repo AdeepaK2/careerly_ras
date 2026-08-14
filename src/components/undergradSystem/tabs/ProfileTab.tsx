@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuthenticatedRequest } from '@/hooks/useAuthenticatedRequest';
+import { toast } from '@/lib/toast';
 
 interface UserProfile {
   id: string;
@@ -52,6 +53,7 @@ export default function ProfileTab() {
 
   useEffect(() => {
     fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchProfile = async () => {
@@ -84,13 +86,13 @@ export default function ProfileTab() {
       : ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     
     if (!allowedTypes.includes(file.type)) {
-      alert(`Invalid file type. Please upload ${type === 'profilePic' ? 'an image (JPG, PNG)' : 'a PDF or Word document'}.`);
+      toast.warning(`Invalid file type. Please upload ${type === 'profilePic' ? 'an image (JPG, PNG)' : 'a PDF or Word document'}.`);
       return;
     }
 
     // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size too large. Please upload a file smaller than 5MB.');
+      toast.warning('File size too large. Please upload a file smaller than 5MB.');
       return;
     }
 
@@ -124,18 +126,18 @@ export default function ProfileTab() {
         if (response.success) {
           setProfile(response.data.user);
           setImageError(false); // Reset image error when profile updates
-          alert(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully!`);
+          toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully!`);
         } else {
           console.error('Failed to update profile:', response.message);
-          alert('Upload successful but failed to update profile.');
+          toast.error('Upload successful but failed to update profile.');
         }
       } else {
         console.error('Upload failed:', uploadResult.message);
-        alert('Failed to upload file.');
+        toast.error('Failed to upload file.');
       }
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('Error uploading file.');
+      toast.error('Error uploading file.');
     } finally {
       setUploading(prev => ({ ...prev, [type]: false }));
     }
@@ -156,11 +158,11 @@ export default function ProfileTab() {
         link.remove();
         window.URL.revokeObjectURL(downloadUrl);
       } else {
-        alert('Failed to download file.');
+        toast.error('Failed to download file.');
       }
     } catch (error) {
       console.error('Error downloading file:', error);
-      alert('Error downloading file.');
+      toast.error('Error downloading file.');
     }
   };
 
@@ -206,14 +208,14 @@ export default function ProfileTab() {
         setProfile(response.data.user);
         setIsEditing(false);
         setEditedProfile({});
-        alert('Profile updated successfully!');
+        toast.success('Profile updated successfully!');
       } else {
         console.error('Failed to update profile:', response.message);
-        alert('Failed to update profile: ' + response.message);
+        toast.error('Failed to update profile: ' + response.message);
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Error updating profile.');
+      toast.error('Error updating profile.');
     } finally {
       setSaving(false);
     }
@@ -232,7 +234,7 @@ export default function ProfileTab() {
       );
       
       if (skillExists) {
-        alert('This skill is already added!');
+        toast.warning('This skill is already added!');
         return;
       }
       
@@ -352,7 +354,7 @@ export default function ProfileTab() {
                     className={`w-32 h-32 rounded-full object-cover border-4 border-gray-200 ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity`}
                     onLoad={() => setImageLoading(false)}
                     onLoadStart={() => setImageLoading(true)}
-                    onError={(e) => {
+                    onError={(_e) => {
                       setImageLoading(false);
                       setImageError(true);
                     }}

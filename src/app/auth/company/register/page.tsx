@@ -3,7 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getPasswordPolicyError } from "@/lib/auth/passwordPolicy";
+import PasswordRequirements from "@/components/PasswordRequirements";
 import { locationData } from "@/data/location";
+import Notice from "@/components/ui/Notice";
 
 // Type for location data
 type LocationDataType = {
@@ -14,6 +17,8 @@ export default function CompanyRegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [selectedProvince, setSelectedProvince] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [cities, setCities] = useState<string[]>([]);
@@ -109,8 +114,9 @@ export default function CompanyRegisterPage() {
       setError("Passwords do not match");
       return;
     }
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters");
+    const passwordError = getPasswordPolicyError(formData.password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
     const currentYear = new Date().getFullYear();
@@ -122,7 +128,7 @@ export default function CompanyRegisterPage() {
 
     setLoading(true);
     try {
-      const { confirmPassword, ...submitData } = formData;
+      const { confirmPassword: _confirmPassword, ...submitData } = formData;
       const dataToSubmit = { ...submitData, foundedYear };
       const response = await fetch("/api/auth/company/register", {
         method: "POST",
@@ -190,24 +196,9 @@ export default function CompanyRegisterPage() {
             </div>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
-                <div className="flex">
-                  <svg
-                    className="h-5 w-5 text-red-400"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <p className="ml-3 text-red-700 text-sm font-medium">
-                    {error}
-                  </p>
-                </div>
-              </div>
+              <Notice type="error" className="mb-6" onClose={() => setError("")}>
+                {error}
+              </Notice>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-8">
@@ -359,29 +350,70 @@ export default function CompanyRegisterPage() {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Password *
                     </label>
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
-                      placeholder="Enter your password"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        autoComplete="new-password"
+                        className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
+                        placeholder="Create a strong password"
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        onClick={() => setShowPassword((v) => !v)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? (
+                          <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                    <PasswordRequirements password={formData.password} />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Confirm Password *
                     </label>
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
-                      placeholder="Confirm your password"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        required
+                        autoComplete="new-password"
+                        className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
+                        placeholder="Confirm your password"
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        onClick={() => setShowConfirmPassword((v) => !v)}
+                        aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                      >
+                        {showConfirmPassword ? (
+                          <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

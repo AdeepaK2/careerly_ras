@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAccessToken } from "@/lib/auth/admin/jwt";
-import { hashPassword } from "@/lib/auth/admin/password";
+import { hashPassword, getPasswordPolicyError } from "@/lib/auth/admin/password";
 import connect from "@/utils/db";
 import AdminModel from "@/lib/models/admin";
 
@@ -27,7 +27,7 @@ export async function PUT(request: NextRequest) {
     let payload;
     try {
       payload = verifyAdminAccessToken(token);
-    } catch (err) {
+    } catch (_err) {
       return NextResponse.json(
         { success: false, message: "Invalid or expired token" },
         { status: 401 }
@@ -73,11 +73,14 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    if (password && password.length < 8) {
-      return NextResponse.json(
-        { success: false, message: "Password must be at least 8 characters" },
-        { status: 400 }
-      );
+    if (password) {
+      const passwordError = getPasswordPolicyError(password);
+      if (passwordError) {
+        return NextResponse.json(
+          { success: false, message: passwordError },
+          { status: 400 }
+        );
+      }
     }
 
     if (role && !["admin", "superadmin"].includes(role)) {

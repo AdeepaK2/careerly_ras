@@ -5,17 +5,14 @@ import {
   CheckCircle, 
   XCircle, 
   Search, 
-  Filter, 
   Eye, 
-  MoreVertical, 
   Building2,
   GraduationCap,
-  Calendar,
   TrendingUp,
   Users,
-  Award,
-  BarChart3
+  Award
 } from 'lucide-react';
+import { toast } from '@/lib/toast';
 
 interface VerifiedAccount {
   _id: string;
@@ -129,11 +126,13 @@ export default function VerifiedAccountsTab() {
   useEffect(() => {
     fetchAccounts();
     fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setCurrentPage(1);
     fetchAccounts(1, filterType, filterVerification, searchTerm);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterType, filterVerification, searchTerm]);
 
   const handlePageChange = (page: number) => {
@@ -167,11 +166,11 @@ export default function VerifiedAccountsTab() {
         fetchStats();
       } else {
         console.error('Failed to update verification:', data.message);
-        alert('Failed to update verification status');
+        toast.error('Failed to update verification status');
       }
     } catch (error) {
       console.error('Error updating verification:', error);
-      alert('Failed to update verification status');
+      toast.error('Failed to update verification status');
     } finally {
       setActionLoading(null);
     }

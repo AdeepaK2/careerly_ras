@@ -100,7 +100,7 @@ export function withCompanyAuth(
 /**
  * Check if company email is verified (for login access)
  */
-export function requireEmailVerified(user: CompanyJWTPayload): boolean {
+export function requireEmailVerified(_user: CompanyJWTPayload): boolean {
   // This will be checked during login, so we assume email is verified if they can login
   return true;
 }
